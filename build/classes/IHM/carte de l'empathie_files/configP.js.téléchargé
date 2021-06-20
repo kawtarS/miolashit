@@ -1,0 +1,14 @@
+var PREFIX = "https://board.tuzzit.com/";
+
+//STRIPE
+var STRIPE_PUBLISH_KEY = "pk_live_vefN1NR2JZmeIeY03lfH6IWr";
+
+//PUSHER
+var PUSHER_KEY = "585462e7ebed013ec1b5";
+var FORCE_ENCRYPTION = true;
+
+//SERVER ENV
+var SERVER_ENV = "PROD";
+
+//INTERCOM
+var INTERCOM_APPID = "02db181559952225ce711805e8fe4a438e1bb844";

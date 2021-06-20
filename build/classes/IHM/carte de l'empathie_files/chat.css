@@ -1,0 +1,615 @@
+/* CSS du chat */
+
+/* Trigger du chat */
+
+#chatTriggerContainer, #shareTriggerContainer, #videoTriggerContainer, #voteTriggerContainer, #inceptionTriggerContainer{
+    position: fixed;
+    bottom: 14px;
+    right: 16px;
+
+    display: block;
+    width: 60px;
+    height: 60px;
+}
+
+    #shareTriggerContainer{
+        right: 83px;
+    }
+
+    #videoTriggerContainer{
+        right: 150px;
+    }
+
+#chatTrigger, #shareTrigger, #videoTrigger, #voteTrigger, #inceptionTrigger{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    z-index: 20;
+
+    cursor: pointer;
+
+    opacity: 0;
+
+    width: 24px !important;
+    height: 24px !important;
+    
+    padding: 0 !important;
+
+    -webkit-border-radius: 30px;
+    -moz-border-radius: 30px;
+    border-radius: 30px;
+
+    -ms-transform-origin: center center;
+    -webkit-transform-origin: center center;
+    transform-origin: center center;
+
+    background: rgb(153, 164, 174) url("/public/images/boardIcons/chatIcon.png") no-repeat;
+    border: 1px solid transparent;
+    background-position: 1px 4px;
+    background-size: 21px;
+}
+
+    #shareTrigger{
+        background: rgb(153, 164, 174) url("/public/images/boardIcons/shareBoardIcon.png") no-repeat;
+    }
+
+    #videoTrigger{
+        background: rgb(153, 164, 174) url("/public/images/boardIcons/videoBoardIcon.png") no-repeat;
+    }
+
+    #voteTrigger {
+        background: rgb(153, 164, 174) url("/public/images/boardIcons/vote.png") no-repeat;
+        background-position: center center !important;
+    }
+
+    #inceptionTrigger{
+        background: #1ddc6e url("/public/images/gobackIcon.png") no-repeat;
+        background-position: center center !important;
+    }
+
+    #chatTrigger:hover, #chatTrigger.newMessage:hover, #shareTrigger:hover, #videoTrigger:hover, #voteTrigger:hover, #inceptionTrigger:hover{
+        background-color: #1ddc6e !important;
+    }
+    
+    #chatTrigger.newMessage{
+        background-color: #fdc300;
+    }
+
+    .numberMessage{
+        display: none;
+        opacity: 0;
+
+        background-color: #34495e;
+
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+
+        color: white;
+        padding: 3px;
+        font-size: 10px;
+
+        position: absolute;
+        right: 8px;
+        top: 8px;
+
+        -webkit-animation: twitching 2.5s infinite;
+        animation: twitching 2.5s infinite;
+    }
+
+    #chatTrigger.newMessage .numberMessage{
+        display: inline-block;
+        opacity: 1;
+    }
+
+body:hover #chatTrigger, body:hover #shareTrigger, body:hover #videoTrigger, body:hover #voteTrigger, body:hover #inceptionTrigger{
+    opacity: 0.95;
+    padding: 13px !important;
+    background-position: 14px 16px;
+}
+
+    body:hover #shareTrigger{
+        background-position: 12px 14px;
+    }
+
+    #videoTrigger{
+        background-position: 1px -120px;
+    }
+
+    body:hover #videoTrigger{
+        background-position: 10px -108px;
+    }
+
+/* Chat en lui-même */
+
+#chatItself, #shareItself, #voteItself, #inceptionItself{
+    position: fixed;
+    z-index: 200;
+    right: 21px;
+    bottom: 0;
+    width: 450px;
+    height: 395px;
+    background-color: #EBEDEF;
+}
+
+    #inceptionItself{
+        height: 128px;
+        width: 460px;
+    }
+
+    #inceptionItself h3 a{
+        text-decoration: none;
+        color: white;
+    }
+
+    #shareItself{
+        right: 85px;
+        width: 480px;
+        height: 209px;
+    }
+
+#chatItself header, #shareItself header, #voteItself header, #inceptionItself header{
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 48px;
+    background: #34495e;
+}
+
+#chatItself header h3, #shareItself header h3, #voteItself header h3, #inceptionItself header h3{
+    color: #fff;
+    font-size: 14px;
+    line-height: 50px;
+    padding-left: 45px;
+    text-transform: uppercase;
+}
+
+#chatTrigger.partOfYourBoard, #shareTrigger.partOfYourBoard, #voteTrigger.partOfYourBoard, #inceptionTrigger.partOfYourBoard{
+    background-color: transparent !important;
+    cursor: default;
+    opacity: 0.95;
+}
+
+    body:hover #chatTrigger.partOfYourBoard, #chatTrigger.partOfYourBoard, #shareTrigger.partOfYourBoard, body:hover #shareTrigger.partOfYourBoard, body:hover #voteItself.partOfYourBoard, body:hover #inceptionItself .partOfYourBoard,{
+        opacity: 1;
+        padding: 9px !important;
+        background-size: 17px;
+        width: 21px;
+        height: 21px;
+        background-position: 11px 12px;
+    }
+
+#chatTriggerContainer.partOfYourBoard, #shareTriggerContainer.partOfYourBoard, #voteTriggerContainer.partOfYourBoard, #inceptionTriggerContainer.partOfYourBoard {
+    top: -5px !important;
+    left: -6px !important;
+    right: auto !important;
+    cursor: default;
+    position: absolute;
+}
+
+/* Redimensionnement du bouton fermé */
+
+#closeChat, #closeShare{
+    position: absolute;
+    right: 6px;
+    top: 8px;
+}
+
+#closeChat .center-hexa, #closeShare .center-hexa{
+    background-size: 13px;
+}
+
+#closeChat .left-hexa, #closeShare .left-hexa{
+    border-right: 12px solid rgba(0,0,0,0.2);
+    border-top: 16px solid transparent;
+    border-bottom: 16px solid transparent;
+}
+
+#closeChat .right-hexa, #closeShare .right-hexa{
+    border-left: 12px solid rgba(0,0,0,0.2);
+    border-top: 16px solid transparent;
+    border-bottom: 16px solid transparent;
+}
+
+#closeChat .center-hexa, #closeShare .center-hexa{
+    width: 21px;
+    height: 32px;
+}
+
+/* Cacher chat en CSS */
+
+#chatItself.hiddenChat, #shareItself.hiddenChat, #voteItself.hiddenChat, #inceptionItself.hiddenChat{
+    background-color: transparent;
+    overflow: hidden;
+    height: 73px;
+    width: 50px;
+    z-index: 100;
+    position: fixed;
+}
+
+    #shareItself.hiddenChat{
+        width: 54px;
+    }
+
+#chatItself.hiddenChat header, #shareItself.hiddenChat header, #voteItself.hiddenChat header, #inceptionItself.hiddenChat header{
+    background-color: transparent;
+}
+
+#voteItself.hiddenChat header>*:not(#voteTriggerContainer), #inceptionItself.hiddenChat header>*:not(#inceptionTriggerContainer), #chatItself.hiddenChat header>*:not(#chatTriggerContainer), #chatItself.hiddenChat #innerChat, #sendMessageTrigger, #sendMessage, #shareItself.hiddenChat header>*:not(#shareTriggerContainer), #shareBody{
+    display: none;
+}
+
+#innerChat{
+    width: 100%;
+    height: 281px;
+    margin: 10px;
+    margin-top: 58px;
+
+    overflow: auto;
+
+    width: -webkit-calc(100% - 20px);
+    width: -moz-calc(100% - 20px);
+    width: calc(100% - 20px);
+}
+
+/* Design du message */
+
+.messageOther, .messageMe{
+    display: block;
+    width: 100%;
+    margin-bottom: 33px;
+}
+
+.actualMessage{
+    background-color: white;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+
+    text-align: justify;
+    line-height: 145%;
+
+    padding: 8px;
+    font-size: 13px;
+    color: rgba(52, 73, 94, 0.5);
+
+    display: inline-block;
+    width: -webkit-calc(100% - 70px);
+    width: -moz-calc(100% - 70px);
+    width: calc(100% - 70px);
+    position: relative;
+    vertical-align: top;
+}
+
+    .actualMessage a{
+        font-weight: 300;
+        color: #95a5a6 !important;
+        display: inline-block;
+        max-width: 100%;
+
+        white-space: nowrap;
+        overflow-x: hidden;
+        -o-text-overflow: ellipsis;
+        text-overflow: ellipsis;
+        height: 19px;
+        vertical-align: bottom;
+    }
+
+        .actualMessage a:hover{
+            color: #fdc400 !important;
+        }
+
+    .actualMessage p{
+        color: #34495e;
+        font-weight: 300;
+        overflow-wrap: break-word;
+    }
+
+.lilTriangle{
+    position: absolute;
+    left: -9px;
+    top: 11px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 5px 9px 5px 0;
+    border-color: transparent #FFFFFF transparent transparent;
+}
+
+.messageMe .lilTriangle{
+    left: auto;
+    border-width: 5px 0 5px 9px;
+    border-color: transparent transparent transparent #FFFFFF;
+    right: -9px;
+}
+
+.circleUserChat{
+    -webkit-border-radius: 30px;
+    -moz-border-radius: 30px;
+    border-radius: 30px;
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 1px;
+    background-color: #2e4154;
+    color: #fdc300;
+    width: 37px;
+    height: 37px;
+    line-height: 37px;
+    font-size: 13px;
+    cursor: default;
+    text-align: center;
+    vertical-align: top;
+}
+
+.messageMe .circleUserChat{
+    background-color: #fdc300;
+    color: #2e4154;
+    margin-right: 0;
+    margin-left: 10px;
+}
+
+.timeChat{
+    font-size: 12px;
+    position: absolute;
+    bottom: -22px;
+    right: 0;
+    text-align: right;
+}
+
+/* Textarea du truc */
+
+#sendMessage{
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    height: 36px;
+
+    line-height: 135%;
+
+    padding: 8px;
+    padding-right: 42px;
+    font-size: 13px;
+    color: rgba(52, 73, 94, 0.5);
+
+    width: -webkit-calc(100% - 20px);
+    width: -moz-calc(100% - 20px);
+    width: calc(100% - 20px);
+
+    background-color: white;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+
+    display: block;
+}
+
+#sendMessageTrigger{
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+
+    border: none;
+
+    display: block;
+    width: 36px;
+    height: 36px;
+    background: rgb(153, 164, 174) url("/public/images/boardIcons/sendIcon.png") no-repeat;
+    cursor: pointer;
+    background-size: 28px;
+    background-position: center center;
+}
+
+    #sendMessageTrigger:hover{
+        background-color: #1ddc6e;
+    }
+
+#innerChat>*:last-child{
+    margin-bottom: 0 !important;
+}
+
+/* Animations du chat */
+
+@-webkit-keyframes twitching {
+    0%   {top: 8px;}
+    80%  {top: 8px;}
+    90%  {top: 4px;}
+    100% {top: 8px;}
+}
+
+@keyframes twitching {
+    0%   {top: 8px;}
+    80%  {top: 8px;}
+    90%  {top: 4px;}
+    100% {top: 8px;}
+}
+
+/* Bouton sonner */
+
+#videoItself{
+    position: relative;
+    z-index: 190;
+}
+
+#videoTrigger.ringing, #videoTrigger.ringing:hover{
+    background-position: -2px 1px !important;
+    background-color: #fdc300 !important;
+
+    -webkit-animation: shakeAnimation 1.2s infinite; /* Chrome, Safari, Opera */
+    animation: shakeAnimation 1.2s infinite;
+}
+
+    body:hover #videoTrigger.ringing{
+        background-position: 10px 11px !important;
+    }
+
+#videoTrigger.hangUp, #videoTrigger.hangUp:hover{
+    background-position: 1px -63px !important;
+    background-color: rgb(237, 55, 51) !important;
+}
+
+    body:hover #videoTrigger.hangUp{
+        background-position: 11px -53px !important;
+    }
+
+body:hover #videoTrigger.ringing{
+    background-position: 10px 11px !important;
+}
+
+@-webkit-keyframes shakeAnimation {
+    0%   {left: -4px;}
+    25%  {left: 4px;}
+    50%  {left: 0;}
+    100% {left: 0;}
+}
+
+@keyframes shakeAnimation {
+    0%   {left: -4px;}
+    25%  {left: 4px;}
+    50%  {left: 0;}
+    100% {left: 0;}
+}
+
+/* Rework des icones en bas + icone vote */
+
+#shareItself, #videoItself, #chatItself, #voteItself, #inceptionItself{
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 8px;
+    text-align: left;
+}
+
+#chatTriggerContainer, #shareTriggerContainer, #videoTriggerContainer, #voteTriggerContainer, #inceptionTriggerContainer{
+    position: relative;
+    bottom: 0 !important;
+    right: 0 !important;
+}
+
+#shareItself.hiddenChat, #chatItself.hiddenChat, #shareItself.hiddenChat, #voteItself.hiddenChat, #inceptionItself.hiddenChat{
+    width: 60px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    position: relative;
+}
+
+#containerBottomTools{
+    z-index: 10;
+    position: fixed;
+    right: 11px;
+    bottom: 5px;
+    height: 70px;
+    width: 284px;
+    text-align: right;
+}
+
+#chatItself, #shareItself, #voteItself, #inceptionItself{
+    right: 13px;
+}
+
+#voteItself{
+    width: 500px;
+    height: 213px;
+}
+
+.chatPeriscope{
+    position: absolute;
+    bottom: 35px;
+    right: 14px;
+    width: 280px;
+    height: 60px;
+
+    opacity: 0;
+
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+/* Add periscope effect */
+
+.openPeriscope{
+    opacity: 1;
+    bottom: 74px;
+
+    -webkit-transition: all 0.4s ease;
+    -moz-transition: all 0.4s ease;
+    -ms-transition: all 0.4s ease;
+    -o-transition: all 0.4s ease;
+    transition: all 0.4s ease;
+}
+
+    .chatPeriscope .actualMessage{
+        background-color: rgba(253, 195, 0, 0.8);
+    }
+
+        .chatPeriscope .actualMessage p{
+            white-space: nowrap;
+            overflow-x: hidden;
+            -o-text-overflow: ellipsis;
+            text-overflow: ellipsis;
+            height: 19px;
+        }
+
+        .chatPeriscope .actualMessage *{
+            color: white;
+        }
+
+    .chatPeriscope .circleUserChat{
+        color: #fdc300;
+    }
+
+    .chatPeriscope *, .chatPeriscope, .chatPeriscope .timeChat{
+        color: #9caaab;
+    }
+
+    .chatPeriscope .lilTriangle{
+        border-color: transparent #fdc300 transparent transparent;
+        opacity: 0.8;
+    }
+
+/* Mediaqueries (taille chat) */
+
+@media (max-width:1450px){
+    #chatItself{
+        width: 395px;
+        height: 355px;
+    }
+
+    #innerChat{
+        height: 241px;
+    }
+}
+
+@media (max-width:1050px){
+    #chatItself{
+        width: 330px;
+        height: 305px;
+    }
+
+    #innerChat{
+        height: 191px;
+    }
+}
+
+
+@media (max-width:800px){
+    #chatItself{
+        width: 280px;
+        height: 285px;
+    }
+
+    #innerChat{
+        height: 171px;
+    }
+}

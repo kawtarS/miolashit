@@ -1,0 +1,1102 @@
+/**
+ * Created by geoffrey on 4/08/15.
+ */
+
+
+popupModule = angular.module('popupModule', ['angularPayments'])
+    .directive('tzPopupFree',["$location", "$cacheFactory","$rootScope", function($location, $cacheFactory, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.nextStep = function() {
+                    if ($rootScope.settings.board.is_temp) {
+                        $location.path('/popup/canvas');
+                    }
+                    else {
+                        scope.cachePopupCtrl.get("closePopup")();
+                    }
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupSave',["$rootScope", "FormHttp", "$cacheFactory","$location", "$q", function($rootScope, FormHttp, $cacheFactory, $location, $q) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.step1 = true;
+                scope.step2 = false;
+                scope.step3 = false;
+                scope.board = $rootScope.board;
+                if (scope.board.name == "untitled") {
+                    scope.board.name = "";
+                }
+
+
+                /********************************/
+                //CLASSICAL LOGIN
+                /********************************/
+                scope.passwordError = false;
+
+                scope.saveStep = function(buttonType) {
+                    scope.passwordError = false;
+                    $rootScope.fullLoader = true;
+                    if (scope.step1 === true) {
+                        var data = scope.tuzzer;
+                        if(scope.tuzzer.is_visitor){
+                            delete data.uuid;
+                            delete data.id;
+                        }
+
+                        FormHttp.createTuzzer(data).then(
+                            function (data, status, headers, config) {
+                                $rootScope.tuzzer = scope.tuzzer = data;
+                                scope.setCurrentStep('step2');
+                                scope.cachePopupCtrl.get("setCurrentTemplateId")("savePart2");
+                                $rootScope.fullLoader = false;
+                            }, function (data, status, headers, config) {
+
+                                $rootScope.fullLoader = false;
+                                if(data.error.code == 405){
+                                    scope.passwordError = true;
+                                }else{
+                                    scope.passwordError = false;
+                                }
+
+
+                            });
+                    }
+                    else if (scope.step2 === true) {
+
+                        if (scope.board.password == '') {
+                            delete scope.board.password;
+                        }
+
+                        //escape double quote
+                        scope.board.name = escapeDoubleQuotes(scope.board.name);
+                        //
+
+
+                        //on sauve le board et on redirige
+                        FormHttp.saveBoardFromTemp(scope.board).then(
+                            function (data, status, headers, config) {
+                                unbindBeforeUnload();
+                                window.location.href = data;
+                            }, function (data, status, headers, config) {
+                                $rootScope.fullLoader = false;
+                                console.log("error on save temporary board");
+                            });
+
+                    }
+                    //else if (scope.step3 === true) {
+                    //    //board gratuit
+                    //    if (buttonType == 'free') {
+                    //        $rootScope.fullLoader = true;
+                    //        $rootScope.board = scope.board;
+                    //        FormHttp.saveBoardFromTemp(scope.board).then(
+                    //            function (data, status, headers, config) {
+                    //                unbindBeforeUnload();
+                    //                window.location.href = data;
+                    //
+                    //            }, function (data, status, headers, config) {
+                    //                $rootScope.fullLoader = false;
+                    //
+                    //                console.log("error on save temporary board");
+                    //            });
+                    //    }
+                    //    else {
+                    //        $rootScope.board = scope.board;
+                    //        $location.path("/popup/payment");
+                    //        $rootScope.fullLoader = false;
+                    //    }
+                    //
+                    //
+                    //}
+                }
+
+                scope.setCurrentStep = function(stepName) {
+                    scope.step1 = scope.step2 = scope.step3 = false;
+                    scope[stepName] = true;
+                }
+
+                scope.logMePopup = function($event){
+                    $event.preventDefault();
+                    $rootScope.loginRedirectToSave = true;
+                    $location.path("/popup/login");
+                }
+
+                //on regarde si un tuzzer existe dans le rootScope. Si oui, on le récupère.
+                if ($rootScope.tuzzer && !$rootScope.tuzzer.is_visitor) {
+                    scope.tuzzer = $rootScope.tuzzer;
+
+                    scope.setCurrentStep('step2');
+                    scope.cachePopupCtrl.get("setCurrentTemplateId")("savePart2");
+                }
+
+
+            }
+        }
+    }])
+    .directive('tzPopupPayment',["$translate","$location","$rootScope", "FormHttp","AccountHttp", "$cacheFactory", function($translate, $location,$rootScope, FormHttp,AccountHttp, $cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                scope.currentPlan = 'connection';
+
+                if ($rootScope.accessPopupPayment) {
+                    $rootScope.accessPopupPayment = null;
+                    //on sette un plan sélectionné au scope
+                    if ($rootScope.popupPaymentSelectedPlan) {
+                        scope.currentPlan = $rootScope.popupPaymentSelectedPlan;
+                        $rootScope.popupPaymentSelectedPlan = null;
+                    }
+
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                //on sette la publishable key de stripe
+                Stripe.setPublishableKey(STRIPE_PUBLISH_KEY);
+
+                scope.step1 = true;
+                scope.step2 = false;
+                scope.step3 = false;
+                scope.tuzzer = $rootScope.tuzzer;
+                scope.tuzzerToSave = {};
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.hasStripeResponse = false;
+                scope.plans = null;
+                scope.countries = null;
+                scope.paymentInfos = {plan : scope.currentPlan , agree:false};
+                scope.boardLocation = null;
+                scope.showPromoContainer = false;
+                scope.promoCode = null;
+                scope.showStripe = true;
+
+                scope.promoCodeValid = false;
+                scope.promoCodeInvalid = false;
+
+                scope.stripeErrors = [];
+
+                //on checke si le tuzzer est un visiteur.
+                if (scope.tuzzer.is_visitor) {
+                    scope.tuzzerToSave.firstname = scope.tuzzer.firstname;
+                    scope.tuzzerToSave.lastname = scope.tuzzer.lastname;
+                    scope.tuzzerToSave.email = scope.tuzzer.email;
+                }
+                else {
+                    scope.tuzzerToSave = scope.tuzzer;
+                }
+
+                //on unsette le password
+                scope.tuzzer.password = null;
+
+
+                //on récupère la liste des pays disponibles
+                FormHttp.getCountriesList().then(
+                    function (data, status, headers, config) {
+                        angular.forEach(data, function(value, key) {
+                            if ($rootScope.settings.language = 'fr_FR'){
+                                value.label = value.fr_fr;
+                            }
+                            else {
+                                value.label = value.en_us;
+                            }
+
+                        });
+
+                        scope.countries = data;
+
+                        //on récupère la liste des plans disponibles
+                        FormHttp.getStripePlansList().then(
+                            function (data, status, headers, config) {
+                                scope.plans = data;
+                                $rootScope.fullLoader = false
+                            }, function (data, status, headers, config) {
+                                scope.plans = null;
+                                console.log("error on get stripe plans");
+                            });
+                    }, function (data, status, headers, config) {
+                        scope.countries = null;
+                        console.log("error on get countries");
+                    });
+
+                scope.stripeCallback =function (code, result) {
+                    if (result.error) {
+                        scope.stripeErrors = [];
+                        //si on bypass stripe, étape suivante
+                        if (!scope.showStripe) {
+                            scope.hasStripeResponse = true;
+                            scope.payBoard();
+
+                        }
+                        else {
+                            //gestion des feedbacks de stripe
+                            if(result.error.code){
+                                var formattedError = "STRIPE_" + result.error.code.toUpperCase();
+                                scope.stripeErrors = [$translate.instant(formattedError)];
+                            }
+
+                        }
+                    } else {
+                        //on notifie la directive que stripe à répondu
+                        scope.hasStripeResponse = true;
+                        scope.paymentInfos.token = result.id;
+                        scope.payBoard();
+                    }
+                };
+
+                scope.checkPromoCode = function() {
+                    if (scope.promoCode) {
+                        $rootScope.fullLoader = true;
+                        var data = {promo : scope.promoCode, plan: scope.paymentInfos.plan};
+                        FormHttp.checkIfPromoCodeIsValid(data).then(
+                            function (data, status, headers, config) {
+                                $rootScope.fullLoader = false;
+
+                                if (data == "free") {
+                                    scope.showStripe = false;
+                                    scope.promoCodeValid = true;
+                                    scope.promoCodeInvalid = false;
+                                }
+                                else if (data) {
+                                    //on met un feedback positif
+                                    scope.promoCodeValid = true;
+                                    scope.promoCodeInvalid = false;
+                                }
+                                else {
+                                    //on met un feedback negatif
+                                    scope.promoCodeInvalid = true;
+                                    scope.promoCodeValid = false;
+                                }
+                            }, function (data, status, headers, config) {
+                                console.log("error on check promo code");
+                            });
+                    }
+
+                }
+
+                scope.payBoard = function ($form) {
+                    if (scope.payForm.$valid) {
+
+                        $rootScope.fullLoader = true;
+
+                        if (scope.hasStripeResponse || !scope.showStripe) {
+                            var planId = null;
+                            angular.forEach(scope.plans, function (key, val) {
+                                if (key.id == scope.paymentInfos.plan) {
+                                    planId = key.id;
+                                }
+                            });
+
+                            if (planId || !scope.showStripe) {
+                                scope.paymentInfos.email = scope.tuzzer.email;
+
+                                //on demande l'adresse du tuzzer
+                                scope.setCurrentStep('step2');
+                                scope.cachePopupCtrl.get("setCurrentTemplateId")("paymentPart2");
+                                scope.cachePopupCtrl.get("setCurrentTitle")($translate.instant('POP_PAYMENT_TOPTILE_STEP_2'));
+                                $rootScope.fullLoader = false;
+
+                            }
+                            else {
+                                $rootScope.fullLoader = false;
+                            }
+                        }
+                    }
+
+                }
+
+                scope.validateAddress = function () {
+                    $rootScope.fullLoader = true;
+
+                    //si le tuzzer est visiteur, on crée un tuzzer
+                    //sinon, on update le compte
+                    if (scope.tuzzer.is_visitor) {
+                        scope.tuzzerToSave.email = scope.tuzzer.email;
+                        scope.tuzzerToSave.firstname = scope.tuzzer.firstname;
+                        scope.tuzzerToSave.lastname = scope.tuzzer.lastname;
+                        scope.tuzzerToSave.password = scope.tuzzer.password;
+                        scope.tuzzerToSave.city = scope.tuzzer.city;
+                        scope.tuzzerToSave.street = scope.tuzzer.street;
+                        scope.tuzzerToSave.zipcode = scope.tuzzer.zipcode;
+                        scope.tuzzerToSave.country = scope.tuzzer.country;
+                        var data = scope.tuzzerToSave;
+                        delete data.uuid;
+                        delete data.id;
+
+                        FormHttp.createTuzzer(data).then(
+                            function (data, status, headers, config) {
+                                scope.createAndPay();
+                            }, function (data, status, headers, config) {
+                                console.log("Error on create Tuzzer");
+                                $rootScope.fullLoader = false;
+                            });
+                    }
+                    else {
+                        AccountHttp.setTuzzerPassword(scope.tuzzerToSave).then(
+                            function (data, status, headers, config) {
+
+                                //on unsette le password pour ne pas le mettre à jour
+                                AccountHttp.updateTuzzer(scope.tuzzer).then(
+                                    function (data, status, headers, config) {
+                                        scope.createAndPay();
+
+                                    }, function (data, status, headers, config) {
+                                        console.log("error on update Tuzzer");
+                                        $rootScope.fullLoader = false;
+                                    });
+
+                            }, function (data, status, headers, config) {
+                                console.log("error on update Tuzzer password");
+                                $rootScope.fullLoader = false;
+                            });
+                    }
+
+
+                }
+
+                scope.createAndPay = function() {
+                    $rootScope.fullLoader = true;
+                    var dataArray = scope.paymentInfos;
+                    //gestion du code promo
+                    if (scope.promoCode) {
+                        dataArray.promo = scope.promoCode;
+                    }
+                    FormHttp.createTuzzerAndPay(dataArray).then(
+                        function (data, status, headers, config) {
+                            //scope.plans = data;
+                            var dataToSend = $rootScope.board;
+                            dataToSend.paid = true;
+                            FormHttp.saveBoardFromTemp(dataToSend).then(
+                                function (data, status, headers, config) {
+                                    scope.setCurrentStep('step3');
+                                    scope.cachePopupCtrl.get("setCurrentTemplateId")("paymentPart3");
+                                    scope.cachePopupCtrl.get("setCurrentTitle")($translate.instant('POP_PAYMENT_TOPTILE_STEP_3'));
+                                    scope.boardLocation = data;
+                                    $rootScope.fullLoader = false;
+
+                                }, function (data, status, headers, config) {
+                                    console.log("error on save payment board");
+                                    $rootScope.fullLoader = false;
+                                });
+
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error on create plan");
+                        });
+                }
+
+                scope.setCurrentPlan = function(plan) {
+                    scope.paymentInfos.plan = plan;
+                    scope.currentPlan = plan;
+                }
+
+                scope.goToBoard = function() {
+                    if (scope.boardLocation) {
+                        unbindBeforeUnload();
+                        window.location.href = scope.boardLocation;
+                    }
+                }
+
+                scope.goToStep1 = function() {
+                    scope.setCurrentStep('step1');
+                    scope.cachePopupCtrl.get("setCurrentTemplateId")("paymentInnerPopup");
+                    scope.cachePopupCtrl.get("setCurrentTitle")($translate.instant('POP_PAYMENT_TOPTILE'));
+
+                }
+
+                scope.setCurrentStep = function(stepName) {
+                    scope.step1 = scope.step2 = false;
+                    scope[stepName] = true;
+                }
+
+                scope.backToPlans = function() {
+                    $location.path('popup/upgradeAccount');
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupInvitation',["$rootScope", "FormHttp","$cacheFactory", function($rootScope, FormHttp, $cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.invites = [{email:'', firstname:'', lastname:''},
+                    {email:'', firstname:'', lastname:''},
+                    {email:'', firstname:'', lastname:''}];
+
+                //scope.invites = [{email:'geoffrey@teasio.com', firstname:'sdfg', lastname:'sdfg'}];
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                $rootScope.fullLoader = false;
+
+                scope.addNewInvite = function (event) {
+                    scope.invites.push({email:'', firstname:'', lastname:''});
+                }
+
+                scope.sendInvitations = function (event) {
+                    var data = {};
+
+                    var savedInvites = {};
+
+                    for(key in scope.invites){
+                        var value = scope.invites[key];
+                        if (value.email != "") {
+                            var object = {};
+                            object.email = value.email;
+                            object.firstname = value.firstname;
+                            object.lastname = value.lastname;
+                            savedInvites[key] = object;
+                        }
+                    }
+
+
+                    data.invitations = savedInvites;
+                    data.board_id = $rootScope.board.uuid;
+                     if (Object.keys(data.invitations).length > 0) { //compatibility
+                         $rootScope.fullLoader = true;
+
+                         FormHttp.sendInvitations(data).then(
+                             function (data, status, headers, config) {
+                                 $rootScope.fullLoader = false;
+                                 window.location.href = '#/popup/confirmationInvitations';
+
+                             }, function (data, status, headers, config) {
+                                 console.log("error on sending invitations");
+                                 $rootScope.fullLoader = false;
+
+                             });
+                     }
+
+                }
+            }
+        }
+    }])
+    .directive('tzPopupWelcome',["$rootScope", "FormHttp","$cacheFactory","$location","$translate", function($rootScope, FormHttp, $cacheFactory, $location,$translate) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                $rootScope.displayLoader = false;
+                scope.invitation = $rootScope.invitation;
+
+                scope.goToBoard = function(event) {
+                    $rootScope.displayLoader = true;
+                    var data = {};
+                    data.invitation_id = scope.invitation.id;
+                    data.email = scope.invitation.email;
+                    data.firstname = scope.invitation.firstname;
+                    data.lastname = scope.invitation.lastname;
+
+                    FormHttp.acceptInvitation(data).then(
+                        function (data, status, headers, config) {
+                            unbindBeforeUnload();
+                            window.location.href = data;
+                        }, function (data, status, headers, config) {
+                            console.log("error on sending invitations");
+                            $rootScope.displayLoader = false;
+                        });
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupCanvasChoice',["$rootScope", "FormHttp", "$cacheFactory", "Upload", function($rootScope, FormHttp, $cacheFactory, Upload) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.step1 = false;
+                scope.step2 = true;
+                $rootScope.fullLoader = true;
+                scope.selectedCanvasType = 1;
+                scope.selectedCanvas = false;
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.offsetCanvas = 0;
+                scope.limitCanvas = 2;
+
+                //si on vient de la popup de création de board, on récupère les infos du rootScope pour ce board
+                if ($rootScope.popupCreatedBoardData) {
+                    scope.createdBoardData =  $rootScope.popupCreatedBoardData;
+                    $rootScope.popupCreatedBoardData = null;
+                }
+
+                //si on vient de l'outil inception de board, on récupère les infos du rootScope pour ce board
+                if ($rootScope.toolCreatedBoardData) {
+                    scope.toolCreatedBoardData =  true;
+                    $rootScope.toolCreatedBoardData = null;
+                }
+
+                //on récupère la liste des types de canvas
+                FormHttp.getCanvasTypes().then(
+                    function (data, status, headers, config) {
+                        scope.typeList = data;
+                        $rootScope.fullLoader = false
+                    }, function (data, status, headers, config) {
+                        scope.typeList = null
+                        console.log("error on get typesList");
+
+                    });
+
+
+                scope.setCanvasTypeAsSelected = function (type) {
+                    angular.forEach(scope.typeList, function (key, val) {
+                        if (key == type) {
+                            key.selected = true;
+                            scope.selectedCanvasType = key.id;
+                        }
+                        else {
+                            key.selected = false;
+                        }
+                    });
+                }
+
+
+                scope.useType = function (id) {
+                    if (id) {
+                        scope.selectedCanvasType = id;
+                    }
+
+                    if (scope.selectedCanvasType) {
+                        $rootScope.fullLoader = true;
+
+                        if (scope.selectedCanvasType == 1) {
+                            //on récupère la liste de tous les canvas
+                            FormHttp.getAllCanvas().then(
+                                function (data, status, headers, config) {
+                                    scope.canvasList = data;
+                                    $rootScope.fullLoader = false;
+                                    scope.setCurrentStep('step2');
+                                    scope.cachePopupCtrl.get('setCurrentTemplateId')('boardtypePopup')
+
+                                }, function (data, status, headers, config) {
+                                    scope.canvasList = null;
+                                });
+                        }
+                        else {
+                            var data = {type: scope.selectedCanvasType };
+                            FormHttp.getMethodologyListForType(data).then(
+                                function (data, status, headers, config) {
+                                    scope.canvasList = data;
+                                    $rootScope.fullLoader = false;
+                                    scope.setCurrentStep('step2');
+                                    scope.cachePopupCtrl.get('setCurrentTemplateId')('boardtypePopup')
+
+                                }, function (data, status, headers, config) {
+                                    scope.canvasList = null;
+                                });
+                        }
+
+                    }
+                    else {
+                        //todo : feedback "choisissez un canvas"
+                    }
+
+                }
+
+                scope.selectedCanvasType = 1;
+                scope.useType();
+
+
+                scope.setCanvasAsSelected = function (canvas) {
+                    angular.forEach(scope.canvasList, function (key, val) {
+                        if (key == canvas) {
+                            key.selected = true;
+                            scope.selectedCanvas = key.id;
+                        }
+                        else {
+                            key.selected = false;
+                        }
+                    });
+                    //scope.setCurrentStep('step2');
+                }
+
+                scope.useCanvas = function (id) {
+                    if (id) {
+                        scope.selectedCanvas = id;
+                    }
+
+                    if (scope.selectedCanvas) {
+                        var path = '';
+                        if (scope.selectedCanvasType == 1) {
+                            angular.forEach(scope.canvasList, function(key, val) {
+                                if (key.id == scope.selectedCanvas) {
+                                    $rootScope.board.canva_path = "{SYSTEM}/" + key.webversion_path;
+                                    path= key.webversion_path;
+
+                                }
+                            })
+                            //SI ON VIENT DE LA POPUP DE CREATION DE BOARD
+                            if (scope.createdBoardData) {
+                                scope.createdBoardData.canva_path = $rootScope.board.canva_path;
+                                scope.saveCreateBoardPopupBoard();
+                            }else if (scope.toolCreatedBoardData) {
+
+                                //send canvas path to the tool
+                                var cache = $cacheFactory.get("toolBoard");
+                                cache.get("createBoard")("{SYSTEM}/" + path);
+
+                                scope.cachePopupCtrl.get("closePopup")();
+
+                            }
+                            else {
+                                //on modifie le background image du board
+                                $rootScope.canvas.imagePath = "/canvas/" + path;
+                                scope.saveBoard();
+                            }
+
+
+                        }
+                        else {
+                            //var data= {type: scope.selectedCanvasType, methodology: scope.selectedCanvas};
+                            //FormHttp.getMethodologyDescription(data).then(
+                            //    function (data, status, headers, config) {
+                            //        //TODO : gestion des éléments à mettre dans le board
+                            //        //data.object
+                            //        var mCache = $cacheFactory.get("mainController");
+                            //        mCache.get("addApiActorsToScope")(data.objects);
+                            //
+                            //        scope.saveBoard();
+                            //    }, function (data, status, headers, config) {
+                            //        //scope.canvasList = null;
+                            //    });
+                        }
+
+
+                    }
+                    else {
+                        //todo : feedback "choisissez un canvas"
+                    }
+
+                }
+
+                scope.saveCreateBoardPopupBoard = function () {
+                    $rootScope.fullLoader = true;
+
+                    //escape double quote
+                    scope.createdBoardData.name = escapeDoubleQuotes(scope.createdBoardData.name);
+                    //
+
+                    FormHttp.updateBoard(scope.createdBoardData).then(
+                        function (data, status, headers, config) {
+                            unbindBeforeUnload();
+                            window.location.href = data;
+
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+
+                            console.log("error on save new board");
+                        });
+                }
+
+                scope.saveBoard = function() {
+                    //si le board est déjà enregistré et qu'il y à un tuzzer, on modifie le board courant
+                    if (!$rootScope.board.is_temp && $rootScope.tuzzer) {
+
+                        FormHttp.updateBoardCanvas({uuid:$rootScope.board.uuid,canva_path:$rootScope.board.canva_path}).then(
+                            function (data, status, headers, config) {
+
+
+                                //update canvas with pusher
+                                if(data){
+                                    console.log ('ok');
+                                    presence.trigger("client-update-canvas", {imagePath:$rootScope.canvas.imagePath});
+                                }else{
+                                    console.log ('Nok');
+                                }
+
+
+
+                            }, function (data, status, headers, config) {
+                                console.log ('Nok');
+
+                            });
+                    }
+
+                    scope.cachePopupCtrl.get("closePopup")();
+                    scope.setCurrentStep('step1');
+                }
+
+                scope.authorizeUpload = function() {
+
+                    if($rootScope.board.is_temp){
+                        return false;
+                    }
+
+                    var authorize = false;
+                    var owner_plan = $rootScope.board.linked_entities.tuzzer.stripe_plan_id;
+                    if (owner_plan == 'collaboration' || owner_plan == "interaction" && $rootScope.tuzzer.is_board_owner) {
+                        authorize = true;
+                    }
+                    return authorize;
+
+                }
+
+                scope.uploadPersonnalCanvas = function (files) {
+                    console.log('files');
+
+                    if (files && files.length) {
+                        var file = files[0];
+                        $rootScope.fullLoader = true;
+                        Upload.upload({
+                            url: "/api/1/framework/Canva/uploadPersonalCanva",
+                            fields: {
+                                'image_name': $rootScope.board.name
+                            },
+                            file: file
+                        }).success(function (data, status, headers, config) {
+
+                            $rootScope.fullLoader = false;
+                            if (data && data.data) {
+                                //SI ON VIENT DE LA POPUP DE CREATION DE BOARD
+                                if (scope.createdBoardData) {
+                                    scope.createdBoardData.canva_path = data.data.canva_path;
+
+                                    scope.saveCreateBoardPopupBoard();
+                                }else if (scope.toolCreatedBoardData) {
+ 
+                                    //send canvas path to the tool
+                                    var cache = $cacheFactory.get("toolBoard");
+                                    cache.get("createBoard")(data.data.canva_path);
+
+                                    scope.cachePopupCtrl.get("closePopup")();
+
+                                }
+                                else {
+                                    $rootScope.board.canva_path = data.data.canva_path;
+                                    $rootScope.canvas.imagePath = $rootScope.settings.prefix + data.data.filepath;
+
+                                    scope.saveBoard();
+                                }
+
+
+                            }
+
+                        }).error(function (data, status, headers, config) {
+                            console.log("error upload image");
+                            $rootScope.fullLoader = false;
+
+                        });
+                    }
+                }
+
+                //gestion du slider
+                scope.goNext = function() {
+                    scope.offsetCanvas += scope.limitCanvas;
+                }
+                scope.goBack = function() {
+                    scope.offsetCanvas -= scope.limitCanvas;
+                }
+
+                scope.backToTypes = function() {
+                    scope.setCurrentStep('step1');
+                    scope.cachePopupCtrl.get('setCurrentTemplateId')('canvasPopup')
+
+                }
+
+                scope.setCurrentStep = function(stepName) {
+                    scope.step1 = scope.step2 = false;
+                    scope[stepName] = true;
+                }
+            }
+        }
+    }])
+    .directive('tzPopupLogin',["$rootScope", "FormHttp","$cacheFactory","$location", function($rootScope, FormHttp, $cacheFactory,$location) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.loginEntity = {email: $rootScope.tuzzer.email};
+                scope.serverErrors = [];
+
+
+                scope.login = function () {
+                    $rootScope.fullLoader = true;
+
+                    var data = {email: scope.loginEntity.email, password: scope.loginEntity.password};
+                    FormHttp.login(data).then(
+                        function (data, status, headers, config) {
+                            unbindBeforeUnload();
+                            scope.serverErrors = [];
+
+                            if($rootScope.loginRedirectToSave){
+                                $rootScope.loginRedirectToSave = false;
+                                $rootScope.fullLoader = false;
+                                $rootScope.tuzzer = data.tuzzer;
+                                $location.path("popup/save");
+                            }else{
+                                unbindBeforeUnload();
+                                window.location.href= data.board_path;
+                            }
+
+                        }, function (data, status, headers, config) {
+                            scope.serverErrors = [data.error];
+                            console.log("error on login");
+                            $rootScope.fullLoader = false;
+                        });
+                }
+
+
+
+                scope.becomePro = function() {
+                    $rootScope.accessUpgradePopup = true;
+                    $location.path('popup/upgradeAccount');
+                }
+            }
+        }
+    }])
+    .directive('tzPopupNewsletter',["$location","$cacheFactory", "$rootScope","FormHttp", function($location,$cacheFactory, $rootScope,FormHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.email = $rootScope.tuzzer.email;
+
+                scope.sendNewsletter = function(){
+                    $rootScope.fullLoader = true;
+                    FormHttp.subscribeToNewsletter({email:scope.email}).then(
+                        function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            $rootScope.accessConfirmationNewsletter = true;
+                            $location.path('popup/confirmationNewsletter');
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error on subscribe To Newsletter");
+                        });
+
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationNewsletter',["$location","$cacheFactory", "$rootScope", function($location,$cacheFactory, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessConfirmationNewsletter) {
+                    $rootScope.accessConfirmationNewsletter = null
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+
+                }
+
+                scope.closePopup = function() {
+                    scope.email = "";
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupUnsubscribeNewsletter',["$location","$cacheFactory", "$rootScope", function($location,$cacheFactory, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupGuest',["$location","$cacheFactory","FormHttp", "$rootScope", function($location, $cacheFactory, FormHttp, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessGuestPopup) {
+                    $rootScope.accessGuestPopup = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.loginInformations = {};
+                scope.visitor = {uuid : $rootScope.tuzzer.uuid};
+                scope.serverErrors = [];
+
+                scope.loginProUser = function() {
+                    $rootScope.fullLoader = true;
+
+                    var data = {email: scope.loginInformations.email, password: scope.loginInformations.password};
+                    FormHttp.login(data).then(
+                        function (data, status, headers, config) {
+                            scope.serverErrors = [];
+                            unbindBeforeUnload();
+                            window.location.reload();
+
+                        }, function (data, status, headers, config) {
+                            scope.serverErrors = [data.error];
+                            console.log("error on login");
+                            $rootScope.fullLoader = false;
+                        });
+                }
+
+                scope.saveInviteForm = function() {
+                    $rootScope.fullLoader = true;
+
+                    FormHttp.updateVisitor(scope.visitor).then(
+                        function (data, status, headers, config) {
+                            FormHttp.setVisitor(scope.visitor).then(
+                                function (data, status, headers, config) {
+                                    //TODO faire la gestion en live sans reload de page
+                                    //$rootScope.fullLoader = false;
+                                    //$rootScope.tuzzer = data;
+
+                                    unbindBeforeUnload();
+                                    window.location.reload();
+                                }, function (data, status, headers, config) {
+                                    console.log("error on set visitor");
+                                    $rootScope.fullLoader = false;
+                                });
+                            
+                        }, function (data, status, headers, config) {
+                            console.log("error on update visitor");
+                            $rootScope.fullLoader = false;
+                        });
+                }
+
+                scope.goToInvitationPopup = function() {
+                    $rootScope.accessForgottenInvitation = true,
+                    $location.path('popup/forgottenInvitation')
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupEnterPassword',["$rootScope", "$cacheFactory", "FormHttp", function($rootScope, $cacheFactory, FormHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.protection = "";
+
+                scope.checkBoardPassword = function() {
+                    var data = {board_id: $rootScope.board.uuid, password: scope.protection}
+                    FormHttp.checkBoardPassword(data).then(
+                        function (data, status, headers, config) {
+
+                            $rootScope.hasToLoadResources = true;
+
+                            scope.cachePopupCtrl.get("closePopup")();
+
+                        }, function (data, status, headers, config) {
+                            console.log("error on check password");
+                        });
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+            }
+        }
+    }])
+    .directive('tzPopupVideochat',["$rootScope", "$cacheFactory", function($rootScope,$cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.step1 = true;
+                scope.step2 = false;
+
+                scope.boardUuid = $rootScope.board.uuid;
+                scope.boardName = $rootScope.board.name;
+                scope.ownerName = $rootScope.owner.firstname;
+                scope.prefix = PREFIX;
+
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.validateStartVideo = function(event){
+                    event.preventDefault();
+                    $rootScope.startVideo();
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.goToStep2 = function(event){
+                    scope.step1 = false;
+                    scope.step2 = true;
+                    scope.cachePopupCtrl.get("setCurrentTemplateId")("inviteCTAPopup");
+                }
+            }
+        }
+    }])
+    .directive('tzPopupContextualDelete',["$rootScope", "$cacheFactory", function($rootScope,$cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+
+                scope.validateDelete = function(event){
+                    event.preventDefault();
+
+                    if($rootScope.boardState == BOARD_MODE.MULTISELECT){
+
+                        if($rootScope.isTempBoard || $rootScope.tuzzer.is_board_owner){
+                            for(var i = 0; i < $rootScope.selectedItems.length; i++){
+                                var actor = $rootScope.selectedItems[i];
+                                $rootScope.deleteCurrentActor(actor);
+                            }
+                            if($rootScope.selectedArrows){
+                                for(var i = 0; i < $rootScope.selectedArrows.length; i++){
+                                    var arrow = $rootScope.selectedArrows[i];
+                                    $rootScope.deleteCurrentArrow(arrow);
+                                }
+                            }
+
+                            $rootScope.selectedItems = [];
+                            $rootScope.selectedArrows = [];
+                        }
+
+
+                    }else{
+
+                        if($rootScope.currentActor && $rootScope.currentActor.getState() != ACTORSTATE.EDIT){
+
+                            $rootScope.deleteCurrentActor($rootScope.currentActor);
+
+                        }else if($rootScope.currentArrow){
+
+
+                            $rootScope.deleteCurrentArrow($rootScope.currentArrow);
+                        }
+                    }
+
+                    scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                    scope.cachePopupCtrl.get("closePopup")();
+
+                }
+
+                scope.cancelDelete = function(event){
+                    event.preventDefault();
+
+                    scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                    scope.cachePopupCtrl.get("closePopup")();
+
+
+                }
+
+                scope.goToStep2 = function(event){
+                    scope.step1 = false;
+                    scope.step2 = true;
+                    scope.cachePopupCtrl.get("setCurrentTemplateId")("inviteCTAPopup");
+                }
+            }
+        }
+    }])
+    .directive('tzPopupGame',[function() {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+
+
+            }
+        }
+    }])

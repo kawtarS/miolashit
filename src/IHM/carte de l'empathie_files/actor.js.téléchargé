@@ -1,0 +1,1591 @@
+/**
+ * Created by nicolas on 26/08/15.
+ */
+
+function Actor() {
+
+    //similar construction
+    var actorinstance = this;
+    this.prototype = new Object();
+    this.type = ACTORTYPE.ACTOR;
+    this.ancors = [];
+    this.angle = 0;
+    this.state = ACTORSTATE.NONE;
+    this.updateCallBack = null;
+
+    this.MIN_HEIGHT = POSTIT_MIN_HEIGHT;
+    this.MIN_WIDTH = POSTIT_MIN_HEIGHT;
+
+    this.tuzzer = {};
+    this.animating = false;
+    this.color = "";
+
+    this.bounds = new Bounds();
+
+    this.canResize = true;
+    this.object_must_be_moderated = false;
+
+    this.voteCount = 0;
+    this.voted = false;
+    this.owner_uuid = null;
+
+    this.textFillNotifier = false;
+
+    this.init = function (uuid, bounds, zIndex) {
+
+        this.uuid = uuid;
+        if (!uuid) {
+            this.uuid = getLocalHash();
+        }
+
+        this.bounds = bounds;
+
+        //--
+        this.x = bounds.x;
+        this.y = bounds.y;
+        this.width = bounds.width;
+        this.height = bounds.height;
+        //--
+
+        this.zIndex = zIndex + 100000;
+
+    }
+
+    this.initWithApiObject = function (apiObject) {
+        this.updateWithApiObject(apiObject);
+    }
+
+    this.triggerTextFill = function () {
+        this.textFillNotifier = !this.textFillNotifier;
+    }
+
+    this.setTuzzer = function (tuzzer) {
+        if(tuzzer){
+            this.tuzzer.firstname = tuzzer.firstname;
+            this.tuzzer.lastname = tuzzer.lastname;
+        }
+
+    }
+
+    this.getTuzzer = function () {
+       return this.tuzzer;
+    }
+
+    this.getFirstname = function () {
+        return this.tuzzer.firstname;
+    }
+
+    this.getLastname = function () {
+        return this.tuzzer.lastname;
+    }
+
+    this.getBounds = function () {
+        this.bounds.update(this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        return this.bounds;
+    };
+
+    this.getZIndex = function () {
+        return this.zIndex;
+    };
+    this.getPosition = function () {
+        return new Vector2(this.getX(), this.getY());
+    };
+    this.getSize = function () {
+        return new Vector2(this.getWidth(), this.getHeight());
+    };
+    this.getX = function () {
+
+        return Math.round(this.x);
+    };
+    this.getY = function () {
+        return Math.round(this.y);
+    };
+
+    this.getWidth = function () {
+        return Math.round(this.width);
+    };
+
+    this.getHeight = function () {
+        return Math.round(this.height);
+    };
+
+    this.setWidth = function (width) {
+        this.width = width;
+    };
+
+    this.setHeight = function (height) {
+        this.height = height;
+    };
+
+    this.getAngle = function () {
+        return this.angle;
+    };
+
+
+    this.setColorNoUpdate = function (hex) {
+        this.color = hex;
+
+    };
+
+    this.setColor = function (hex) {
+        this.setColorNoUpdate(hex);
+        this.updateMe();
+    };
+
+    this.setAngle = function (angle) {
+        this.angle = angle;
+    };
+    this.setPosition = function (x, y) {
+        this.x = x;
+        this.y = y;
+    };
+    this.getPosition = function () {
+        return new Vector2(this.x, this.y);
+    };
+    this.translate = function (vector) {
+        this.x += vector.x;
+        this.y += vector.y;
+    };
+    this.setSize = function (width, height) {
+        this.width = width;
+        this.height = height;
+    };
+    this.resize = function (vector) {
+
+        if (vector.y == 0) {
+
+            if (this.getWidth() + vector.x <= this.MIN_WIDTH) {
+                return;
+            }
+
+            this.width += vector.x;
+            this.height += vector.x;
+        } else {
+
+            if (this.getWidth() + vector.y <= this.MIN_WIDTH) {
+                return;
+            }
+
+
+            this.width += vector.y;
+            this.height += vector.y;
+        }
+
+    };
+    this.setX = function (x) {
+        this.x = x;
+    };
+    this.setY = function (y) {
+        this.y = y;
+    };
+    this.setZIndex = function (zIndex) {
+        this.zIndex = zIndex;
+    };
+    this.moveUP = function (zIndex) {
+        this.zIndex++;
+    };
+    this.moveDOWN = function (zIndex) {
+        this.zIndex--;
+    };
+    this.setSelectMode = function (active) {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = active ? ACTORSTATE.SELECT : ACTORSTATE.NONE;
+        }
+
+    };
+    this.setEditMode = function () {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = ACTORSTATE.EDIT;
+        }
+    };
+
+    this.setAncorMode = function (active) {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = active ? ACTORSTATE.ANCORING : ACTORSTATE.NONE;
+        }
+
+
+    };
+    this.setResizeMode = function () {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = ACTORSTATE.RESIZING;
+        }
+    };
+    this.setRotateMode = function () {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = ACTORSTATE.ROTATE;
+        }
+    };
+
+    this.setNoneState = function () {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = ACTORSTATE.NONE;
+        }
+
+    };
+
+    this.getState = function () {
+        return this.state;
+    };
+    this.setState = function (state) {
+        this.state = state;
+    };
+
+    this.setObjectMustBeModerated = function(value){
+        this.object_must_be_moderated = value;
+        if(value){
+            this.setState(ACTORSTATE.MODERATION);
+        }
+    }
+
+    this.dblclick = function () {
+
+        if (this.state != ACTORSTATE.ANCORING && this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION && boardState != BOARD_MODE.READONLY && boardState != BOARD_MODE.MULTISELECT && boardState != BOARD_MODE.REPLAY) {
+
+            if(this_tuzzer.is_visitor && this_tuzzer.uuid != this.owner_uuid){
+                return;
+            }
+
+            this.setEditMode();
+        }
+    }
+
+
+    this.getAncors = function () {
+        return this.ancors;
+    };
+
+    this.clearAncorsTraceMode = function () {
+        for (var i = 0; i < this.ancors.length; i++) {
+            var ancor = this.ancors[i];
+
+            ancor.setHighlight(false);
+        }
+
+    };
+
+    this.getBaseApiObject = function () {
+
+        var apiObj = {};
+        apiObj.z_index = actorinstance.zIndex;
+        apiObj.position_x = actorinstance.getX();
+        apiObj.position_y = actorinstance.getY();
+        apiObj.width = actorinstance.getWidth();
+        apiObj.height = actorinstance.getHeight();
+        apiObj.radian = actorinstance.getAngle();
+        apiObj.object_must_be_moderated = actorinstance.object_must_be_moderated;
+        apiObj.owner_uuid = actorinstance.owner_uuid;
+
+        if(!isNullOrEmpty(actorinstance.tuzzer.firstname)){
+            apiObj.tuzzer_firstname = actorinstance.tuzzer.firstname;
+        }
+        if(!isNullOrEmpty(actorinstance.tuzzer.lastname)){
+            apiObj.tuzzer_lastname = actorinstance.tuzzer.lastname;
+        }
+
+        if (!isLocalHash(actorinstance.uuid)) {
+            apiObj.uniqueid = actorinstance.uuid;
+        }
+
+        return apiObj;
+
+    };
+
+    this.getApiObject = function () {
+
+
+        return actorinstance.getBaseApiObject();
+
+    };
+
+    this.updateMe = function () {
+
+        this.updateCallBack(actorinstance);
+    };
+
+    this.updateMeWithoutReplaySave = function () {
+
+        this.updateCallBack(actorinstance, true);
+    };
+
+    this.updateWithApiObjectBase = function (obj) {
+
+        if (!obj.uniqueid) {
+            actorinstance.uuid = getLocalHash();
+        } else {
+            actorinstance.uuid = obj.uniqueid;
+        }
+
+        actorinstance.setX(parseInt(obj.position_x));
+        actorinstance.setY(parseInt(obj.position_y));
+        actorinstance.setWidth(parseInt(obj.width));
+        actorinstance.setHeight(parseInt(obj.height));
+        actorinstance.angle = parseInt(obj.radian);
+        actorinstance.zIndex = parseInt(obj.z_index);
+        actorinstance.owner_uuid = obj.owner_uuid;
+
+        actorinstance.setObjectMustBeModerated(obj.object_must_be_moderated);
+
+        if(!isNullOrEmpty(obj.tuzzer_firstname)){
+            actorinstance.tuzzer.firstname = obj.tuzzer_firstname;
+        }
+        if(!isNullOrEmpty(obj.tuzzer_lastname)){
+            actorinstance.tuzzer.lastname = obj.tuzzer_lastname;
+        }
+
+
+    };
+
+    this.updateWithApiObject = function (obj) {
+
+        actorinstance.updateWithApiObjectBase(obj);
+
+    };
+
+    //ancors
+    for (var i = 0; i < 8; i++) {
+        this.ancors.push(new Ancor(i, this));
+    }
+
+    this.setAnimating = function (value) {
+
+        this.animating = value;
+
+    }
+
+    this.getAnimation = function () {
+        if (this.animating) {
+
+            return "all " + P_ANIMATION_TIME + "ms cubic-bezier(0.250, 0.250, 0.750, 0.750)";
+        }
+
+        return "";
+    }
+
+}
+
+
+function PostIT() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.POSTIT;
+    that.gradienCss = null;
+    that.textColor = null;
+    that.textBeforeBlur = null;
+
+    that.padding = 30;
+
+
+    this.construct = function (uuid, bounds, zIndex, text, color, shape) {
+        that.init(uuid, bounds, zIndex);
+
+
+        that.text = text;
+        that.shape = shape ? shape : "shape1";
+        that.setColorNoUpdate(color ? color : "#f1c40f");
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.setText = function (text) {
+
+        that.text = text;
+    };
+
+    that.setColorNoUpdate = function (hex) {
+        that.color = hex;
+        that.gradienCss = getGradienCss(hex, this.shape);
+        that.textColor = getContrastYIQ(hex);
+        that.initialBg = getContrastYIQ(hex) == BLACK_HEX ? "rgba(49, 49, 49, 0.16)" : "rgba(255, 255, 255, 0.16)";
+        that.initalColor = getContrastYIQ(hex);
+
+
+
+    };
+
+
+    that.resize = function (vector) {
+
+        if(that.shape === "shape5" || that.shape == "shape3"){
+
+            var adding = vector.y == 0 ? vector.x : vector.y;
+            if (this.getWidth() + adding <= this.MIN_WIDTH) {
+                return;
+            }
+
+            this.width += adding;
+
+
+        }else{
+
+            if (vector.y == 0) {
+
+                if (this.getWidth() + vector.x <= this.MIN_WIDTH) {
+                    return;
+                }
+
+                this.width += vector.x;
+                this.height += vector.x;
+            } else {
+
+                if (this.getWidth() + vector.y <= this.MIN_WIDTH) {
+                    return;
+                }
+
+
+                this.width += vector.y;
+                this.height += vector.y;
+            }
+
+        }
+
+    };
+
+    that.getPadding = function(){
+        if(that.shape === "shape1"){
+            return 30;
+        }
+        return 0;
+    }
+
+
+
+    that.getHeight = function () {
+
+        if (that.shape == "shape5" || that.shape == "shape3") {
+            return Math.round(((that.width * 2) / 3) + that.getPadding());
+        }
+
+        return Math.round((that.height + that.getPadding()));
+    }
+
+    that.getWidth = function () {
+        return Math.round(this.width + that.getPadding());
+    };
+
+
+    that.getTextFocus = function () {
+        that.textBeforeBlur = that.text;
+    }
+
+    that.lostTextFocus = function () {
+
+        if (that.textBeforeBlur != that.text) {
+            that.updateMe();
+        }
+
+    }
+
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.width - that.getPadding();
+        apiObj.height - that.getPadding();
+
+        apiObj.object_type_id = ACTORTYPE.POSTIT;
+        apiObj.text = that.text;
+        apiObj.shape = that.shape;
+        apiObj.color = that.color;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+        if (apiObject.color) {
+            that.setColorNoUpdate(apiObject.color);
+        }
+        if (apiObject.text) {
+            that.text = apiObject.text;
+        }else{
+            that.text = "";
+        }
+
+        if (apiObject.shape) {
+            that.shape = apiObject.shape;
+        }
+
+    };
+
+
+    return this;
+
+
+}
+
+
+function Text() {
+
+    var that = new Actor();
+    that.color = "#000000";
+    that.type = ACTORTYPE.TEXT;
+    that.text = "";
+    that.textHtml = "";
+    that.bold = false;
+    that.underline = false;
+    that.italic = false;
+    that.size = 48;
+
+    that.MIN_HEIGHT = TEXT_MIN_HEIGHT;
+    that.MIN_WIDTH = TEXT_MIN_HEIGHT;
+
+    that.textBeforeBlur = null;
+
+    this.construct = function (uuid, bounds, zIndex) {
+        that.init(uuid, bounds, zIndex);
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+
+    that.setText = function (text) {
+
+        that.text = text;
+    };
+
+    that.getTextHtml = function () {
+
+        that.textHtml = that.text;
+
+        if (that.bold) {
+            that.textHtml = "<strong style='font-size: {0}px;word-wrap: break-word;'>".format(that.size) + that.textHtml + "</strong>";
+        }
+
+        if (that.underline) {
+            that.textHtml = "<u style='font-size: {0}px;word-wrap: break-word;'>".format(that.size) + that.textHtml + "</u>";
+        }
+
+        if (that.italic) {
+            that.textHtml = "<em style='font-size: {0}px;word-wrap: break-word;'>".format(that.size) + that.textHtml + "</em>";
+        }
+
+
+        return that.textHtml;
+
+    };
+
+    that.changeBold = function(){
+        that.bold = ! that.bold;
+        that.updateMe();
+    }
+
+    that.changeUnderline = function(){
+        that.underline = ! that.underline;
+        that.updateMe();
+    }
+
+    that.changeItalic = function(){
+        that.italic = ! that.italic;
+        that.updateMe();
+    }
+
+    that.sizeChanged = function(){
+        that.updateMe();
+    }
+
+    that.resize = function (vector) {
+
+        if (that.getWidth() + vector.x <= that.MIN_HEIGHT) {
+            return;
+        }
+
+        that.width += vector.x;
+
+        if (that.getHeight() + vector.y <= that.MIN_HEIGHT) {
+            return;
+        }
+
+        that.height += vector.y;
+
+    };
+
+    that.getTextFocus = function () {
+        that.textBeforeBlur = that.text;
+    }
+
+    that.lostTextFocus = function () {
+
+        if (that.textBeforeBlur != that.text) {
+            that.updateMe();
+        }
+
+    }
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.TEXT;
+
+        apiObj.text = that.text;
+        apiObj.bold = that.bold;
+        apiObj.underline = that.underline;
+        apiObj.italic = that.italic;
+        apiObj.size = that.size;
+        apiObj.color = that.color;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+
+        if (apiObject.color) {
+            that.setColorNoUpdate(apiObject.color);
+        }
+        if (apiObject.text) {
+            that.text = apiObject.text;
+        }
+
+        if (apiObject.bold != null) {
+            if (typeof apiObject.bold === 'string' || apiObject.bold instanceof String) {
+                that.bold = apiObject.bold === "1" || apiObject.bold === "true" ? true : false;
+            } else {
+                that.bold = apiObject.bold;
+            }
+
+        }else{
+            that.bold = false;
+        }
+
+        if (apiObject.underline != null) {
+            if (typeof apiObject.underline === 'string' || apiObject.underline instanceof String) {
+                that.underline = apiObject.underline === "1" || apiObject.underline === "true" ? true : false;
+            } else {
+                that.underline = apiObject.underline;
+            }
+
+        }else{
+            that.underline = false;
+        }
+
+        if (apiObject.italic != null) {
+            if (typeof apiObject.italic === 'string' || apiObject.italic instanceof String) {
+                that.italic = apiObject.italic === "1" || apiObject.italic === "true" ? true : false;
+            } else {
+                that.italic = apiObject.italic;
+            }
+
+        }else{
+            that.italic = false;
+        }
+
+        if (apiObject.size) {
+            that.size = apiObject.size;
+        }
+
+    };
+
+    return this;
+
+
+}
+
+function Link() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.LINK;
+
+
+    this.construct = function (uuid, bounds, zIndex, link, title, description, imageUrl) {
+        that.init(uuid, bounds, zIndex);
+
+
+        that.link = link;
+        that.title = title;
+        that.imageUrl = imageUrl;
+        that.description = description;
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.getHeight = function () {
+
+        var elem = angular.element(document.getElementById("{0}".format(that.uuid)));
+
+        return Math.round(parseFloat(elem.prop("offsetHeight")));
+    }
+
+    that.clicked = function () {
+
+        window.open(that.link);
+    }
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.LINK;
+
+        apiObj.link = that.link;
+        apiObj.title = that.title;
+        apiObj.imageUrl = that.imageUrl;
+        apiObj.description = that.description;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+
+        if (apiObject.link) {
+            that.link = apiObject.link;
+        }
+        if (apiObject.title) {
+            that.title = apiObject.title;
+        }
+
+        if (apiObject.imageUrl) {
+            that.imageUrl = apiObject.imageUrl;
+        }
+
+        if (apiObject.description) {
+            that.description = apiObject.description;
+        }
+
+
+    };
+
+
+    return this;
+
+
+}
+
+function Sticker() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.STICKER;
+
+
+    this.construct = function (uuid, bounds, zIndex, imageUrl, svgContent) {
+        that.init(uuid, bounds, zIndex);
+
+        that.imageUrl = imageUrl;
+        that.svgContent = svgContent;
+
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.getSvg = function () {
+
+        return that.svgContent;
+
+    };
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.STICKER;
+
+        apiObj.imageUrl = that.imageUrl;
+        apiObj.svgContent = that.svgContent;
+        apiObj.color = that.color;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+
+        if (apiObject.imageUrl) {
+            that.imageUrl = apiObject.imageUrl;
+
+        }
+
+        if (apiObject.svgContent) {
+            that.svgContent = apiObject.svgContent;
+
+        }
+
+        if (apiObject.color) {
+            that.color = apiObject.color;
+
+        }
+
+    };
+
+    return this;
+
+
+}
+
+function Image() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.IMAGE;
+
+
+    this.construct = function (uuid, bounds, zIndex, imageUrl) {
+        that.init(uuid, bounds, zIndex);
+
+        that.imageUrl = imageUrl;
+
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.getHeight = function () {
+
+        var elem = angular.element(document.getElementById("{0}".format(that.uuid)));
+
+        return Math.round(parseFloat(elem.prop("offsetHeight")));
+    }
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.IMAGE;
+
+        apiObj.imageUrl = that.imageUrl;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+
+        if (apiObject.imageUrl) {
+            that.imageUrl = apiObject.imageUrl;
+        }
+
+    };
+
+
+    return this;
+
+
+}
+
+function Video() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.VIDEO;
+    that.MIN_HEIGHT = MAP_MIN_WIDTH;
+    that.MIN_WIDTH = MAP_MIN_WIDTH;
+
+
+    this.construct = function (uuid, bounds, zIndex, videoObj) {
+        that.init(uuid, bounds, zIndex);
+
+        that.title = videoObj.title;
+        that.videoImg = videoObj.videoImg;
+        that.description = videoObj.description;
+        that.videoId = videoObj.videoId;
+
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.getHeight = function () {
+
+        var elem = angular.element(document.getElementById("{0}".format(that.uuid)));
+
+        return Math.round(parseFloat(elem.prop("offsetHeight")));
+    }
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.VIDEO;
+
+        apiObj.title = that.title;
+        apiObj.videoImg = that.videoImg;
+        apiObj.description = that.description;
+        apiObj.videoId = that.videoId;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+
+        if (apiObject.title) {
+            that.title = apiObject.title;
+        }
+
+        if (apiObject.videoImg) {
+            that.videoImg = apiObject.videoImg;
+        }
+
+        if (apiObject.description) {
+            that.description = apiObject.description;
+        }
+
+        if (apiObject.videoId) {
+            that.videoId = apiObject.videoId;
+        }
+
+
+    };
+
+
+    return this;
+
+
+}
+
+
+function Random() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.RANDOM;
+
+
+    this.construct = function (uuid, bounds, zIndex, randomObj) {
+        that.init(uuid, bounds, zIndex);
+
+        that.title = randomObj.title;
+        that.imageUrl = randomObj.imageUrl;
+        that.description = randomObj.description;
+        that.link = randomObj.link;
+
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.RANDOM;
+
+        apiObj.title = that.title;
+        apiObj.imageUrl = that.imageUrl;
+        apiObj.description = that.description;
+        apiObj.link = that.link;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+
+        if (apiObject.title) {
+            that.title = apiObject.title;
+        }
+
+        if (apiObject.imageUrl) {
+            that.imageUrl = apiObject.imageUrl;
+        }
+
+        if (apiObject.description) {
+            that.description = apiObject.description;
+        }
+
+        if (apiObject.link) {
+            that.link = apiObject.link;
+        }
+
+    };
+
+
+    return this;
+
+
+}
+
+function Board() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.BOARD;
+    that.canResize = false;
+
+
+    this.construct = function (uuid, bounds, zIndex, board_uuid, name, path) {
+        that.init(uuid, bounds, zIndex);
+
+        that.name = name;
+        that.board_uuid = board_uuid;
+        that.path = path;
+
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+
+    that.goToBoard = function () {
+
+        window.location.href = that.path;
+
+    };
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.BOARD;
+
+        apiObj.name = that.name;
+        apiObj.board_uuid = that.board_uuid;
+        apiObj.path = that.path;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+        if (apiObject.name) {
+            that.name = apiObject.name;
+        }
+
+        if (apiObject.board_uuid) {
+            that.board_uuid = apiObject.board_uuid;
+        }
+
+        if (apiObject.path) {
+            that.path = apiObject.path;
+        }
+
+
+    };
+
+
+    return this;
+
+
+}
+
+function lilement() {
+
+    var that = {text:"",checked:false,edit:false};
+    that.textBeforeBlur = null;
+
+    that.getTextFocus = function () {
+        that.textBeforeBlur = that.text;
+    }
+
+    that.lostTextFocus = function (listener) {
+
+        if (that.textBeforeBlur != that.text) {
+            listener();
+        }
+
+    }
+
+    that.getApiObject = function () {
+        var apiObj = {};
+        apiObj.text = that.text.replace(/"/g, '\\"');
+        apiObj.checked = that.checked;
+        apiObj.edit = false;
+
+        return apiObj;
+    }
+
+    this.construct = function (text, checked) {
+
+        that.text = text;
+        that.checked = checked;
+        that.edit = false;
+
+        return that;
+
+    }
+
+    this.constructWithApiObject = function (apiObject) {
+
+        that.text = apiObject.text;
+        that.checked = apiObject.checked;
+        that.edit = false;
+
+        return that;
+
+    }
+
+    return this;
+}
+
+function Ulist() {
+
+    var that = new Actor();
+    that.childs = [];
+    that.title = new lilement().construct("titre", false);
+
+    that.type = ACTORTYPE.ULIST;
+    that.MIN_HEIGHT = ULIST_MIN_HEIGHT;
+    that.MIN_WIDTH = ULIST_MIN_HEIGHT;
+
+    that.textBeforeBlur = null;
+    that.canResize = false;
+
+
+    this.construct = function (uuid, bounds, zIndex, title, childs) {
+        that.init(uuid, bounds, zIndex);
+
+        that.title = new lilement().construct(title, false);
+        if (isNullOrEmpty(that.title.text)) {
+            that.title.text = "Titre";
+
+        }
+        that.childs = [];
+
+
+        if (childs && childs.length > 0) {
+            for (var i = 0; i < childs.length; i++) {
+                var apiChild = childs[i];
+                that.childs.push(new lilement().constructWithApiObject(apiChild));
+            }
+        } else {
+            that.childs.push(new lilement().construct("", false));
+        }
+
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.getHeight = function () {
+
+        var elem = angular.element(document.getElementById("{0}".format(that.uuid)));
+
+        return Math.round(parseFloat(elem.prop("offsetHeight")));
+    }
+
+    that.getTextFocus = function () {
+        that.textBeforeBlur = that.title.text;
+    }
+
+    that.lostTextFocus = function () {
+
+        if (that.textBeforeBlur != that.title.text) {
+            that.updateMe();
+        }
+
+    }
+
+    that.getChildFocus = function (index) {
+
+        var child = that.childs[index];
+        if(child){
+            child.getTextFocus();
+        }
+    }
+
+    that.lostChildFocus = function (index) {
+
+        var child = that.childs[index];
+        if(child){
+            child.lostTextFocus(function(){ //listener when text changed after blur
+                that.updateMe();
+            });
+        }
+
+    }
+
+    function canDoAction() {
+        if (boardState == BOARD_MODE.ANCOR || boardState == BOARD_MODE.MULTISELECT || boardState == BOARD_MODE.READONLY || boardState == BOARD_MODE.REPLAY || that.getState() == ACTORSTATE.MODERATION || that.getState() == ACTORSTATE.LOCK) {
+            return false;
+        }
+        if(this_tuzzer.is_visitor && this_tuzzer.uuid != that.owner_uuid){
+            return false;
+        }
+        return true;
+    }
+
+    that.addChild = function () {
+
+        if (!canDoAction()) {
+            return;
+        }
+
+        that.childs.push(new lilement().construct("", false));
+        that.updateMe();
+
+    };
+
+    that.deleteChild = function (index) {
+
+        if (!canDoAction()) {
+            return;
+        }
+
+        if (that.childs.length > 1) {
+            that.childs.splice(index, 1);
+        } else {
+            var child = that.childs[index];
+            child.text = "";
+            child.checked = false;
+            child.edit = false;
+        }
+        that.updateMe();
+
+    };
+
+    that.checkChild = function (index) {
+
+        if (!canDoAction()) {
+            return;
+        }
+
+        var child = that.childs[index];
+        child.checked = !child.checked;
+        that.updateMe();
+    };
+
+    that.editChild = function (index) {
+
+        if (!canDoAction()) {
+            return;
+        }
+
+        that.setState(ACTORSTATE.EDIT);
+
+        for (var i = 0; i < that.childs.length; i++) {
+            that.childs[i].edit = false;
+        }
+        that.title.edit = false;
+
+        var child = that.childs[index];
+        child.edit = true;
+
+    };
+
+    that.editTitle = function () {
+
+        if (!canDoAction()) {
+            return;
+        }
+
+        that.setState(ACTORSTATE.EDIT);
+        that.title.edit = true;
+
+    };
+
+    that.keyPress = function (event, index) {
+
+        if (event.keyCode == 13) { //enter
+
+            insertInArray(that.childs,index + 1, new lilement().construct("", false));
+
+            //focus next element ->DIRTY<-
+            setTimeout(function () {
+
+                that.childs[index].edit = false;
+                that.childs[index + 1].edit = true;
+
+
+                var input = angular.element($("#{0} li.item_{1} input.listItemField".format(that.uuid, index)));
+                input[0].blur();
+                /*
+                 var input = angular.element(document.querySelectorAll("#{0} li.item_{1} input.listItemField".format(that.uuid, index + 1)));
+                 input[0].focus();
+                 */
+                that.updateMe();
+
+            }, 50);
+
+
+        }
+
+    };
+
+    that.setState = function (state) {
+        this.state = state;
+
+        if(state != ACTORSTATE.EDIT){
+            for (var i = 0; i < that.childs.length; i++) {
+                if(that.childs[i].edit){
+                    that.childs[i].edit = false;
+                }
+            }
+
+            if( that.title.edit){
+                that.title.edit = false;
+            }
+        }
+    };
+
+    that.setNoneState = function () {
+        if (this.state != ACTORSTATE.LOCK && this.state != ACTORSTATE.MODERATION) {
+            this.state = ACTORSTATE.NONE;
+
+            for (var i = 0; i < that.childs.length; i++) {
+                if(that.childs[i].edit){
+                    that.childs[i].edit = false;
+                }
+            }
+
+            if( that.title.edit){
+                that.title.edit = false;
+            }
+        }
+
+    };
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.ULIST;
+
+        apiObj.title = JSON.stringify(that.title.getApiObject());
+
+
+        //childs
+        var apiChilds = [];
+        for (var i = 0; i < that.childs.length; i++) {
+            var child = that.childs[i];
+            apiChilds.push(child.getApiObject());
+        }
+
+        apiObj.childs = JSON.stringify(apiChilds);
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+        that.childs = [];
+
+        if (apiObject.title) {
+            if (apiObject.title instanceof Object) {
+
+                that.title = new lilement().constructWithApiObject(apiObject.title);
+            } else {
+
+                that.title = new lilement().constructWithApiObject(JSON.parse(apiObject.title));
+            }
+
+        }
+
+        if (apiObject.childs) {
+            if (apiObject.childs instanceof Object) {
+
+                for (var i = 0; i < apiObject.childs.length; i++) {
+                    var apiChild = apiObject.childs[i];
+                    that.childs.push(new lilement().constructWithApiObject(apiChild));
+                }
+
+            } else {
+                var apiChilds = JSON.parse(apiObject.childs);
+                for (var i = 0; i < apiChilds.length; i++) {
+                    var apiChild = apiChilds[i];
+                    that.childs.push(new lilement().constructWithApiObject(apiChild));
+                }
+
+            }
+
+        }
+
+
+    };
+
+
+    return this;
+
+
+}
+
+function ActorMap() {
+
+    var that = new Actor();
+    that.MIN_HEIGHT = MAP_MIN_WIDTH;
+    that.MIN_WIDTH = MAP_MIN_WIDTH;
+    that.type = ACTORTYPE.MAP;
+    that.canResize = true;
+
+    this.construct = function (uuid, bounds, zIndex, mapObject) {
+        that.init(uuid, bounds, zIndex);
+
+
+        that.location = mapObject.location;
+        that.imageUrl = mapObject.src;
+        that.maptype = mapObject.type;
+        that.map_zoom = mapObject.zoom;
+        that.title = mapObject.title;
+
+        return that;
+    };
+
+    this.constuctWithApiObject = function (apiObj) {
+        that.initWithApiObject(apiObj);
+
+        return that;
+    };
+
+    that.getHeight = function () {
+
+        var elem = angular.element(document.getElementById("{0}".format(that.uuid)));
+
+        return Math.round(parseFloat(elem.prop("offsetHeight")));
+    }
+
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.MAP;
+
+
+        apiObj.location = that.location;
+        apiObj.imageUrl = that.imageUrl;
+        apiObj.maptype = that.maptype;
+        apiObj.zoom = that.map_zoom;
+        apiObj.title = that.title;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+        if (apiObject.title) {
+            that.title = apiObject.title;
+        }
+
+        if (apiObject.location) {
+            that.location = apiObject.location;
+        }
+
+        if (apiObject.imageUrl) {
+            that.imageUrl = apiObject.imageUrl;
+        }
+
+        if (apiObject.maptype) {
+            that.maptype = apiObject.type;
+        }
+
+        if (apiObject.zoom) {
+            that.map_zoom = apiObject.zoom;
+        }
+
+
+    };
+
+
+    return this;
+
+
+}
+
+function Canvas() {
+
+    var that = new Actor();
+    that.type = ACTORTYPE.CANVAS;
+
+
+    this.construct = function (bounds, imagePath) {
+        that.init(null, bounds, -1);
+
+        that.imagePath = imagePath;
+
+
+        return that;
+    };
+
+    that.getApiObject = function () {
+
+        var apiObj = that.getBaseApiObject();
+        apiObj.object_type_id = ACTORTYPE.CANVAS;
+
+        apiObj.imagePath = that.imagePath;
+
+        return apiObj;
+
+    };
+
+    that.updateWithApiObject = function (apiObject) {
+
+        that.updateWithApiObjectBase(apiObject);
+
+        if (apiObject.imagePath) {
+            that.imagePath = apiObject.imagePath;
+        }
+
+
+    };
+
+
+    return this;
+
+
+}
+
+
+
+

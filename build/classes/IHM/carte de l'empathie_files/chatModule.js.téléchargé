@@ -1,0 +1,232 @@
+/**
+ * Created by nicolas on 27/08/15.
+ */
+
+angular.module('chatModule', [])
+    .directive('chat', ["$rootScope", "ChatHttp", "$timeout", "periscopeFactory", function ($rootScope, ChatHttp, $timeout,periscopeFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $rootScope.chatOpen = false;
+                $scope.newMessageCount = 0;
+                $scope.currentText = "";
+
+                $scope.messages = [];
+
+
+                var audio = null;
+                $rootScope.$watch("playChatSound", function (value) {
+
+                    //audio only if sound notif is actif
+                    if (value) {
+
+                        audio = angular.element(document.getElementById("popSound"));
+                        audio = audio[0];
+
+                    }else{
+                        audio = null;
+                    }
+
+                });
+
+
+                var playPop = function () {
+                    if (audio) {
+                        audio.play();
+                    }
+                }
+
+                $scope.keyPressed = function ($e) {
+                    if ($e.keyCode == 13) { //enter
+                        $e.preventDefault();
+                        $scope.sendMessage();
+                    }
+
+                }
+
+                $scope.haveNewMessage = function () {
+                    return $scope.newMessageCount > 0;
+
+                };
+
+                $scope.triggerChat = function () {
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked) {
+                        return;
+                    }
+
+                    $rootScope.chatOpen = !$rootScope.chatOpen;
+                    if ($rootScope.chatOpen) {
+
+                        if($scope.newMessageCount > 0){
+                            scrollToBottom();
+                        }
+
+                        $scope.newMessageCount = 0;
+
+                    }
+
+                }
+
+                var scrollToBottom = function () {
+
+                    $timeout(function () {
+                        var lastMessage = $('#innerChatUl li').last();
+                        if($(lastMessage)[0]){
+                            try{
+                                $(lastMessage)[0].scrollIntoView();
+                            }catch (err){
+
+                            }
+
+                        }
+
+                    }, 0);
+
+
+                }
+
+                $scope.isMyMessage = function (message) {
+
+                    return $rootScope.tuzzer.uuid === message.tuzzer_uuid;
+
+                }
+
+                $scope.sendMessage = function () {
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked) {
+                        return;
+                    }
+
+                    var text = $scope.currentText;
+
+                    if (!isNullOrEmpty(text)) {
+
+                        $scope.currentText = "";
+
+                        $scope.messages.push({
+                            tuzzer_uuid: $rootScope.tuzzer.uuid,
+                            message: text,
+                            insert_date: new Date()
+                        });
+
+                        scrollToBottom();
+
+
+                        //send the message
+                        ChatHttp.sendMessage({board_uuid: $rootScope.board.uuid, message: text}).then(
+                            function (data, status, headers, config) {
+
+                                //console.log(data);
+
+                                //pusher the message
+                                chat_presence.trigger("client-chat_post", data);
+
+
+                            }, function (data, status, headers, config) {
+                                console.log("error send message");
+                            });
+
+
+                    }
+
+
+                }
+
+
+                $scope.getMessageHtml = function (text) {
+                    var urlRegex = /(https?:\/\/[^\s]+)/g;
+                    var html = text.replace(urlRegex, function (url) {
+                        return "<a href='{0}' target='_blank'>{0}</a>".format(url);
+                    })
+
+                    html = ("<p>" + html + "</p>");
+
+                    return html;
+                }
+
+                var chat_presence = client.subscribe("presence-chat-{0}".format($rootScope.board.uuid));
+
+                chat_presence.bind('pusher:subscription_succeeded', function () {
+
+                    chat_presence.bind("client-chat_post",
+                        function (data) {
+
+                            if (!$rootScope.chatOpen) {
+                                $scope.newMessageCount++;
+                                playPop();
+                            }
+
+                            $scope.messages.push(data);
+                            scrollToBottom();
+
+                            periscopeFactory.addMessage(data);
+                        }
+                    );
+                });
+
+
+                ChatHttp.readLastMessages({board_uuid: $rootScope.board.uuid}).then(
+                    function (data, status, headers, config) {
+
+
+                        $scope.messages = data;
+                        scrollToBottom();
+
+
+                    }, function (data, status, headers, config) {
+                        console.log("error get last messages");
+                    });
+
+
+            },
+            link: function (scope, element, attr) {
+
+
+            }
+        }
+    }])
+    .directive('periscope', ["$rootScope",function ($rootScope) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.display = false;
+                $scope.message = null;
+
+
+
+                $scope.getMessageHtml = function (text) { //todo method rootscope
+
+                    if(text){
+                        var urlRegex = /(https?:\/\/[^\s]+)/g;
+                        var html = text.replace(urlRegex, function (url) {
+                            return "<a href='{0}' target='_blank'>{0}</a>".format(url);
+                        })
+
+                        html = ("<p>" + html + "</p>");
+
+                        return html;
+                    }
+
+                    return text;
+
+                }
+
+
+                $scope.$on("periscope:displayChange", function(event, display) {
+
+                    $scope.display = display;
+                });
+
+                $scope.$on("periscope:messageChange", function(event, message) {
+
+                    $scope.message = message;
+                });
+
+            }
+        }
+    }]);

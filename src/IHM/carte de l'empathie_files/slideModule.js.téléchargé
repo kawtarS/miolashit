@@ -1,0 +1,349 @@
+//slider
+angular.module('slideModule', [])
+    .directive('tuzzSliderClick', ["$document", function ($document) {
+        return {
+            scope:true,
+            link: function (scope, element, attr) {
+
+
+                var sliderWidth = 0;
+
+
+                element.on('mousedown', function (event) {
+
+                    event.preventDefault();
+
+                    var pos = getCrossBrowserElementCoords(event);
+
+                    sliderWidth = element[0].clientWidth;
+
+                    var percent = Math.round((pos.x / sliderWidth) * 100);
+                    percent += 10;
+                    SCALE = percent / 100;
+
+                    SCALE = SCALE < MINZOOMLEVEL ? MINZOOMLEVEL : SCALE;
+
+                    scope.$apply();
+
+                });
+
+
+            }
+        };
+    }])
+    .directive('tuzzSliderDrag', ["$document", "$timeout", "$rootScope", function ($document, $timeout, $rootScope) {
+        return {
+            scope:true,
+            link: function (scope, element, attr) {
+
+
+                var sliderWidth = 0;
+                var initalPos = null;
+                var movingPos = null;
+                var initialPercent = null;
+                var timer = null;
+
+                var mousedown = function(event){
+
+                    event.preventDefault();
+
+                    var cursor = cursorFromEvent(event);
+
+                    initalPos = new Vector2(cursor.x, cursor.y);
+                    initialPercent = $rootScope.getScalePercent();
+                    initialPercent += 10;
+
+                    sliderWidth = angular.element(document.getElementById("slider-illusion")).prop("clientWidth");
+
+                    //move
+                    $document.on('mousemove', mousemove);
+                    $document.bind('touchmove', mousemove);
+
+                    //up
+                    $document.on('mouseup', mouseup);
+                    $document.bind('touchend', mouseup);
+                }
+
+                element.on('mousedown', mousedown);
+                element.bind('touchstart', mousedown);
+
+                function mouseup(event) {
+
+                    event.preventDefault();
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                }
+
+                function mousemove(event) {
+
+                    event.preventDefault();
+
+                    if (!timer) {
+
+                        var cursor = cursorFromEvent(event);
+
+                        movingPos = new Vector2(cursor.x, cursor.y);
+                        var res = subVector(initalPos, movingPos);
+
+
+                        var posPixel = (sliderWidth * initialPercent) / 100;
+                        posPixel -= res.x;
+                        var percent = Math.round((posPixel / sliderWidth) * 100);
+
+                        if (percent > (MAXZOOMLEVEL * 100)) {
+                            percent = MAXZOOMLEVEL * 100;
+                        } else if (percent < (MINZOOMLEVEL * 100)) {
+                            percent = MINZOOMLEVEL * 100;
+                        }
+
+                        //console.log(percent / 100);
+
+                        SCALE = percent / 100;
+                        scope.$apply();
+
+                        timer = $timeout(function () {
+                            $timeout.cancel(timer);
+                            timer = null;
+
+                        }, 70);
+
+                    }
+
+
+                }
+
+
+            }
+        };
+    }])
+    .directive("replaySlider", ["$document", "$timeout", "$rootScope", "ToolHttp", "$cacheFactory", function ($document, $timeout, $rootScope, ToolHttp,$cacheFactory) {
+        return {
+            scope: true,
+            link: function (scope, element, attr) {
+
+                $rootScope.modification_while_replay = 0;
+                var savedActors = null;
+                var savedArrows = null;
+                var savedCanvas = null;
+                var previousShow = false;
+
+                scope.$watch(attr.trigger, function (newValue) {
+                    if (newValue) {
+                        previousShow = true;
+                        $rootScope.fullLoader = true;
+                        var mCache = $cacheFactory.get("mainController");
+                        savedActors = mCache.get("getActors")();
+                        savedArrows = mCache.get("getArrows")();
+                        savedCanvas = $rootScope.canvas.imagePath;
+
+                        ToolHttp.getReplayListForBoard({board_id: $rootScope.board.uuid, limit: 5}).then(
+                            function (data, status, headers, config) {
+                                console.log("success on getReplayListForBoard");
+
+
+
+                                LOG(data);
+                                scope.lines = data;
+                                scope.selectedLine = scope.lines[scope.lines.length - 1];
+                                scope.draw_lines = [];
+
+                                initReplaySlider();
+                                $rootScope.fullLoader = false;
+
+                            }, function (data, status, headers, config) {
+                                console.log("error on getReplayListForBoard");
+
+                            });
+
+
+                    }else if(previousShow){
+
+                        previousShow = false;
+                        var mCache = $cacheFactory.get("mainController");
+
+                        if($rootScope.modification_while_replay > 0){
+                            $rootScope.modification_while_replay = 0;
+
+
+                            if($rootScope.canvas.imagePath !== savedCanvas){
+                                $rootScope.canvas.imagePath = "";
+                                $rootScope.canvas.imagePath = savedCanvas;
+                            }
+
+                            savedCanvas = null;
+                            //re get all object
+                            mCache.get("getAllBoardActors")();
+
+                        }else{
+
+                            mCache.get("setActors")(savedActors);
+                            mCache.get("setArrows")(savedArrows);
+
+                            if($rootScope.canvas.imagePath !== savedCanvas){
+                                $rootScope.canvas.imagePath = "";
+                                $rootScope.canvas.imagePath = savedCanvas;
+                            }
+
+                            savedCanvas = null;
+
+                            savedActors = [];
+                            savedArrows = [];
+                        }
+
+
+                    }
+                })
+
+
+                //--
+
+                var initReplaySlider = function () {
+
+                    var sliderWidth = angular.element(document.getElementsByClassName("replayContainer")).prop("clientWidth");
+                    var sliderDragWidthPercent = Math.round((angular.element(document.getElementsByClassName("replayDrag")).prop("clientWidth") / sliderWidth) * 100);
+                    var initalPos = null;
+                    var movingPos = null;
+                    var initialPercent = null;
+                    //var timer = null;
+
+
+                    scope.dragPosition = 100;
+
+                    //place lines
+                    var lineCount = scope.lines.length - 1;
+                    var linePixel = sliderWidth / (lineCount + 1);
+                    var linePercent = Math.round((linePixel / sliderWidth) * 100);
+                    for (var i = 0; i < lineCount; i++) {
+
+                        var linePer = linePercent * (i + 1);
+                        scope.draw_lines.push({left: linePer});
+
+                    }
+
+                    for (var i = 0; i < scope.lines.length; i++) {
+
+                        var line = scope.lines[i];
+                        line.max = linePercent * (i + 1);
+                        line.min = linePercent * (i);
+
+
+                    }
+
+
+                    function matchLine(percent) {
+                        for (var i = 0; i < scope.lines.length; i++) {
+
+                            var line = scope.lines[i];
+                            var toAdd = sliderDragWidthPercent / 2;
+
+                            if (percent <= (line.max - toAdd) && percent >= (line.min - toAdd)) {
+
+                                if(scope.selectedLine != line){
+                                    scope.selectedLine = line;
+
+                                    //set selected
+                                    var mCache = $cacheFactory.get("mainController");
+                                    mCache.get("setApiActorsToScope")(scope.selectedLine.objects);
+
+                                    //set arrows
+                                    mCache.get("setApiArrowsToScope")(scope.selectedLine.arrows);
+
+                                    //set canvas
+                                    var canvas_path = PREFIX + scope.selectedLine.canvas_path;
+                                    if(canvas_path !== $rootScope.canvas.imagePath){
+                                        $rootScope.canvas.imagePath = "";
+                                        $rootScope.canvas.imagePath = canvas_path;
+                                    }
+
+
+                                }
+
+                                break;
+
+                            }
+
+                        }
+                    }
+
+                    function mousedown(event) {
+                        event.preventDefault();
+
+
+                        var cursor = cursorFromEvent(event);
+
+
+                        initalPos = new Vector2(cursor.x, cursor.y);
+                        //initialPercent = angular.element(document.getElementsByClassName("replayDrag")).css("left"); //position
+                        //initialPercent = initialPercent.substr(0, initialPercent.length-1);
+
+                        initialPercent = scope.dragPosition;
+
+
+                        sliderWidth = angular.element(document.getElementsByClassName("replayContainer")).prop("clientWidth");
+
+                        //move
+                        $document.on('mousemove', mousemove);
+                        $document.bind('touchmove', mousemove);
+
+                        //up
+                        $document.on('mouseup', mouseup);
+                        $document.bind('touchend', mouseup);
+
+                    }
+
+                    element.on('mousedown', mousedown);
+                    element.bind('touchstart', mousedown);
+
+
+                    function mouseup(event) {
+
+                        event.preventDefault();
+
+                        $document.off('mousemove', mousemove);
+                        $document.unbind('touchmove', mousemove);
+
+                        $document.off('mouseup', mouseup);
+                        $document.unbind('touchend', mouseup);
+
+                    }
+
+                    function mousemove(event) {
+
+                        var cursor = cursorFromEvent(event);
+
+                        movingPos = new Vector2(cursor.x, cursor.y);
+                        var res = subVector(initalPos, movingPos);
+
+
+                        var posPixel = (sliderWidth * initialPercent) / 100;
+
+                        posPixel -= res.x;
+                        var percent = Math.round((posPixel / sliderWidth) * 100);
+
+                        if (percent > 100) {
+                            percent = 100;
+                        } else if (percent <= 0) {
+                            percent = 0;
+                        }
+
+
+                        scope.dragPosition = percent;
+                        //console.log(percent);
+
+                        matchLine(percent);
+
+                        scope.$apply();
+
+                    }
+
+                }
+
+
+            }
+        };
+    }]);

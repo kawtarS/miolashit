@@ -1,0 +1,2513 @@
+//pusher for app
+var client = new Pusher(PUSHER_KEY, {
+    encrypted: FORCE_ENCRYPTION, // true for prod
+    authEndpoint: PREFIX + "pusher",
+    pong_timeout: 6000, //default = 30000
+    unavailable_timeout: 2000 //default = 10000
+});
+var presence = null;
+
+
+function unbindBeforeUnload() {
+    $(window).off('beforeunload')
+}
+function bindBeforeUnload() {
+    $(window).on('beforeunload', function (e) {
+        var e = e || window.event;
+
+        // For IE and Firefox
+        if (e) {
+            e.returnValue = 'Etes-vous sûr de vouloir quitter? Si vous voulez sauvegarder ce board vous devez vous connecter ou vous enregistrer !';
+        }
+
+        // For Safari
+        return 'Etes-vous sûr de vouloir quitter? Si vous voulez sauvegarder ce board vous devez vous connecter ou vous enregistrer !';
+    })
+}
+
+//APP
+var app = angular.module("tuzzit", ["slideModule", "dragModule", "ancorModule","exceptionOverride",
+    "ngRoute", "ngTouch", "pusher-angular", "popupToolsModule", "popupAccountModule", "popupModule", "toolBarsModule", "ngFileUpload",
+    "colorpicker.module", "loaderModule", "ngTextFill", "voteModule", "chatModule", "videoModule", "shareModule",
+    "dashModule", "accountModule", "menuBarModule", "dragTempModule", "ngMessages",
+    "pascalprecht.translate", "angulartics", "angulartics.google.tagmanager", "livePointerModule", "ngFitText", "inceptionModule", "ngIntercom"]);
+
+app.factory('languageLoader', ["$http", "$q",function ($http, $q) {
+    return function (options) {
+
+        var deferred = $q.defer();
+
+
+        $http({
+            method:'POST',
+            url:"/api/1/framework/Board/getTranslationJson",
+            headers: {
+             'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: {key: options.key}
+        }).success(function (data) {
+
+            if(data.data.text){
+                deferred.resolve(data.data.text);
+            }else{
+                deferred.reject(options.key);
+            }
+
+        }).error(function (data) {
+            deferred.reject(options.key);
+        });
+
+        return deferred.promise;
+    }
+}]);
+
+//définition de la constante d'intercom
+app.constant('INTERCOM_APPID', INTERCOM_APPID)
+
+
+
+app.config(['$routeProvider', "$httpProvider", "$translateProvider", "$analyticsProvider","$intercomProvider","INTERCOM_APPID", function ($routeProvider, $httpProvider, $translateProvider, $analyticsProvider, $intercomProvider, INTERCOM_APPID) {
+    $routeProvider
+        .when('/popup/:name', {
+            templateUrl: PREFIX + 'public/partials/popups.html',
+            controller: 'PopupController',
+            reloadOnSearch: false
+        })
+        .otherwise({redirectTo: '/'});
+
+    $httpProvider.defaults.headers.common['frontkey'] = '1f37e258-d396-4a10-9de0-56ea1c98cd8b';
+    $httpProvider.defaults.transformRequest = function (data) {
+        return angular.isObject(data) && String(data) !== '[object File]' ? angular.toParam(data) : data;
+    };
+
+
+    $analyticsProvider.virtualPageviews(false);
+
+    $translateProvider.useSanitizeValueStrategy(null);
+
+    $translateProvider.useLoader('languageLoader', {});
+
+    $translateProvider.preferredLanguage("en_EN");
+    $translateProvider.fallbackLanguage('en_EN');
+
+    // Either include your app_id here or later on boot
+    $intercomProvider.appID(INTERCOM_APPID);
+    // you can include the Intercom's script yourself or use the built in async loading feature
+    $intercomProvider.asyncLoading(false)
+
+
+}])
+
+app.run(["$http", "$rootScope", "$location", function ($http, $rootScope, $location) {
+
+
+    $rootScope.fullLoader = true;
+    $rootScope.hideOnLoad = true;
+    $rootScope.ACTORSTATE = ACTORSTATE;
+    $rootScope.ACTORTYPE = ACTORTYPE;
+    $rootScope.BOARD_MODE = BOARD_MODE;
+    $rootScope.boardState = BOARD_MODE.NORMAL;
+    $rootScope.ARROW_SIDE = ARROW_SIDE;
+    $rootScope.ARROWTYPE = ARROWTYPE;
+
+    $rootScope.textToAdd = null;
+
+
+    $rootScope.getScale = function () {
+        return SCALE;
+    };
+
+    $rootScope.OFFSET_X = 0;
+    $rootScope.OFFSET_Y = 0;
+
+    $rootScope.$watch("OFFSET_X", function (newValue, oldValue) {
+        OFFSET_X = newValue;
+    });
+
+    $rootScope.$watch("OFFSET_Y", function (newValue, oldValue) {
+        OFFSET_Y = newValue;
+    });
+    $rootScope.$watch("boardState", function (newValue, oldValue) {
+        boardState = newValue;
+    });
+
+    $rootScope.canDisplayContextual = function () {
+        return $rootScope.currentActor != null && ($rootScope.currentActor.state == ACTORSTATE.SELECT || $rootScope.currentActor.state == ACTORSTATE.EDIT || $rootScope.currentActor.state == ACTORSTATE.ROTATE || $rootScope.currentActor.state == ACTORSTATE.RESIZING || $rootScope.currentActor.state == ACTORSTATE.MOVING);
+    };
+
+    $rootScope.triggerVideoPopup = function (videoId) {
+        $rootScope.currentVideoId = videoId;
+        $location.path("popup/video");
+    };
+
+    $rootScope.triggerMapPopup = function (map) {
+        $rootScope.currentMap = map;
+        $location.path("popup/map");
+    };
+
+    $rootScope.isBlankCanvas = function () {
+       if($rootScope.canvas.imagePath.indexOf('canvas/canva_blank') != -1) return true;
+        return false;
+    };
+
+    $rootScope.getGradienCss = getGradienCss;
+
+    $rootScope.POSTITCOLOR = {
+        yellow: "#fdc706",
+        orange: "#ff9800",
+        red: "#ff523b",
+        purple: "#9476cc",
+        blue: "#56bded",
+        green: "#8bd43d",
+        black: "#d8d8d8"
+    };
+
+    $rootScope.ROUND = function (number) {
+        return Math.round(number);
+    }
+
+    //$rootScope.boardState = BOARD_MODE.READONLY; //test
+
+
+}]);
+
+app.controller("mainController", ["$scope", "$rootScope", "$timeout", "$http", "ActorHttp", "ToolHttp", "$pusher", "$cacheFactory", "$location", "$window", "$translate","$intercom", function ($scope, $rootScope, $timeout, $http, ActorHttp, ToolHttp, $pusher, $cacheFactory, $location, $window, $translate, $intercom) {
+
+    //on stocke le canvas dans le rootScope
+    var canvas = createCanvas(new Bounds(0, 0, 5006, 3500), PREFIX + "public/images/cahier.png"); //TODO recuperer au chargement php avec les dimensions
+    $rootScope.canvas = canvas;
+
+
+    $scope.inputHelper = new InputHelper;
+    clearScopeActorLists($scope);
+
+    $scope.isMenuOpen = false;
+
+    $scope.selectBox = null;
+
+
+    /* MOUSE EVENTS */
+    mouseEvents($scope, $rootScope);
+    /* -------- */
+
+    /* MOUSE SCROLL */
+    initMouseScroll($scope, $rootScope, $timeout);
+    /* -------- */
+
+    /* callback method */
+    cacheMethods($cacheFactory, $scope, $rootScope, ActorHttp, $window, $timeout);
+
+    //pusher
+    $scope.init = function (settings, board, tuzzer, invitation, invited, owner) {
+
+        //console.log(settings.language);
+        //$translate.use("en_EN");
+        $translate.use(settings.language);
+
+        //On sette une variable à true pour voir si on doit loader les ressources du board
+        //elle est utilisée pour différer le chargement des ressources du board
+        $rootScope.hasToLoadResources = true;
+
+        $rootScope.settings = settings;
+        $rootScope.invited = invited;
+        $rootScope.board = board;
+        $rootScope.tuzzer = tuzzer;
+        $rootScope.owner = owner;
+        this_tuzzer = tuzzer;
+
+
+        //on configure intercom avec le tuzzer actuel
+        if (this_tuzzer.email && this_tuzzer.email != '') {
+            //timestamp de la date;
+            var t = this_tuzzer.insert_date.split(/[- :]/);
+            var d = new Date(t[0], t[1]-1, t[2], t[3], t[4], t[5]).getTime();
+
+            //infos supplémentaires
+            var currentPlan = "NO PLAN";
+            if (settings.tuzzer.plan) {
+                var currentPlan = settings.tuzzer.plan;
+            }
+            var attributes = {
+                is_visitor : this_tuzzer.is_visitor,
+                tuzzer_plan : currentPlan
+            }
+            var intercomTuzzer = {
+                email: this_tuzzer.email,
+                name: this_tuzzer.firstname + ' ' + this_tuzzer.lastname,
+                created_at: d / 1000,
+                user_id: this_tuzzer.uuid,
+                custom_attributes: attributes
+            }
+            $rootScope.interconTuzzer = intercomTuzzer;
+            $intercom.boot(intercomTuzzer); // app_id not required if set in .config() block
+            $intercom.update(intercomTuzzer);
+        }
+
+
+
+        isTempBoard = $rootScope.settings.board.status == "TEMP" ? true : false;
+        $rootScope.isTempBoard = isTempBoard;
+        $rootScope.board.voteModeActive = $rootScope.board.vote && $rootScope.board.vote === "ACTIVE" ? true : false;
+
+
+        if ($rootScope.board.canva_path_string) {
+            $rootScope.canvas.imagePath = $rootScope.settings.prefix + $rootScope.board.canva_path_string;
+            $rootScope.board.canva_path_string = null;
+            $rootScope.hasBoardImage = true;
+        }
+        else {
+            if ($rootScope.board.canva_path) {
+                $rootScope.canvas.imagePath = $rootScope.settings.prefix + $rootScope.board.canva_path;
+            }
+            else {
+                $rootScope.board.canva_path = $rootScope.settings.prefix + "public/images/cahier.png";
+            }
+        }
+
+        $rootScope.recheckOnEnter = function(){
+            var withPopup = true;
+
+            //SI LE BOARD EST EMBED
+            if ($rootScope.settings.board.is_embed) {
+                $rootScope.boardState = BOARD_MODE.READONLY;
+                withPopup = false;
+            }
+
+
+            //SI LE BOARD EST TEMPORAIRE
+            if ($rootScope.settings.board.status == "TEMP") {
+                $rootScope.hasToLoadResources = false;
+
+                //SI ON A CLIQUE SUR LE BOUTON LOGIN DE LA HOME
+                if ($rootScope.settings.board.need_login) {
+                    $location.path('/popup/login');
+                }
+                //SI ON EST EN RECOVERY DE MOT DE PASSE DE TUZZER
+                else if ($rootScope.settings.board.tuzzer_recovery) {
+                    $rootScope.accessEnterAccountPassword = $rootScope.settings.board.tuzzer_recovery;
+                    $location.path('/popup/enterAccountPassword');
+                }
+                //L'UTILISATEUR A CHOISI UN PRICING DANS LE MODE PUBLIC
+                else if ($rootScope.settings.board.public_package) {
+                    $rootScope.accessPopupPayment = $rootScope.settings.board.public_package;
+                    $rootScope.popupPaymentSelectedPlan = $rootScope.settings.board.public_package;
+                    $location.path('/popup/payment');
+                }
+                //SI ON AFFICHE LA CONFIRMATION DE UNSUBRIBE NEWSLETTER
+                else if ($rootScope.settings.board.newsletter_unsubscribe) {
+                    $location.path('/popup/unsubscribeNewsletter');
+                }
+                else if (SERVER_ENV == 'PROD') {
+                    $location.path('/popup/free');
+                    bindBeforeUnload();
+                }
+            }
+            //L'UTILISATEUR EST BLOQUE
+            else if ($rootScope.tuzzer.blocked || $rootScope.board.is_freezed_for_tuzzer) {
+                $rootScope.hasToLoadResources = false;
+                $rootScope.boardState = BOARD_MODE.READONLY;
+                //display popup blocked
+                $location.path('popup/blockUser');
+            }
+            //ON EST EN MODE INVITATION
+            else if ($rootScope.settings.board.status == "INVITATION") {
+                if (invitation.response == '') {
+                    $rootScope.hasToLoadResources = false;
+                    $rootScope.invitation = invitation;
+                    $location.path('/popup/welcome');
+                }
+            }
+            //L'UTILISATEUR EST VISITEUR
+            else if ($rootScope.settings.tuzzer.is_visitor) {
+                if (withPopup) {
+                    if ($rootScope.settings.tuzzer.is_identified_visitor) {
+                        $rootScope.checkIfBoardProtected();
+                    }
+                    else {
+                        $rootScope.hasToLoadResources = false;
+                        $rootScope.accessGuestPopup = true;
+                        $location.path('/popup/guest');
+                    }
+                }
+
+            }
+            //LE BOARD EST PROTEGE PAR MOT DE PASSE
+            else if ($rootScope.settings.board.is_protected) {
+                $rootScope.checkIfBoardProtected();
+            }
+
+
+        }
+
+
+        $rootScope.checkIfBoardProtected = function() {
+            if ($rootScope.settings.board.is_protected) {
+                $rootScope.hasToLoadResources = false;
+
+                if ($rootScope.tuzzer.is_board_owner === false) {
+                    $rootScope.invitation = invitation;
+                    $location.path('/popup/enterPassword');
+                }
+                else {
+                    $rootScope.hasToLoadResources = true;
+
+                }
+            }
+        }
+
+
+        $rootScope.recheckOnEnter();
+
+        $rootScope.initBoardResources = function() {
+            //var cache = $cacheFactory("global");
+            //cache.put("board", $rootScope.board);
+
+            if ($rootScope.settings.board.status != "TEMP" && $rootScope.board.uuid && $rootScope.tuzzer) {
+
+                initPusher($rootScope, $scope, $location, $timeout, ActorHttp, tuzzer);
+
+                $rootScope.bubbleUsers = [];
+                $rootScope.connectedUsersCount = 1;
+                //watch members to display connected members
+                $rootScope.$watch("presence_members.count", function () {
+
+                    if($rootScope.presence_members.members){
+                        //console.log($rootScope.presence_members.members);
+
+                        $rootScope.connectedUsersCount = 1;
+                        $rootScope.bubbleUsers = [];
+                        for(key in $rootScope.presence_members.members){
+                            var member = $rootScope.presence_members.members[key];
+                            if(member.tuzzer_uuid !== $rootScope.tuzzer.uuid){
+                                member.is_online = true;
+                                $rootScope.bubbleUsers.push(member);
+                                $rootScope.connectedUsersCount++;
+                            }
+
+                        }
+
+                        //check in collaborators who is not in the pusher
+                        var tempBubble = $rootScope.bubbleUsers;
+                        for(key in $rootScope.invited){
+                            var collabo = $rootScope.invited[key];
+                            var found = false;
+                            for(key2 in tempBubble){
+                                var bubble = tempBubble[key2];
+                                if(bubble.tuzzer_uuid === collabo.tuzzer_uuid){
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if(!found){
+                                collabo.is_online = false;
+                                $rootScope.bubbleUsers.push(collabo);
+                            }
+
+                        }
+
+                        //try {
+                        //    $timeout(function () {
+                        //        $rootScope.$apply();
+                        //    });
+                        //
+                        //} catch (error) {
+                        //    console.log(error);
+                        //}
+                    }
+
+                });
+
+
+                //load the actors
+                if ($rootScope.hasToLoadResources) {
+                    if (!$rootScope.settings.board.is_protected || ($rootScope.settings.board.is_protected && $rootScope.tuzzer.is_board_owner === true)) {
+                        //$scope.getAllBoardActors();
+                        $rootScope.hasToLoadResources = true;
+                    }
+                }
+
+            }
+        }
+
+        $rootScope.initBoardResources();
+
+        //on met un watcher pour savoir quand il faut loader les données
+        $rootScope.$watch("hasToLoadResources", function (newValue, oldValue) {
+
+            if ($rootScope.hasToLoadResources == true) {
+                $scope.getAllBoardActors();
+            }
+        });
+
+        //SCALE INITIAL ET OFFSET TABLEAU
+        initialScale($window, $rootScope);
+
+
+        //loading finished
+        var timer = $timeout(function () {
+            $timeout.cancel(timer);
+            $rootScope.fullLoader = false;
+            $rootScope.hideOnLoad = false;
+        }, 0);
+
+
+        //NOTIFY INIT IS FINISHED
+        notifyAllInitListeners();
+
+    }
+
+
+    /* UPDATE ACTOR */
+    actorsUpdates($scope, $rootScope, ActorHttp, ToolHttp);
+    //----
+
+    //menu contextuel
+    contextualMenuCallbacks($rootScope, $scope, ActorHttp, $timeout);
+
+    //actors animation
+    //watch current actor for animation
+    $rootScope.$watch("currentActor", function (newValue, oldValue) {
+
+        if ($rootScope.boardState != BOARD_MODE.MULTISELECT) {
+            animateActors($scope.actors);
+
+            if ($rootScope.currentActor) {
+                $rootScope.currentActor.setAnimating(false);
+
+            }
+        }
+
+
+    });
+
+    /*on destroy */
+    $scope.$on("$destroy", function () {
+        presence.unbind();
+        presence.disconnect();
+        pusher.disconnect();
+    });
+
+
+}]);
+
+function mouseEvents($scope, $rootScope) {
+
+    $scope.onClick = function ($event) {
+        $event.preventDefault();
+
+        if ($rootScope.toAddArrow) {
+            $rootScope.firstArrowClick = !$rootScope.firstArrowClick;
+
+            if ($rootScope.firstArrowClick) {
+                var cursor = cursorFromEvent($event);
+                var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                $rootScope.liveArrow = new Arrow(false, $rootScope.toAddArrow.type, dropPoint, dropPoint, ARROW_BASE_THICKNESS, ARROW_BASE_COLOR, 1);
+            } else {
+                $scope.createArrow($rootScope.liveArrow, true);
+                $rootScope.firstArrowClick = false;
+                $rootScope.liveArrow = null;
+                $rootScope.toAddArrow = null;
+            }
+
+
+            return;
+
+        }
+
+    }
+
+    $scope.onMouseDown = function ($event) {
+        $event.preventDefault();
+
+        $scope.inputHelper.setMouseDown();
+
+        var cursor = cursorFromEvent($event);
+
+
+        if (angular.element($event.target).hasClass("boardContainer") || angular.element($event.target).attr("id") === "bg" || angular.element($event.target).attr("id") === "bgBlank") {
+
+            if ($rootScope.currentActor) {
+                $rootScope.currentActor.setNoneState();
+                $rootScope.currentActor = null;
+            }
+
+            $rootScope.currentArrow = null;
+        }
+
+        if ($rootScope.toAddArrow) {
+
+            return;
+
+        }
+
+        if ($rootScope.textToAdd) {
+
+            var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+            dropPoint.x = dropPoint.x - $rootScope.textToAdd.getWidth() / 2;
+            dropPoint.y = dropPoint.y - $rootScope.textToAdd.getHeight() / 2;
+
+            $rootScope.textToAdd.setX(dropPoint.x);
+            $rootScope.textToAdd.setY(dropPoint.y);
+
+            $rootScope.textToAdd.owner_uuid = $rootScope.tuzzer.uuid;
+            addActorToScope($scope, $rootScope.textToAdd);
+            $rootScope.textToAdd.updateMe();
+            $rootScope.textToAdd.setState(ACTORSTATE.EDIT);
+
+            $rootScope.currentActor =  $rootScope.textToAdd;
+
+            $rootScope.textToAdd = null;
+            $rootScope.currentTool =  null;
+
+            $rootScope.$broadcast("menu:closeTool");
+
+            return;
+        }
+
+        $scope.offsetPoint = new Vector2(cursor.x, cursor.y);
+
+        if ($rootScope.boardState == BOARD_MODE.MULTISELECT && multiCanChange) {
+
+            var point = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+            $scope.offsetPoint = point;
+            $scope.selectBox = new SelectBox(point.x, point.y);
+        }
+
+
+        /*
+         if ((boardCanMove && $rootScope.currentActor)) {
+         $rootScope.currentActor.setState(ACTORSTATE.NONE);
+         $rootScope.currentActor = null;
+         return;
+         }
+         */
+
+
+    };
+    $scope.onMouseUp = function ($event) {
+        $scope.inputHelper.setMouseUp();
+
+        $scope.offsetPoint = null;
+
+
+        if ($scope.currentAncor != null) {
+
+            $scope.currentAncor = null;
+
+        }
+
+
+        boardCanMove = true;
+
+
+        if ($rootScope.boardState == BOARD_MODE.MULTISELECT && $scope.selectBox) {
+
+            var bound = new Bounds($scope.selectBox.getX(), $scope.selectBox.getY(), $scope.selectBox.getWidth(), $scope.selectBox.getHeight());
+            $rootScope.selectedItems = getAllActorInBound($scope.actors, bound, $rootScope.tuzzer);
+
+            //selector arrow dash
+            if($rootScope.selectedArrows){
+                for (var i = 0; i < $rootScope.selectedArrows.length; i++) {
+                    var arrow = $rootScope.selectedArrows[i];
+                    arrow.multiSelected = false;
+
+                }
+            }
+
+
+
+            $rootScope.selectedArrows = getAllArrowInBound($scope.arrows, bound, $rootScope.tuzzer);
+
+            //selector arrow dash
+            for (var i = 0; i < $rootScope.selectedArrows.length; i++) {
+                var arrow = $rootScope.selectedArrows[i];
+                arrow.multiSelected = true;
+
+            }
+
+            $scope.selectBox = null;
+        }
+
+
+    };
+
+    $scope.onMouseMove = function ($event) {
+        $event.preventDefault();
+
+        if ($scope.inputHelper.isMouseDown()) {
+
+
+            if (!boardCanMove) {
+                return;
+            }
+
+            if ($rootScope.currentActor) {
+
+                return;
+            }
+
+
+            //change offset
+
+            if ($rootScope.boardState != BOARD_MODE.MULTISELECT) {
+                if ($scope.offsetPoint) {
+
+                    var cursor = cursorFromEvent($event);
+
+                    $rootScope.OFFSET_X -= $scope.offsetPoint.x - cursor.x;
+                    $rootScope.OFFSET_Y -= $scope.offsetPoint.y - cursor.y;
+
+
+                    $scope.offsetPoint = new Vector2(cursor.x, cursor.y);
+                }
+            } else {
+
+
+                if ($scope.offsetPoint && multiCanChange) {
+
+                    var cursor = cursorFromEvent($event);
+
+                    var point = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                    var restultVector = subVector(point, $scope.offsetPoint);
+
+
+                    if ($scope.selectBox) {
+
+                        $scope.selectBox.getBounds().width = restultVector.x;
+                        $scope.selectBox.getBounds().height = restultVector.y;
+
+                    }
+
+
+                }
+
+            }
+
+
+        } else {
+
+            if ($rootScope.liveArrow) {
+
+                var cursor = cursorFromEvent($event);
+
+                var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                $rootScope.liveArrow.updatePointBWithPosition(dropPoint);
+
+                return;
+            }
+
+        }
+
+    };
+
+    $scope.onMouseLeave = function ($event) {
+
+
+        $scope.offsetPoint = null;
+
+        if ($rootScope.boardState == BOARD_MODE.MULTISELECT && $scope.selectBox) {
+
+
+            var bound = new Bounds($scope.selectBox.getX(), $scope.selectBox.getY(), $scope.selectBox.getWidth(), $scope.selectBox.getHeight());
+            $rootScope.selectedItems = getAllActorInBound($scope.actors, bound, $rootScope.tuzzer);
+            $rootScope.selectedArrows = getAllArrowInBound($scope.arrows, bound, $rootScope.tuzzer);
+
+            //selector arrow dash
+            for (var i = 0; i < $rootScope.selectedArrows.length; i++) {
+                var arrow = $rootScope.selectedArrows[i];
+                arrow.multiSelected = true;
+
+            }
+
+
+            $scope.selectBox = null;
+        }
+    };
+
+
+}
+
+function initMouseScroll($scope, $rootScope, $timeout) {
+    var scaleTimer = null;
+    var scaleCumuled = 0;
+
+    $scope.onMouseScroll = function (delta, event) {
+
+
+        if ($scope.inputHelper.isMouseDown()) {
+            return;
+        }
+
+
+        if (!scaleTimer) {
+
+
+            if (((SCALE >= MINZOOMLEVEL) && (SCALE <= MAXZOOMLEVEL))) {
+
+                //cursor position
+                var mouse_x = event.clientX - $rootScope.OFFSET_X;
+                var mouse_y = event.clientY - $rootScope.OFFSET_Y;
+                var lastzoom = SCALE;
+                //---
+
+                SCALE += scaleCumuled;
+                scaleCumuled = 0;
+                SCALE += delta < 0 ? ZOOMPERSCROLL : -ZOOMPERSCROLL;
+                if (SCALE > MAXZOOMLEVEL) {
+                    SCALE = MAXZOOMLEVEL;
+                }
+
+                if (SCALE < MINZOOMLEVEL) {
+                    SCALE = MINZOOMLEVEL;
+                }
+
+                //cursor position
+                var newx = mouse_x * (SCALE / lastzoom);
+                var newy = mouse_y * (SCALE / lastzoom);
+                $rootScope.OFFSET_X += mouse_x - newx;
+                $rootScope.OFFSET_Y += mouse_y - newy;
+                //---
+
+                scaleTimer = $timeout(function () {
+                    $timeout.cancel(scaleTimer);
+                    scaleTimer = null;
+
+                }, 20);
+
+            }
+
+
+        } else {
+            scaleCumuled += delta < 0 ? ZOOMPERSCROLL : -ZOOMPERSCROLL;
+        }
+
+
+    };
+}
+
+function initPusher($rootScope, $scope, $location, $timeout, ActorHttp, tuzzer) {
+    presence = client.subscribe("presence-{0}".format($rootScope.board.uuid));
+    $rootScope.presence_members = [];
+
+    presence.bind('pusher:subscription_succeeded', function () {
+        $rootScope.presence_members = presence.members;
+
+        presence.bind("client-update-canvas",
+            function (data) {
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                if (data.imagePath) {
+                    $rootScope.canvas.imagePath = data.imagePath;
+
+                    try {
+                        $timeout(function () {
+                            $scope.$apply();
+                        });
+
+                    } catch (error) {
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        presence.bind("client-validate-object",
+            function (apiObj) {
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                if (apiObj) {
+                    var actor = getActorWithUuid($scope, apiObj.uniqueid);
+                    if (actor) {
+
+                        //send object to every body
+                        actor.setObjectMustBeModerated(false);
+                        actor.setState(ACTORSTATE.NONE);
+
+
+                    }
+                }
+
+
+            }
+        );
+
+        presence.bind("client-reject-object",
+            function (apiObj) {
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                var actor = getActorWithUuid($scope, apiObj.uniqueid);
+                if (actor) {
+
+                    deleteActorWithUuid($rootScope, $scope, null, actor.uuid, false);
+
+                }
+
+            }
+        );
+
+        presence.bind("client-create_actor",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                addApiActorToScope($scope, apiObj);
+
+                try {
+                    $timeout(function () {
+                        $scope.$apply();
+                    });
+
+                } catch (error) {
+
+                }
+            }
+        );
+
+        presence.bind("client-moderate_actor",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                if ($rootScope.tuzzer.is_board_owner) {
+
+                    addApiActorToScope($scope, apiObj);
+
+                    try {
+                        $timeout(function () {
+                            $scope.$apply();
+                        });
+
+                    } catch (error) {
+
+                    }
+
+                }
+
+
+            }
+        );
+
+
+        presence.bind("client-update_actor",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                var actor = getActorWithUuid($scope, apiObj.uniqueid);
+                if (actor) {
+
+                    var oldWidth = actor.getWidth();
+                    var oldHeight = actor.getHeight();
+
+                    if (actor.type == ACTORTYPE.POSTIT) {
+                        oldWidth -= actor.getPadding();
+                        oldHeight -= actor.getPadding();
+                    }
+
+                    actor.updateWithApiObject(apiObj);
+
+                    if (oldWidth != apiObj.width || oldHeight != apiObj.height) {
+                        actor.triggerTextFill();
+                    }
+
+
+                    try {
+                        $timeout(function () {
+                            $scope.$apply();
+                        });
+                    } catch (error) {
+
+                    }
+                }
+
+            }
+        );
+
+        presence.bind("client-delete_actor",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                deleteActorWithUuid($rootScope, $scope, ActorHttp, apiObj.uniqueid, false);
+
+                try {
+                    $timeout(function () {
+                        $scope.$apply();
+                    });
+                } catch (error) {
+
+                }
+
+            }
+        );
+
+        presence.bind("client-create_arrow",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                createArrowWithApiObject($scope, apiObj);
+
+                try {
+                    $timeout(function () {
+                        $scope.$apply();
+                    });
+
+                } catch (error) {
+
+                }
+            }
+        );
+
+        presence.bind("client-update_arrow",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                var arrow = getArrowWithUuid($scope.arrows, apiObj.uniqueid);
+                if (arrow) {
+                    updateArrowWithApiObject($scope, apiObj, arrow);
+                }
+
+
+                try {
+                    $timeout(function () {
+                        $scope.$apply();
+                    });
+
+                } catch (error) {
+
+                }
+            }
+        );
+
+        presence.bind("client-delete_arrow",
+            function (apiObj) {
+
+                if($rootScope.boardState == BOARD_MODE.REPLAY){
+                    $rootScope.modification_while_replay++;
+                    return;
+                }
+
+                var arrow = getArrowWithUuid($scope.arrows, apiObj.uniqueid);
+                if (arrow) {
+                    deleteArrowWithUuid($rootScope, $scope, ActorHttp, arrow.uuid, false);
+                }
+
+
+                try {
+                    $timeout(function () {
+                        $scope.$apply();
+                    });
+
+                } catch (error) {
+
+                }
+            }
+        );
+
+
+        presence.bind("client-blocktuzzer",
+            function (data) {
+
+                if ($rootScope.tuzzer.uuid === data.tuzzer_uuid) {
+                    $rootScope.tuzzer.blocked = data.block;
+
+                    if (data.block) {
+                        $rootScope.boardState = BOARD_MODE.READONLY;
+                        //display popup blocked
+                        $location.path('popup/blockUser');
+
+
+                    } else {
+                        $rootScope.boardState = BOARD_MODE.NORMAL;
+                        //hide popup blocked
+                        $location.path('#');
+
+                    }
+
+                    try {
+                        $timeout(function () {
+                            $scope.$apply();
+                        });
+                    } catch (error) {
+
+                    }
+                }
+
+            }
+        );
+
+        presence.bind("client-freezeboard",
+            function (data) {
+
+                if (data.isFreeze) {
+                    //display popup freeze
+                    $rootScope.boardState = BOARD_MODE.READONLY;
+                } else {
+                    if (!tuzzer.blocked) {
+                        $rootScope.boardState = BOARD_MODE.NORMAL;
+                    }
+
+                }
+
+                try {
+                    $timeout(function () {
+                        $scope.$apply();
+                    });
+                } catch (error) {
+
+                }
+
+            }
+        );
+
+        presence.bind("client-set_vote",
+            function (data) {
+                $rootScope.board.voteModeActive = data.value;
+
+
+            }
+        );
+
+        presence.bind("client-update_vote_count",
+            function (data) {
+
+                var actor = getActorWithUuid($scope, data.uniqueid);
+                if (actor) {
+                    actor.voteCount = data.voteCount;
+                }
+
+
+            }
+        );
+
+    });
+    presence.bind('pusher:subscription_error', function (status) {
+    });
+}
+
+function initialScale($window, $rootScope) {
+    var barHeight = angular.element(document.getElementsByClassName("headerBar")).prop("clientHeight");
+    var zoneHeight = $window.innerHeight - barHeight;
+
+    var padding = 0; //TODO ajouter padding
+
+    var canvasWidth = $rootScope.canvas.getWidth() + padding;
+    var canvasHeight = $rootScope.canvas.getHeight() + padding;
+
+    var wanted_scale = Math.min($window.innerWidth / canvasWidth, zoneHeight / canvasHeight);
+
+    if (wanted_scale > 1) {
+        wanted_scale = Math.min(canvasWidth / $window.innerWidth, canvasHeight / zoneHeight);
+
+    }
+
+    var toAddX = Math.abs(((canvasWidth * wanted_scale) - $window.innerWidth) / 2);
+    var toAddY = Math.abs(((canvasHeight * wanted_scale) - zoneHeight) / 2);
+
+
+    $rootScope.OFFSET_X = toAddX;
+    $rootScope.OFFSET_Y = toAddY + barHeight;
+    SCALE = wanted_scale;
+}
+
+function actorsUpdates($scope, $rootScope, ActorHttp, ToolHttp) {
+
+
+    $rootScope.saveForReplay = function () {
+        if ($rootScope.tuzzer.stripe_plan_id === "interaction") {
+            ToolHttp.saveForReplay({board_id: $rootScope.board.uuid}).then(
+                function (data, status, headers, config) {
+
+                }, function (data, status, headers, config) {
+
+                });
+        }
+    }
+
+    $scope.actorUpdateCallBack = function (actor, withoutReplay) {
+        //console.log("update me");
+        actor.setTuzzer($rootScope.tuzzer);
+        var data = actor.getApiObject();
+
+        if (actor.type == ACTORTYPE.STICKER) {
+            delete data.svgContent;
+        }
+
+        if (isTempBoard) {
+            data.temp_board_id = $rootScope.board.id;
+
+            ActorHttp.updateActorTemp(data).then(
+                function (data, status, headers, config) {
+                    actor.uuid = data;
+                    //presence.trigger("client-create_actor",{});
+
+                }, function (data, status, headers, config) {
+                });
+        } else {
+            data.board_uuid = $rootScope.board.uuid;
+
+
+            ActorHttp.updateActor(data).then(
+                function (data, status, headers, config) {
+                    //console.log("success on update");
+
+
+                    if (data.update) {
+
+
+                        presence.trigger("client-update_actor", actor.getApiObject());
+
+                        //console.log(data);
+                    } else {
+                        if (data.uuid) {
+                            actor.uuid = data.uuid;
+                        }
+                        actor.setObjectMustBeModerated(data.object_must_be_moderated);
+
+                        if (data.object_must_be_moderated) {
+                            //actor.setState(ACTORSTATE.MODERATION); DONE IN SETTER OF ACTOR SETOBJEC..MODERATED
+
+                            //send the actor to the moderate list of the owner
+                            presence.trigger("client-moderate_actor", actor.getApiObject());
+
+                        } else {
+                            presence.trigger("client-create_actor", actor.getApiObject());
+                        }
+
+
+                    }
+
+
+                    //replay
+                    if(!withoutReplay){
+                        $rootScope.saveForReplay();
+                    }
+
+
+
+                }, function (data, status, headers, config) {
+
+                });
+
+
+        }
+
+
+    };
+
+
+    $scope.arrowUpdateCallBack = function (arrow) {
+
+        var data = arrow.getApiObject();
+        data.board_id = $rootScope.board.uuid;
+
+        ActorHttp.createArrow(data).then(
+            function (data, status, headers, config) {
+
+                presence.trigger("client-update_arrow", arrow.getApiObject());
+
+            }, function (data, status, headers, config) {
+
+            });
+    }
+}
+
+function cacheMethods($cacheFactory, $scope, $rootScope, ActorHttp, $window, $timeout) {
+    var mcCache = $cacheFactory("mainController");
+
+    $scope.activateAncorMode = function () {
+        clearEditMode($scope.actors);
+        activateAllAncorsMode($scope.actors, true);
+        $rootScope.boardState = BOARD_MODE.ANCOR;
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+
+    }
+
+    $scope.desactivateAncorMode = function () {
+
+        activateAllAncorsMode($scope.actors, false);
+
+        if ($rootScope.boardState != BOARD_MODE.READONLY) {
+            $rootScope.boardState = BOARD_MODE.NORMAL;
+        }
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+
+
+    }
+
+
+    $scope.activateMultiSelectMode = function () {
+        clearEditMode($scope.actors);
+        $scope.desactivateAncorMode();
+        unAnimateActors($scope.actors);
+        $rootScope.boardState = BOARD_MODE.MULTISELECT;
+
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+
+
+    }
+
+    $scope.desactivateMultiSelectMode = function () {
+
+        //delete all selected box;
+        $rootScope.selectedItems = [];
+
+        //selector arrow dash
+        if($rootScope.selectedArrows){
+            for (var i = 0; i < $rootScope.selectedArrows.length; i++) {
+                var arrow = $rootScope.selectedArrows[i];
+                arrow.multiSelected = false;
+
+            }
+        }
+
+
+        $rootScope.selectedArrows = [];
+        if ($rootScope.boardState != BOARD_MODE.ANCOR && $rootScope.boardState != BOARD_MODE.REPLAY) {
+            animateActors($scope.actors);
+            $rootScope.boardState = BOARD_MODE.NORMAL;
+        }
+
+
+    }
+
+
+    $scope.dropActor = function (actor, position) {
+
+        if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY) {
+            return;
+        }
+
+        actor.setTuzzer($rootScope.tuzzer);
+        actor.owner_uuid = $rootScope.tuzzer.uuid;
+        actor.setX(position.x);
+        actor.setY(position.y);
+        addActorToScope($scope, actor);
+        $rootScope.currentActor = actor;
+        $rootScope.currentActor.setSelectMode(true);
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+
+
+        actor.updateMe();
+
+
+    }
+
+    $scope.createArrow = function (arrow, send_backend) {
+
+        if (!arrow) {
+            return;
+        }
+
+
+        $scope.arrows.push(arrow);
+
+        var data = arrow.getApiObject();
+        data.board_id = $rootScope.board.uuid;
+
+        arrow.updateCallBack = $scope.arrowUpdateCallBack;
+
+        //create arrow
+        if (send_backend) {
+
+            arrow.owner_id = $rootScope.tuzzer.uuid;
+
+            ActorHttp.createArrow(data).then(
+                function (result, status, headers, config) {
+
+
+                    if (result) {
+                        var data = result.data;
+
+                        arrow.uuid = data.uuid;
+                        LOG(data);
+
+                        if (!result.update) {
+                            presence.trigger("client-create_arrow", arrow.getApiObject());
+                        } else {
+                            presence.trigger("client-update_arrow", arrow.getApiObject());
+                        }
+
+
+                    }
+
+
+                }, function (data, status, headers, config) {
+                });
+        }
+
+
+    }
+
+
+    $scope.getActors = function () {
+        return $scope.actors;
+    }
+
+    $scope.getArrows = function () {
+        return $scope.arrows;
+    }
+
+    $scope.setApiActorsToScope = function (apiObjects) {
+        setApiActorsToScope($scope, apiObjects);
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+
+    }
+
+    $scope.setApiArrowsToScope = function (apiObjects) {
+
+        for (var i = 0; i < apiObjects.length; i++) {
+            var apiObj = apiObjects[i];
+            apiObj.uniqueid = apiObj.uuid; //important
+            delete apiObj.uuid;
+
+            createArrowWithApiObject($scope, apiObj);
+
+        }
+
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+
+    }
+
+    $scope.addApiActorsToScope = function (apiObjects) {
+
+        for (var i = 0; i < apiObjects.length; i++) {
+            var apiObject = apiObjects[i];
+            addApiActorToScope($scope, apiObject);
+        }
+
+        for (var i = 0; i < $scope.actors.length; i++) {
+            var actor = $scope.actors[i];
+            actor.updateMe();
+        }
+
+        //$scope.$apply();
+    }
+
+    $scope.setActors = function (actors) {
+        clearScopeActorLists($scope);
+
+        for (var i = 0; i < actors.length; i++) {
+            var actor = actors[i];
+            addActorToScope($scope, actor);
+        }
+    }
+
+    $scope.setArrows = function (arrows) {
+        $scope.arrows = [];
+
+        for (var i = 0; i < arrows.length; i++) {
+            var arrow = arrows[i];
+            $scope.createArrow(arrow, false);
+        }
+    }
+
+    $scope.getAllBoardActors = function () {
+        ActorHttp.getAllBoardActors({board_id: $rootScope.board.uuid}).then(
+            function (data, status, headers, config) {
+
+
+                clearScopeActorLists($scope);
+
+                if (data.objects) {
+                    for (var key in data.objects) {
+                        var apiObj = data.objects[key];
+                        apiObj.uniqueid = apiObj.uuid; //important
+                        addApiActorToScope($scope, apiObj);
+                    }
+                }
+
+
+                if (data.arrow) {
+
+                    for (var i = 0; i < data.arrow.length; i++) {
+                        var apiObj = data.arrow[i];
+                        apiObj.uniqueid = apiObj.uuid; //important
+                        delete apiObj.uuid;
+
+                        createArrowWithApiObject($scope, apiObj);
+
+                    }
+                }
+
+                //zoom on actor
+
+                if ($rootScope.settings.board.zoom_object && $rootScope.settings.board.zoom_object.uuid) {
+                    $scope.zoomOnActor($rootScope.settings.board.zoom_object.uuid);
+                }
+
+                //get vote count
+                ActorHttp.getAllVote({board_id: $rootScope.board.uuid}).then(
+                    function (data, status, headers, config) {
+
+
+                        for (var i = 0; i < data.length; i++) {
+                            var voteObj = data[i];
+                            var actor = getActorWithUuid($scope, voteObj.object_id);
+                            if (actor) {
+                                actor.voteCount = voteObj.vote_count;
+                                actor.voted = voteObj.already_voted;
+                            }
+                        }
+
+                    }, function (data, status, headers, config) {
+                    });
+
+
+                setTimeout(function () {
+                    animateActors($scope.actors);
+                }, P_ANIMATION_TIME_DELAY);
+
+                //kiki.vill.test();
+
+
+
+            }, function (data, status, headers, config) {
+            });
+    }
+
+    $scope.ownerModerateActor = function (reject, moderate) {
+
+        if ($rootScope.tuzzer.is_board_owner && moderate) {
+
+            var actor = getActorWithUuid($scope, moderate.uniqueid);
+
+            if (!actor) return;
+
+            if (reject) {
+                deleteActorWithUuid($rootScope, $scope, ActorHttp, actor.uuid, false);
+            } else {
+                actor.setObjectMustBeModerated(false);
+                actor.setState(ACTORSTATE.NONE);
+
+            }
+
+        }
+
+    }
+
+    $scope.zoomOnActor = function (uuid) {
+
+        var actor = getActorWithUuid($scope, uuid);
+        if (actor) {
+            var dashCache = $cacheFactory.get("showDashboard");
+            dashCache.get("closeDashBoard")();
+
+            var zoneHeight = $window.innerHeight;
+            var zoneWidth = $window.innerWidth;
+
+
+            var wanted_scale = Math.min(zoneWidth / actor.getWidth(), zoneHeight / actor.getHeight());
+            if (wanted_scale > 1) {
+                SCALE = MAXZOOMLEVEL;
+            } else if (wanted_scale < 0) {
+                SCALE = MINZOOMLEVEL;
+            } else {
+                SCALE = wanted_scale;
+            }
+
+
+            var screenPoint = new Vector2(((actor.getX()) * SCALE), ((actor.getY()) * SCALE));
+
+
+            $rootScope.OFFSET_X = (-screenPoint.x + (zoneWidth / 2) - ((actor.getWidth() * SCALE) / 2));
+            $rootScope.OFFSET_Y = (-screenPoint.y + (zoneHeight / 2) - ((actor.getHeight() * SCALE) / 2));
+
+
+        }
+
+    }
+
+
+    mcCache.put("activateAncorMode", $scope.activateAncorMode);
+    mcCache.put("desactivateAncorMode", $scope.desactivateAncorMode);
+    mcCache.put("activateMultiSelectMode", $scope.activateMultiSelectMode);
+    mcCache.put("desactivateMultiSelectMode", $scope.desactivateMultiSelectMode);
+    mcCache.put("dropActor", $scope.dropActor);
+    mcCache.put("createArrow", $scope.createArrow);
+    mcCache.put("getActors", $scope.getActors);
+    mcCache.put("getArrows", $scope.getArrows);
+    mcCache.put("setActors", $scope.setActors);
+    mcCache.put("setArrows", $scope.setArrows);
+    mcCache.put("setApiActorsToScope", $scope.setApiActorsToScope);
+    mcCache.put("setApiArrowsToScope", $scope.setApiArrowsToScope);
+    mcCache.put("addApiActorsToScope", $scope.addApiActorsToScope);
+    mcCache.put("getAllBoardActors", $scope.getAllBoardActors);
+    mcCache.put("ownerModerateActor", $scope.ownerModerateActor);
+    mcCache.put("zoomOnActor", $scope.zoomOnActor);
+}
+
+function contextualMenuCallbacks($rootScope, $scope, ActorHttp, $timeout) {
+    $rootScope.deleteCurrentActor = function (actor) {
+        deleteActorWithUuid($rootScope, $scope, ActorHttp, actor.uuid, true);
+
+    };
+
+    $rootScope.duplicateCurrentActor = function (actor) {
+
+        var newActor = null;
+        var apiObject = actor.getApiObject();
+        apiObject.uniqueid = null; //important !
+        apiObject.position_x += apiObject.width;
+
+        switch (actor.type) {
+            case ACTORTYPE.POSTIT:
+                newActor = new PostIT().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.ULIST:
+                newActor = new Ulist().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.LINK:
+                newActor = new Link().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.STICKER:
+                newActor = new Sticker().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.IMAGE:
+                newActor = new Image().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.VIDEO:
+                newActor = new Video().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.MAP:
+                newActor = new ActorMap().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.BOARD:
+                newActor = new Board().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.TEXT:
+                newActor = new Text().constuctWithApiObject(apiObject);
+                break;
+            case ACTORTYPE.RANDOM:
+                newActor = new Random().constuctWithApiObject(apiObject);
+                break;
+        }
+
+        if (newActor) {
+
+            if (newActor.type == ACTORTYPE.POSTIT) {
+                newActor.width = newActor.width - newActor.getPadding();
+                newActor.height = newActor.height - newActor.getPadding();
+            }
+
+            addActorToScope($scope, newActor);
+            newActor.updateMe();
+            $rootScope.currentActor = newActor;
+            $rootScope.currentActor.setSelectMode(true);
+        }
+
+    };
+
+    $rootScope.frontCurrentActor = function (actor) {
+
+        var max = getHighestZindex($scope.actors);
+        if (max.uuid !== actor.uuid) {
+            actor.zIndex = max.max + 1;
+            actor.updateMe();
+        }
+
+    };
+
+    $rootScope.backCurrentActor = function (actor) {
+        var min = getLowestZindex($scope.actors);
+        if (min.uuid !== actor.uuid) {
+            actor.zIndex = min.min - 1;
+            actor.zIndex = actor.zIndex > 1 ? actor.zIndex : 1;
+            //actor.zIndex = min.min;
+            actor.updateMe();
+        }
+
+    };
+
+    $rootScope.deleteCurrentArrow = function (arrow) {
+        deleteArrowWithUuid($rootScope, $scope, ActorHttp, arrow.uuid, true);
+    }
+
+    $rootScope.rotateCurrentArrow = function (actor) {
+
+        var angle = $rootScope.currentActor.getAngle();
+        angle += 90;
+
+        if (angle > 360) {
+            angle -= 360;
+        }
+
+        actor.setAngle(angle);
+        actor.updateMe();
+
+        try {
+            $timeout(function () {
+                $scope.$apply();
+            });
+
+        } catch (error) {
+
+        }
+    }
+}
+
+//FILTER
+
+app.filter('html', ['$sce', function ($sce) {
+    return function (text) {
+        return $sce.trustAsHtml(text);
+    };
+}])
+
+app.filter('url', ['$sce', function ($sce) {
+    return function (text) {
+        return $sce.trustAsUrl(text);
+    };
+}])
+
+
+app.filter('initial', [function () {
+    return function (text) {
+
+        if(!text || text === "null" || text === "null null"){
+            return "?";
+        }
+
+        var fullName = text.split(' '),
+            firstName = fullName[0],
+            lastName = fullName[1];
+
+
+        if(!isNullOrEmpty(firstName) || !isNullOrEmpty(lastName)){
+            return lastName.substring(0, 1).toUpperCase() + "." + firstName.substring(0, 1).toUpperCase() + ".";
+        }
+        return "?";
+
+    };
+}])
+
+app.filter('fullname', ["$translate",function ($translate) {
+    return function (object) {
+
+
+        if(!object){
+            return $translate.instant("UNKNOWN");
+        }
+
+        var firstname = object.firstname ? object.firstname : "";
+        var lastName = object.lastname ? object.lastname : "";
+
+        var fullname = (firstname + " " + lastName);
+
+        if(isWhitespaceOrEmpty(fullname)){
+            return $translate.instant("UNKNOWN");
+        }
+
+
+        return fullname;
+
+    };
+}])
+
+//DIRECTIVE
+
+
+app.directive('ngMousewheel', ["$parse", function ($parse) {
+    return {
+        link: function (scope, element, attr) {
+            element.bind("mousewheel DOMMouseScroll MozMousePixelScroll onmousewheel", function (event) {
+
+                // cross-browser wheel delta
+                var event = window.event || event; // old IE support
+                event.preventDefault();
+                var delta = Math.max(-1, Math.min(1, (event.deltaY || -event.detail || (event.originalEvent && event.originalEvent.detail))));
+
+
+                var expr = $parse(attr['ngMousewheel']),
+                    fn = function (delta, event) {
+                        scope.$apply(function () {
+                            expr(scope, {
+
+                                delta: delta,
+                                event: event
+
+                            });
+                        });
+                    };
+
+                fn(delta, event);
+
+                // for IE
+                event.returnValue = false;
+                // for Chrome and Firefox
+                if (event.preventDefault) event.preventDefault();
+
+            });
+        }
+    };
+}]);
+
+app.directive('touchMousedown', ["$parse", function ($parse) {
+    return {
+        link: function (scope, element, attr) {
+
+
+            var expr = $parse(attr['touchMousedown']),
+                fn = function (event) {
+                    scope.$apply(function () {
+                        expr(scope, {
+
+                            $event: event
+
+                        });
+                    });
+                };
+
+
+            var eventTriggered = function (event) {
+                fn(event);
+            }
+
+            element.on('mousedown', eventTriggered);
+            element.bind('touchstart', eventTriggered);
+
+
+        }
+    };
+}]);
+
+
+app.directive('touchMousemove', ["$parse", function ($parse) {
+    return {
+        link: function (scope, element, attr) {
+
+
+            var expr = $parse(attr['touchMousemove']),
+                fn = function (event) {
+                    scope.$apply(function () {
+                        expr(scope, {
+
+                            $event: event
+
+                        });
+                    });
+                };
+
+
+            var eventTriggered = function (event) {
+                fn(event);
+            }
+
+            element.on('mousemove', eventTriggered);
+            element.bind('touchmove', eventTriggered);
+
+
+        }
+    };
+}]);
+
+app.directive('touchMouseup', ["$parse", function ($parse) {
+    return {
+        link: function (scope, element, attr) {
+
+
+            var expr = $parse(attr['touchMouseup']),
+                fn = function (event) {
+                    scope.$apply(function () {
+                        expr(scope, {
+
+                            $event: event
+
+                        });
+                    });
+                };
+
+
+            var eventTriggered = function (event) {
+                fn(event);
+            }
+
+            element.on('mouseup', eventTriggered);
+            element.bind('touchend', eventTriggered);
+
+
+        }
+    };
+}]);
+
+app.directive('touchDblclick', ["$parse", function ($parse) {
+    return {
+        link: function (scope, element, attr) {
+
+
+            var expr = $parse(attr['touchDblclick']),
+                fn = function (event) {
+                    scope.$apply(function () {
+                        expr(scope, {
+
+                            $event: event
+
+                        });
+                    });
+                };
+
+
+            var eventTriggered = function (event) {
+                fn(event);
+            }
+
+            $(element).on("doubletap", function (event) {
+                event.stopImmediatePropagation(); //prevent touchend to be trigger in the actordragModule
+                fn(event);
+            });
+
+
+            element.on('dblclick', eventTriggered);
+
+
+        }
+    };
+}]);
+
+app.directive('focusOnShow', ["$timeout", function ($timeout) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attr) {
+
+            var firstTime = true;
+
+            if (attr.ngShow) {
+                scope.$watch(attr.ngShow, function (newValue) {
+
+                    if (newValue) {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            if (actor) {
+                                actor.getTextFocus();
+                            }
+                        }
+
+                        $timeout(function () {
+                            element[0].focus();
+                        });
+                    } else {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            if (actor) {
+                                actor.lostTextFocus();
+                            }
+                        }
+
+                    }
+                    firstTime = false;
+                })
+            }
+            if (attr.ngHide) {
+                scope.$watch(attr.ngHide, function (newValue) {
+                    if (!newValue) {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            if (actor) {
+                                actor.getTextFocus();
+                            }
+                        }
+
+                        $timeout(function () {
+                            element[0].focus();
+                        });
+                    } else {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            if (actor) {
+                                actor.lostTextFocus();
+                            }
+                        }
+
+                    }
+                    firstTime = false;
+                })
+            }
+
+        }
+    };
+}]);
+
+app.directive('focusOnShowListChild', ["$timeout", function ($timeout) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attr) {
+
+            var firstTime = true;
+
+            if (attr.ngShow) {
+                scope.$watch(attr.ngShow, function (newValue) {
+
+                    if (newValue) {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            var index = scope.$eval(attr.index);
+                            if (actor) {
+                                actor.getChildFocus(index);
+                            }
+                        }
+
+                        $timeout(function () {
+                            element[0].focus();
+                        });
+                    } else {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            var index = scope.$eval(attr.index);
+                            if (actor) {
+                                actor.lostChildFocus(index);
+                            }
+                        }
+
+                    }
+                    firstTime = false;
+                })
+            }
+            if (attr.ngHide) {
+                scope.$watch(attr.ngHide, function (newValue) {
+                    if (!newValue) {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            var index = scope.$eval(attr.index);
+                            if (actor) {
+                                actor.getChildFocus(index);
+                            }
+                        }
+
+                        $timeout(function () {
+                            element[0].focus();
+                        });
+                    } else {
+
+                        if (!firstTime) {
+                            var actor = scope.$eval(attr.actor);
+                            var index = scope.$eval(attr.index);
+                            if (actor) {
+                                actor.lostChildFocus(index);
+                            }
+                        }
+
+                    }
+                    firstTime = false;
+                })
+            }
+
+        }
+    };
+}]);
+
+app.directive('a', function () {
+    return {
+        restrict: 'E',
+        link: function (scope, elem, attrs) {
+            if (attrs.ngClick || attrs.href === '' || attrs.href === '#') {
+                elem.on('click', function (e) {
+                    e.preventDefault();
+                });
+            }
+        }
+    };
+});
+
+//for shortcut
+app.directive('input', ["$rootScope" ,function ($rootScope) {
+    return {
+        restrict: 'E',
+        link: function (scope, element, attrs) {
+            element.bind('focus',function () {
+                $rootScope.inputIsFocused = true;
+
+            }).bind('blur', function () {
+                $rootScope.inputIsFocused = false;
+            });
+        }
+    };
+}]);
+
+app.directive('textarea', ["$rootScope" ,function ($rootScope) {
+    return {
+        restrict: 'E',
+        link: function (scope, element, attrs) {
+            element.bind('focus',function () {
+                $rootScope.inputIsFocused = true;
+
+            }).bind('blur', function () {
+                $rootScope.inputIsFocused = false;
+            });
+        }
+    };
+}]);
+//---
+
+app.directive("triangle", ["$timeout", "$location", function ($timeout, $location) {
+
+
+    return {
+        restrict: "E",
+        scope: true,
+        controller: function ($scope) {
+
+
+            var triangles = [];
+            var currentTriangle = null;
+
+
+            for (var i = 0; i < TRIANGLE_COUNT; i++) {
+                triangles.push("/public/partials/triangles/triangle{0}.html".format(i + 1));
+            }
+
+            var getTemplate = function () {
+                //return triangles[3]; //test newletter popup
+                currentTriangle = randomIntFromInterval(0, TRIANGLE_COUNT - 1,currentTriangle);
+                var template = triangles[currentTriangle];
+                return template;
+            }
+
+            $scope.template = getTemplate();
+
+
+            function startTimer() {
+
+                var timer = $timeout(function () {
+                    $timeout.cancel(timer);
+                    timer = null;
+
+                    $scope.template = getTemplate();
+                    startTimer();
+
+
+                }, minuteToMs(CHANGE_MINUTE));
+
+            }
+
+            startTimer();
+
+
+            $scope.displayNewletter = function (event) {
+                event.preventDefault();
+                $location.path('/popup/newsletter');
+            }
+
+
+        }
+
+    };
+}]);
+
+app.directive("stickerSvg", function () {
+    return {
+        restrict: 'A',
+        scope: {
+            fill: "="
+        },
+        link: function (scope, element, attrs) {
+
+            scope.$watch("fill", function () {
+
+                if (scope.fill) {
+
+                    var fills = $(element).find("path").not("[fill='none']");
+                    var fills2 = element.find("polygon");
+                    var fills3 = element.find("circle");
+                    var fills4 = element.find("polyline");
+
+                    var fills5 = element.find("line");
+                    var fills6 = $(element).find("path[fill='none']");
+                    var fills7 = element.find("ellipse");
+
+                    fills.attr("fill", scope.fill);
+                    fills2.attr("fill", scope.fill);
+                    fills3.attr("fill", scope.fill);
+                    fills7.attr("fill", scope.fill);
+
+                    fills4.attr("stroke", scope.fill);
+                    fills5.attr("stroke", scope.fill);
+                    fills6.attr("stroke", scope.fill);
+                }
+
+
+            })
+
+        }
+    };
+});
+
+
+app.directive("contextKeys", ["$document", "$rootScope", "$location", "$timeout", function ($document, $rootScope, $location, $timeout) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+
+            var KEYS = {R:82,D:68,DELETE:46, CTRL:17, ALT:18,CMD:91,G:71,A:65,M:77,E:69};
+
+            var map = {};
+
+            for (key in KEYS){
+                map[KEYS[key]] = false;
+            }
+
+
+            $(document).keydown(function (e) {
+                //console.log(e.keyCode);
+                if (e.keyCode in map) {
+                    map[e.keyCode] = true;
+
+                    //if(map[KEYS.G] && map[KEYS.A] && map[KEYS.M] && map[KEYS.E]){
+                    //    //fire easter
+                    //    $location.path("popup/easter");
+                    //    try {
+                    //        $timeout(function () {
+                    //            scope.$apply();
+                    //        });
+                    //
+                    //    } catch (error) {
+                    //
+                    //    }
+                    //    return;
+                    //
+                    //}
+
+
+
+
+                }
+            }).keyup(function (e) {
+                if (e.keyCode in map) {
+                    map[e.keyCode] = false;
+
+                    if(!$rootScope.inputIsFocused){
+                        if(!(map[KEYS.CTRL] || map[KEYS.ALT] || map[KEYS.CMD])){
+                            //fire keydown
+                            actionOnKeyDown(e);
+                        }
+                    }
+
+                }
+            });
+
+            var actionOnKeyDown = function (e) {
+                switch (e.keyCode) {
+                    case KEYS.DELETE: //delete
+
+
+                        if ($rootScope.boardState == BOARD_MODE.MULTISELECT) {
+
+                            if ($rootScope.isTempBoard || $rootScope.tuzzer.is_board_owner) {
+
+                                $location.path("popup/contextualDelete");
+                                try {
+                                    $timeout(function () {
+                                        scope.$apply();
+                                    });
+
+                                } catch (error) {
+
+                                }
+
+                            }
+
+
+                        } else {
+                            if (($rootScope.currentActor && $rootScope.currentActor.getState() != ACTORSTATE.EDIT) || $rootScope.currentArrow) {
+
+                                $location.path("popup/contextualDelete");
+                                try {
+                                    $timeout(function () {
+                                        scope.$apply();
+                                    });
+
+                                } catch (error) {
+
+                                }
+
+
+                            }
+                        }
+
+
+                        break;
+                    //case KEYS.D: //duplicate
+                    //
+                    //
+                    //    if ($rootScope.boardState == BOARD_MODE.MULTISELECT) {
+                    //
+                    //    } else {
+                    //
+                    //        if ($rootScope.currentActor && $rootScope.currentActor.getState() != ACTORSTATE.EDIT) {
+                    //            $rootScope.duplicateCurrentActor($rootScope.currentActor);
+                    //        }
+                    //    }
+                    //
+                    //    break;
+                    //case KEYS.R: //rotation 90
+                    //
+                    //
+                    //    if ($rootScope.boardState == BOARD_MODE.MULTISELECT) {
+                    //
+                    //    } else {
+                    //
+                    //        if ($rootScope.currentActor && $rootScope.currentActor.getState() != ACTORSTATE.EDIT) {
+                    //
+                    //
+                    //            $rootScope.rotateCurrentArrow($rootScope.currentActor);
+                    //        }
+                    //    }
+                    //
+                    //    break;
+                }
+
+
+            }
+
+
+        }
+    };
+}]);
+
+app.directive("tuzSelect", ["$parse","$timeout",function ($parse,$timeout) {
+    return {
+        restrict: 'E',
+        template:"<input id=\"{{htmlId}}\" autocomplete=\"off\" class=\"tzSelectInput\" ng-model=\"inputValue\" ng-change=\"inputValueChanged(inputValue)\" type=\"text\" ng-focus=\"triggerOptions(true,$event)\"><ul id=\"{{ 'ul' + htmlId}}\" class=\"tzSelectUl\" ng-style=\"{'height': optionsDisplayed ? 'auto' : '0px'}\"><li class=\"tzSelectLi\" ng-class=\"{'selected' : isOptionSelected(option)}\" ng-click=\"optionSelected(option)\" ng-repeat=\"option in displayOptions | filter:filterFunction\">{{getLiContent(option)}}</li></ul>",
+        scope: {
+            "options": "=",
+            "model": "=",
+            "key": "@",
+            "keyModel": "@",
+            "change" : "="
+        },
+        controller: function ($scope) {
+
+
+            $scope.selectedOption = $scope.model;
+            $scope.displayOptions = $scope.options;
+            $scope.optionsDisplayed = false;
+            $scope.search = null;
+            $scope.inputValue = null;
+            $scope.htmlId = guid();
+
+
+            $scope.filterFunction = function(element) {
+                if(!$scope.search){
+                    return true;
+                }
+
+                var strToMatch = $scope.getLiContent(element) || "";
+
+                return strToMatch.match(new RegExp("^{0}".format($scope.search))) ? true : false;
+            };
+
+            $scope.triggerOptions = function(value,$event){
+                $scope.optionsDisplayed = value;
+
+                if($event){
+                    $scope.activateClickListening();
+
+                    var list = document.getElementById("ul{0}".format($scope.htmlId));
+
+                    if(list){
+
+                        var targetLi = list.querySelector("li.selected");
+                        if(targetLi){
+                            targetLi.scrollIntoView();
+                        }
+                    }
+
+
+                }
+            }
+
+
+            $scope.$watch("options", function () {
+
+               if($scope.options instanceof Array){
+                   $scope.displayOptions = $scope.options;
+               }else{
+                   $scope.displayOptions = [];
+               }
+
+            });
+
+            $scope.$watch("model", function () {
+
+                if(!$scope.keyModel){
+                    $scope.selectedOption = $scope.model;
+                    $scope.inputValue =  $scope.getLiContent( $scope.selectedOption);
+
+                }
+            });
+
+            $scope.$watchGroup(["model","options"], function(){
+
+                if($scope.model && $scope.options){
+                    if($scope.keyModel){
+
+                        for(key in $scope.options){
+                            var option = $scope.options[key];
+
+                            if(option[$scope.keyModel] == $scope.model){
+                                $scope.selectedOption = option;
+                                $scope.inputValue =  $scope.getLiContent( $scope.selectedOption);
+                                break;
+                            }
+
+                        }
+
+                    }
+                }
+
+            })
+
+
+            $scope.inputValueChanged = function(inputValue){
+
+                $scope.selectedOption = null;
+
+                $scope.search = inputValue;
+            }
+
+            $scope.isOptionSelected = function(option){
+
+                if(option == $scope.selectedOption){
+                    return true;
+                }
+
+                return false;
+            }
+
+
+            $scope.getLiContent = function(opt){
+
+                if(opt && opt[$scope.key]){
+                    return opt[$scope.key];
+                }
+                return opt;
+            }
+
+            $scope.optionSelected = function(option){
+
+                $scope.search = null;
+                $scope.selectedOption = option;
+                $scope.inputValue =  $scope.getLiContent(option);
+
+                $scope.triggerOptions(false);
+                $scope.change(option);
+            }
+
+        },
+        link: function (scope, element, attr) {
+
+
+            var clickFn = function($event){
+                var target = angular.element($event.target);
+
+
+                if(!(target.attr("id") == scope.htmlId)){
+
+                    $timeout(function(){
+                        angular.element(document).off("click", clickFn);
+                        scope.$apply(scope.triggerOptions(false));
+                    })
+                }
+
+
+
+            }
+
+           scope.activateClickListening = function(){
+               angular.element(document).on("click", clickFn);
+           }
+
+
+
+
+        }
+    };
+}]);
+

@@ -1,0 +1,69 @@
+function createPostIT(uuid,bounds, zIndex, text, color, shape) {
+
+   return new PostIT().construct(uuid,bounds, zIndex, text, color, shape);
+
+} 
+
+function createText(uuid,bounds, zIndex) {
+
+    return new Text().construct(uuid,bounds, zIndex);
+}
+
+
+
+function createLink(uuid,bounds, zIndex, link, title, description, imageUrl) {
+
+    return new Link().construct(uuid,bounds, zIndex, link, title, description, imageUrl);
+
+
+}
+
+function createSticker(uuid,bounds, zIndex, imageUrl,svgContent) {
+
+    return new Sticker().construct(uuid,bounds, zIndex, imageUrl, svgContent);
+
+
+}
+
+function createImage(uuid,bounds, zIndex, imageUrl) {
+
+    return new Image().construct(uuid,bounds, zIndex, imageUrl);
+
+
+}
+
+function createVideo(uuid,bounds, zIndex, videoObj) {
+
+    return new Video().construct(uuid,bounds, zIndex, videoObj);
+
+}
+
+function createRandom(uuid,bounds, zIndex, randomObj) {
+
+    return new Random().construct(uuid,bounds, zIndex, randomObj);
+
+}
+
+function createBoard(uuid,bounds, zIndex, board_uuid,name, path) {
+
+    return new Board().construct(uuid,bounds, zIndex, board_uuid,name, path);
+}
+
+
+function createUlist(uuid,bounds, zIndex, title, childs) {
+
+    return new Ulist().construct(uuid,bounds, zIndex, title, childs);
+}
+
+function createCanvas(bounds, imagePath) {
+
+    return new Canvas().construct(bounds, imagePath);
+
+
+}
+
+function createMap(uuid,bounds, zIndex, mapObject) {
+
+    return new ActorMap().construct(uuid,bounds, zIndex, mapObject);
+}
+

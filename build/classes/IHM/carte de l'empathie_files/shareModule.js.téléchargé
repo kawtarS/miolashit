@@ -1,0 +1,57 @@
+angular.module('shareModule', [])
+    .directive('share', ["$rootScope", "$translate", "ToolHttp", function ($rootScope, $translate, ToolHttp) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.open = false;
+
+
+                //
+                $scope.triggerShare = function () {
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked) {
+                        return;
+                    }
+
+                    $scope.open = !$scope.open;
+                }
+
+                //
+                var initShare = function () {
+
+                    var generateLinks = function (link) {
+                        //default url
+                        $scope.link = link;
+                        $scope.googleUrl = "https://plus.google.com/share?url={0}".format(link);
+                        $scope.facebookUrl = "https://www.facebook.com/sharer/sharer.php?u={0}".format(link);
+                        $scope.twitterUrl = "https://twitter.com/home?status={0}".format(link);
+                        //$scope.mailUrl = "mailto:?subject={0}{1}&body={2}{3}{4}{5}".format($rootScope.owner.firstname, $translate.instant("BY_MAIL_SUBJECT"), $translate.instant("BY_MAIL_BODY_1"), $rootScope.owner.firstname ,$translate.instant("BY_MAIL_BODY_2"),link);
+
+                    }
+
+                    generateLinks("{0}board/{1}".format($rootScope.settings.prefix, $rootScope.board.uuid));
+
+                    //tiny url of the board
+                    ToolHttp.getTinyUrl({url: "{0}board/{1}".format($rootScope.settings.prefix, $rootScope.board.uuid)}).then(
+                        function (data, status, headers, config) {
+
+                            if (data) {
+                                generateLinks(data);
+                            }
+
+
+                        }, function (data, status, headers, config) {
+                            LOG("error getTinyUrl");
+                        });
+
+
+                }
+                pushInitListener(initShare);
+
+            },
+            link: function (scope, element, attr) {
+            }
+        }
+    }]);

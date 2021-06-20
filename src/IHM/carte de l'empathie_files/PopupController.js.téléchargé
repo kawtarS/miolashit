@@ -1,0 +1,475 @@
+/**
+ * Created by geoffrey on 4/08/15.
+ */
+popupModule.controller("PopupController", ["$scope", "$routeParams", "$location","$cacheFactory","$rootScope", "$translate","$intercom","$analytics",  function ($scope, $routeParams, $location, $cacheFactory, $rootScope, $translate, $intercom,$analytics) {
+
+    var prefix = $rootScope.settings.prefix;
+
+    $scope.templates = {
+        /***************/
+        /* PopupModule */
+        /***************/
+        'free' : {
+            title : 'POP_FREE_TOP_TITLE',
+            currentTemplate : prefix + "public/partials/popupFree.html",
+            id : "freeInnerPopup",
+            idGlobal : "freePopup",
+            isSimple : "freeNeoPopup",
+            needLogin: false,
+            canClose : true
+        },
+        'save' : {
+            title : 'POP_SAVE1_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupSave.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup reworkSave',
+            needLogin: false,
+            canClose : true
+        },
+        'payment' : {
+            title : 'POP_PAYMENT_TOPTILE',
+            currentTemplate : prefix + "public/partials/popupPayment.html",
+            id : "paymentInnerPopup",
+            idGlobal : "paymentPopup",
+            isSimple : "neoPopup",
+            needLogin: false,
+            canClose : false
+        },
+        'invitation' : {
+            title : "POP_INVITE_TOP_TITLE",
+            currentTemplate : prefix + "public/partials/popupInvitation.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup',
+            needLogin: false,
+            canClose : true
+        },
+        'welcome' : {
+            title : 'POP_WECOME_TITLE',
+            currentTemplate : prefix + "public/partials/popupWelcome.html",
+            id : "",
+            idGlobal : "welcomePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : false
+        },
+        'canvas' : {
+            title : 'POP_CANVAS_TOP_TITLE',
+            currentTemplate : prefix + "public/partials/popupCanvas.html",
+            id : "canvasPopup",
+            idGlobal : "",
+            isSimple : "",
+            needLogin: false,
+            canClose : true
+        },
+        'login' : {
+            title : 'POP_LOGIN_TOP_TITLE',
+            currentTemplate : prefix + "public/partials/popupLogin.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup reworkSave loginPro',
+            needLogin: false,
+            canClose : true
+        },
+        'newsletter' : {
+            title : "POP_NEWS_TOPTITLE",
+            currentTemplate : prefix + "public/partials/popupNewsletter.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup newsletterPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationNewsletter' : {
+            title : "POP_NEWS_CONFIRMATION_TOPTITLE",
+            currentTemplate : prefix + "public/partials/popupConfirmationNewsletter.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup newsletterPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'unsubscribeNewsletter' : {
+            title : "POP_UNNEWS_CONFIRMATION_TOPTITLE",
+            currentTemplate : prefix + "public/partials/popupUnsubscribeNewsletter.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup newsletterPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'guest' : {
+            title : 'POP_GUEST_TITLE',
+            currentTemplate : prefix + "public/partials/popupGuest.html",
+            id : "guestPopup",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : false
+        },
+        'enterPassword' : {
+            title : 'POP_ENTERPASS_TITLE',
+            currentTemplate : prefix + "public/partials/popupEnterPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : false
+        },
+        /**********************/
+        /* PopupAccountModule */
+        /**********************/
+        'deleteAccount' : {
+            title : "POP_DELACCOUNT_TOP_TITLE",
+            currentTemplate : prefix + "public/partials/popupDeleteAccount.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup',
+            needLogin: false,
+            canClose : true
+        },
+        'downgradeAccount' : {
+            title : "POP_DOWNACCOUNT_TOP_TITLE",
+            currentTemplate : prefix + "public/partials/popupDowngradeAccount.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup downgradePopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationDowngrade' : {
+            title : 'POP_CONFIRM_DOWN_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationDowngrade.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'upgradeAccount' : {
+            title : 'POP_NEW_UPGRADE_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupUpgrade.html",
+            id : "upgradeAccount",
+            idGlobal : "upgradPopup",
+            isSimple : 'simplePopup neoPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmUpgrade' : {
+            title : "POP_UPGRADECONF_TOPTITLE",
+            currentTemplate : prefix + "public/partials/popupUpgradeConfirm.html",
+            id : "paymentInnerPopup",
+            idGlobal : "paymentPopup",
+            isSimple : "neoPopup confirmUpgradePopup",
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationUpgrade' : {
+            title : 'POP_CONFIRM_UP_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationUpgrade.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : false
+        },
+        'deleteBoard' : {
+            title : 'POP_DELBOARD_TOP_TITLE',
+            currentTemplate : prefix + "public/partials/popupDeleteBoard.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup invitePopup deleteBoardPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationDelete' : {
+            title : 'POP_CDEL_TOP_TITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationDelete.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'forgottenPassword' : {
+            title : 'POP_FORGOTTENP_TITLE',
+            currentTemplate : prefix + "public/partials/popupForgottenPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationReset' : {
+            title : 'POP_FORGOTTEN_CONFIRMATION_TITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationForgottenPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'forgottenInvitation' : {
+        title : 'FORGOTTEN_INVITATION_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupForgottenInvitation.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : false
+        },
+        'confirmationInvitation' : {
+            title : 'POP_FORGOTTEN_CONFIRMATION_TITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationInvitation.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : false
+        },
+        'enterAccountPassword' : {
+            title : 'POP_ENTER_ACCOUNT_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupEnterAccountPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup resetPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'enterBoardPassword' : {
+            title : 'POP_ENTER_BOARD_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupEnterBoardPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup resetPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationBoardPassword' : {
+            title : 'POP_CONFIRMATION_BOARD_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationBoardPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : false
+        },
+        'confirmationAccountPassword' : {
+            title : 'POP_CONFIRMATION_ACCOUNT_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationAccountPassword.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : false
+        },
+        /********************/
+        /* PopupToolsModule */
+        /********************/
+        'blockUser' : {
+            title : 'POP_BLOCK_TOP_TITLE',
+            currentTemplate : prefix + "public/partials/popupBlockUser.html",
+            id : "paymentInnerPopup",
+            idGlobal : "blockPopup",
+            isSimple : "",
+            needLogin: false,
+            canClose : false
+        },
+        'export' : {
+            title : 'POP_EXPORT_TITLE',
+            currentTemplate : prefix + "public/partials/popupExport.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup exportPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationExport' : {
+            title : 'POP_CONFIRM_EXPORT_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationExport.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup confirmationExport',
+            needLogin: false,
+            canClose : true
+        },
+        'video' : {
+            title : 'POP_VIDEO_TITLE',
+            currentTemplate : prefix + "public/partials/popupVideo.html",
+            id : "freeInnerPopup",
+            idGlobal : "freePopup",
+            isSimple : "",
+            needLogin: false,
+            canClose : true
+        },
+        'map' : {
+            title : 'POP_CARTE_TITLE',
+            currentTemplate : prefix + "public/partials/popupMap.html",
+            id : "freeInnerPopup",
+            idGlobal : "freePopup",
+            isSimple : "",
+            needLogin: false,
+            canClose : true
+        },
+        'locked' : {
+            title : 'POP_LOCKED_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupLocked.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup lockedPopupGeneral',
+            needLogin: false,
+            canClose : true
+        },
+        'createBoard' : {
+            title : 'POP_CREATEBOARD_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupCreateBoard.html",
+            id : "createBoard",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: true,
+            canClose : true
+        },
+        'replay' : {
+            title : 'POP_REPLAY_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupReplay.html",
+            id : "freeInnerPopup",
+            idGlobal : "freePopup",
+            isSimple : "",
+            needLogin: false,
+            canClose : true
+        },
+        'startVideo' : {
+            title : 'POP_VIDEOCHAT_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupStartVideo.html",
+            id : "guestPopup",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : true
+        },
+        'contextualDelete' : {
+            title : 'POP_CONFIRM_DELETE_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupContextualDelete.html",
+            id : "savePart1",
+            idGlobal : "contextualDelete",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : false
+        },
+        'embedCode' : {
+            title : 'POP_EMBED_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupEmbedCode.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup embedCode',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationInvitations' : {
+            title : 'POP_CONF_INVITATIONS_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupConfirmationInvitations.html",
+            id : "savePart1",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup confirmationPopup',
+            needLogin: false,
+            canClose : true
+        },
+        'confirmationVideoChat' : {
+            title : 'POP_VIDEOCHAT_TOPTITLE',
+            currentTemplate : prefix + "public/partials/popupChatVideo.html",
+            id : "guestPopup",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : true
+        },
+        'easter' : {
+            title : 'POPUP_SECRET_TITLE',
+            currentTemplate : prefix + "public/partials/popupGame.html",
+            id : "gamePopup",
+            idGlobal : "savePopup",
+            isSimple : 'simplePopup',
+            needLogin: false,
+            canClose : true
+        }
+    }
+
+    //methods
+    $scope.setTemplate = function (routingName) {
+
+        //update intercom
+        if ($rootScope.intercomTuzzer) {
+            $intercom.update($rootScope.intercomTuzzer);
+        }
+
+        var currentTemplate = $scope.templates[routingName];
+
+        if (currentTemplate) {
+            var canDisplayPopup = true;
+            if (currentTemplate.needLogin) {
+                if ($rootScope.tuzzer.uuid) {
+                    canDisplayPopup = true;
+                }
+                else {
+                    canDisplayPopup = false;
+                }
+            }
+
+            if (canDisplayPopup) {
+
+                $scope.title = currentTemplate.title;
+                $scope.currentTemplate = currentTemplate.currentTemplate;
+                $scope.id = currentTemplate.id;
+                $scope.idGlobal = currentTemplate.idGlobal;
+                $scope.isSimple = currentTemplate.isSimple;
+                $scope.canClose = currentTemplate.canClose;
+
+                $analytics.pageTrack('/popup/'+routingName);
+                //$analytics.eventTrack('tuz', {
+                //    category: 'category', label: 'label'
+                //});
+            }
+            else {
+                $scope.closePopup();
+            }
+
+        }
+        else {
+            $scope.show = false;
+            $location.path("#/");
+        }
+
+
+    }
+
+    $scope.closePopup = function () {
+        $scope.show = false;
+        $location.path("#/");
+    }
+
+    $scope.setCurrentTemplateId = function (id) {
+        $scope.id = id;
+    }
+
+    $scope.setCurrentTitle = function(title) {
+        $scope.title = title;
+    }
+
+
+    //code
+    $scope.setTemplate($routeParams.name);
+
+    if (!$cacheFactory.get("popupCtrl")) {
+        var cache = $cacheFactory("popupCtrl");
+    }
+    else {
+        var cache = $cacheFactory.get("popupCtrl");
+    }
+    cache.put("setCurrentTemplateId", $scope.setCurrentTemplateId);
+    cache.put("setCurrentTitle", $scope.setCurrentTitle);
+    cache.put("closePopup", $scope.closePopup);
+
+
+    $scope.show = true;
+}])

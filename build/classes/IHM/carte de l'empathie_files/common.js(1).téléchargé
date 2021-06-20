@@ -1,0 +1,8 @@
+$(document).ready(function () {
+
+    $(".fancyScrollElement").mCustomScrollbar({
+        axis:"y"
+    });
+
+//    $("select").not('.notThisSelect').selectmenu({ position: { collision : "flip"} });
+});

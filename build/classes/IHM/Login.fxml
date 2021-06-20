@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/16" fx:controller="IHM.LoginController">
+    <stylesheets>
+        <URL value="@login.css" />
+    </stylesheets>
+   <children>
+      <BorderPane layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
+         <left>
+            <AnchorPane prefHeight="407.0" prefWidth="228.0" BorderPane.alignment="CENTER">
+               <children>
+                  <ImageView fitHeight="406.0" fitWidth="395.0" layoutX="-143.0" layoutY="3.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../../../../eclipse-workspace/testfx/src/library/assistant/ui/addbook/se-image-85e0e9ab23134961c88e4ecea2bff53f.jpg" />
+                     </image>
+                  </ImageView>
+               </children>
+            </AnchorPane>
+         </left>
+         <center>
+            <AnchorPane prefHeight="400.0" prefWidth="332.0" BorderPane.alignment="CENTER">
+               <children>
+                  <ImageView fitHeight="95.0" fitWidth="75.0" layoutX="107.0" layoutY="29.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../../../../eclipse-workspace/testfx/src/library/assistant/ui/addbook/Sanstitre(8).png" />
+                     </image>
+                  </ImageView>
+                  <Label layoutX="36.0" layoutY="144.0" text="Username">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="usernameTextField" layoutX="158.0" layoutY="144.0" promptText="Username" />
+                  <Label layoutX="38.0" layoutY="206.0" text="Password">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="enterPasswordField" layoutX="158.0" layoutY="200.0" promptText="Password" />
+                  <Button fx:id="loginButton" layoutX="50.0" layoutY="283.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="249.0" text="Login" />
+                  <Button fx:id="cancelButton" layoutX="50.0" layoutY="341.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="249.0" text="Cancel" />
+                  <Label layoutX="50.0" layoutY="241.0" prefHeight="27.0" prefWidth="280.0" text="Invalide Login.Pleaze try again." textFill="#cd0606">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>

@@ -1,0 +1,55 @@
+angular.module('loaderModule', [])
+    .directive('loader', [function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/public/partials/singleLoader.html'
+
+        };
+    }])
+    .directive('popuploader', [function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/public/partials/popupLoader.html'
+
+        };
+    }])
+    .directive('popupconnexion', ["$pusher", "$timeout", function ($pusher, $timeout) {
+        return {
+            restrict: 'E',
+            templateUrl: '/public/partials/popupConnexion.html',
+            scope: true,
+            controller: function ($scope) {
+
+                var pusher = $pusher(client);
+                $scope.connexionShow = false;
+
+
+                pusher.connection.bind('state_change', function (states) {
+                    $scope.connexionClass = states.current;
+
+
+                    if (states.current === "connected") {
+                        $scope.connexionState = "connecté";
+
+                        var timer = $timeout(function () {
+                            $timeout.cancel(timer);
+                            $scope.connexionShow = false;
+                        }, 2000);
+
+                    } else if (states.current === "connecting") {
+                        $scope.connexionState = "tentative de connexion";
+                        $scope.connexionShow = true;
+                    } else if (states.current === "unavailable") {
+                        $scope.connexionState = "hors connexion";
+                        $scope.connexionShow = true;
+                    }
+
+
+                })
+
+
+            }
+
+        };
+    }]);
+

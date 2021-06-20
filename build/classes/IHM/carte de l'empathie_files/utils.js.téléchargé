@@ -1,0 +1,1051 @@
+
+function getAllActorInBound(actors, bound, tuzzer) {
+
+    var selectedList = [];
+    angular.forEach(actors, function (actor, key) {
+
+        if (SELECT_MODE_STRIC) {
+            if (bound.contains(actor.getBounds()) && actor.getState() != ACTORSTATE.MODERATION && actor.getState() != ACTORSTATE.LOCK) {
+                if(!(tuzzer.is_visitor && tuzzer.uuid != actor.owner_uuid)){
+                    selectedList.push(actor);
+                }
+
+            }
+        } else {
+            if (bound.overlaps(actor.getBounds()) && actor.getState() != ACTORSTATE.MODERATION && actor.getState() != ACTORSTATE.LOCK) {
+                if(!(tuzzer.is_visitor && tuzzer.uuid != actor.owner_uuid)){
+                    selectedList.push(actor);
+                }
+            }
+        }
+
+
+    });
+
+
+    return selectedList;
+
+
+}
+
+function getAllArrowInBound(arrows, bound, tuzzer) {
+
+    var selectedList = [];
+
+    for(var i = 0; i < arrows.length; i++){
+
+        var arrow = arrows[i];
+
+        if(!(arrow.v1 && arrow.v2)){
+            continue;
+        }
+
+        if (SELECT_MODE_STRIC) {
+            if (bound.contains(arrow.rect)) {
+                if(!(tuzzer.is_visitor && tuzzer.uuid != arrow.owner_uuid)){
+                    selectedList.push(arrow);
+                }
+
+            }
+        } else {
+            if (bound.overlaps(arrow.rect)) {
+                if(!(tuzzer.is_visitor && tuzzer.uuid != arrow.owner_uuid)){
+                    selectedList.push(arrow);
+                }
+            }
+        }
+
+    }
+
+
+    return selectedList;
+
+
+}
+
+
+if (!String.prototype.format) {
+
+    String.prototype.format = function () {
+        var args = arguments;
+        return this.replace(/{(\d+)}/g, function (match, number) {
+            return typeof args[number] != 'undefined'
+                ? args[number]
+                : match
+                ;
+        });
+    };
+}
+
+
+insertInArray = function(array,index, item){
+    array.splice(index, 0, item);
+}
+
+
+function keyName(obj, key) {
+
+    var j = -1;
+    for (var i in obj) {
+        j++;
+        if (j == key) {
+            return i;
+        } else {
+            continue;
+        }
+    }
+
+}
+
+
+function clearEditMode(list) {
+
+
+    angular.forEach(list, function (actor, key) {
+
+
+        actor.setSelectMode(false);
+
+    });
+}
+
+function activateAllAncorsMode(list, active) {
+
+
+    angular.forEach(list, function (actor, key) {
+
+
+        actor.setAncorMode(active);
+
+
+    });
+}
+
+function animateActors(actors) {
+
+
+    angular.forEach(actors, function (actor, key) {
+
+        actor.setAnimating(true);
+    });
+}
+
+function unAnimateActors(actors) {
+
+
+    angular.forEach(actors, function (actor, key) {
+
+        actor.setAnimating(false);
+    });
+}
+
+
+function isPointInsideBounds(point, bounds) {
+
+    return bounds.x <= point.x && bounds.x + bounds.width >= point.x && bounds.y <= point.y && bounds.y + bounds.height >= point.y;
+}
+
+function subVector(v1, v2) {
+
+    return new Vector2(v1.x - v2.x, v1.y - v2.y);
+}
+
+function additionVector(v1, v2) {
+
+    return new Vector2(v1.x + v2.x, v1.y + v2.y);
+}
+
+function sqrtVector(v1, v2) {
+
+
+    return Math.sqrt((Math.pow((v2.x - v1.x), 2) + Math.pow((v2.y - v1.y), 2) ));
+
+}
+
+function roundifyVector(v) {
+
+    v.x = Math.round(v.x);
+    v.y = Math.round(v.y);
+
+}
+
+function isSiblingAncor(ancorA, ancorB) {
+    if (!ancorA || !ancorB) return;
+    return ancorA.actor == ancorB.actor;
+}
+
+
+function InputHelper() {
+    this.mouseDown = false;
+    //translate
+    this.oldMousePosition = null;
+    this.mousePosition = null;
+
+    this.clearMousePosition = function () {
+        this.oldMousePosition = null;
+        this.mousePosition = null;
+    };
+    this.setMouseDown = function () {
+        this.clearMousePosition();
+        this.mouseDown = true;
+    };
+    this.setMouseUp = function () {
+        this.clearMousePosition();
+        this.mouseDown = false;
+    };
+    this.isMouseDown = function () {
+        return this.mouseDown;
+    };
+
+
+    //translate
+
+    this.setMousePosition = function (position) {
+        this.oldMousePosition = this.mousePosition;
+        this.mousePosition = position;
+    };
+
+    this.getAngle = function () {
+        if (this.oldMousePosition != null && this.mousePosition != null) {
+
+            var angle = Math.atan2((this.oldMousePosition.y - this.mousePosition.y), (this.oldMousePosition.x - this.mousePosition.x)) * (180 / Math.PI);
+            return angle;
+
+        } else {
+            return 0;
+
+        }
+    };
+
+    this.getTranslation = function () {
+        if (this.oldMousePosition != null && this.mousePosition != null) {
+
+            return subVector(this.mousePosition, this.oldMousePosition);
+
+        } else {
+            return new Vector2(0, 0);
+
+        }
+    };
+
+}
+
+
+var getCrossBrowserElementCoords = function (mouseEvent) {
+    var result = {
+        x: 0,
+        y: 0
+    };
+
+    if (!mouseEvent) {
+        mouseEvent = window.event;
+    }
+
+    if (mouseEvent.pageX || mouseEvent.pageY) {
+        result.x = mouseEvent.pageX;
+        result.y = mouseEvent.pageY;
+    }
+    else if (mouseEvent.clientX || mouseEvent.clientY) {
+        result.x = mouseEvent.clientX + document.body.scrollLeft +
+        document.documentElement.scrollLeft;
+        result.y = mouseEvent.clientY + document.body.scrollTop +
+        document.documentElement.scrollTop;
+    }
+
+    if (mouseEvent.target) {
+        var offEl = mouseEvent.target;
+        var offX = 0;
+        var offY = 0;
+
+        if (typeof(offEl.offsetParent) != "undefined") {
+            while (offEl) {
+                offX += offEl.offsetLeft;
+                offY += offEl.offsetTop;
+
+                offEl = offEl.offsetParent;
+            }
+        }
+        else {
+            offX = offEl.x;
+            offY = offEl.y;
+        }
+
+        result.x -= offX;
+        result.y -= offY;
+    }
+
+    return result;
+};
+
+
+var transformRequestUtils = function (obj) {
+    var str = [];
+    for (var p in obj) {
+
+        if (obj[p] != null || obj[p] != undefined) {
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+        }
+
+    }
+    return str.join("&");
+};
+
+var transformRequestUtilsLite = function (obj) {
+    return toParam(obj);
+};
+
+var jsonToJsObject = function (obj) {
+
+    try {
+        return JSON.parse(obj);
+    } catch (err) {
+        return obj;
+    }
+
+}
+
+var addActorToScope = function ($scope, actor) {
+
+    if (actor) {
+        actor.updateCallBack = $scope.actorUpdateCallBack;
+        $scope.actors.push(actor);
+        if (actor.type == ACTORTYPE.POSTIT) {
+            $scope.postits.push(actor);
+        } else if (actor.type == ACTORTYPE.ULIST) {
+            $scope.ulists.push(actor);
+        } else if (actor.type == ACTORTYPE.TEXT) {
+            $scope.texts.push(actor);
+        } else if (actor.type == ACTORTYPE.IMAGE) {
+            $scope.images.push(actor);
+        } else if (actor.type == ACTORTYPE.STICKER) {
+            $scope.stickers.push(actor);
+        } else if (actor.type == ACTORTYPE.VIDEO) {
+            $scope.videos.push(actor);
+        } else if (actor.type == ACTORTYPE.LINK) {
+            $scope.links.push(actor);
+        } else if (actor.type == ACTORTYPE.RANDOM) {
+            $scope.randoms.push(actor);
+        } else if (actor.type == ACTORTYPE.BOARD) {
+            $scope.boards.push(actor);
+        }else if (actor.type == ACTORTYPE.MAP) {
+            $scope.maps.push(actor);
+        }
+    }
+
+
+}
+
+var clearScopeActorLists = function($scope){
+    $scope.arrows = [];
+    $scope.actors = [];
+    $scope.ulists = [];
+    $scope.postits = [];
+    $scope.texts = [];
+    $scope.images = [];
+    $scope.videos = [];
+    $scope.links = [];
+    $scope.stickers = [];
+    $scope.randoms = [];
+    $scope.boards = [];
+    $scope.maps = [];
+}
+
+
+var addApiActorToScope = function ($scope, apiObj) {
+
+    var actor = null;
+
+    switch (apiObj.object_type_id) {
+        case ACTORTYPE.POSTIT:
+            actor = new PostIT().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.ULIST:
+            actor = new Ulist().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.LINK:
+            actor = new Link().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.STICKER:
+            actor = new Sticker().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.IMAGE:
+            actor = new Image().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.VIDEO:
+            actor = new Video().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.BOARD:
+            actor = new Board().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.TEXT:
+            actor = new Text().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.RANDOM:
+            actor = new Random().constuctWithApiObject(apiObj);
+            break;
+        case ACTORTYPE.MAP:
+            actor = new ActorMap().constuctWithApiObject(apiObj);
+            break;
+    }
+
+
+
+    addActorToScope($scope, actor);
+
+}
+
+
+var setApiActorsToScope = function ($scope, apiObjects) {
+
+    var actors = [];
+    for (var i = 0; i < apiObjects.length; i++) {
+        var apiObj = apiObjects[i];
+        var actor = null;
+
+        switch (apiObj.object_type_id) {
+            case ACTORTYPE.POSTIT:
+                actor = new PostIT().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.ULIST:
+                actor = new Ulist().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.LINK:
+                actor = new Link().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.STICKER:
+                actor = new Sticker().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.IMAGE:
+                actor = new Image().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.VIDEO:
+                actor = new Video().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.BOARD:
+                actor = new Board().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.TEXT:
+                actor = new Text().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.RANDOM:
+                actor = new Random().constuctWithApiObject(apiObj);
+                break;
+            case ACTORTYPE.MAP:
+                actor = new ActorMap().constuctWithApiObject(apiObj);
+                break;
+        }
+
+        if(actor){
+            actors.push(actor);
+        }
+    }
+
+    clearScopeActorLists($scope);
+    for (var i = 0; i < actors.length; i++) {
+        var actor = actors[i];
+        addActorToScope($scope, actor);
+    }
+
+
+
+}
+
+var deleteActorWithUuid = function ($rootScope, $scope, ActorHttp, uuid, triggerPusher) {
+
+    var searchActor = null;
+    if ($scope.actors) {
+
+        var index = getIndexOfElement($scope.actors, uuid);
+
+        if (index == -1) {
+            return;
+        }
+
+        $rootScope.currentActor = null;
+        searchActor = $scope.actors[index];
+        $scope.actors.splice(index, 1);
+
+        if (searchActor.type == ACTORTYPE.POSTIT) {
+
+            index = getIndexOfElement($scope.postits, uuid);
+            $scope.postits.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.ULIST) {
+
+            index = getIndexOfElement($scope.ulists, uuid);
+            $scope.ulists.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.TEXT) {
+
+            index = getIndexOfElement($scope.texts, uuid);
+            $scope.texts.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.IMAGE) {
+
+            index = getIndexOfElement($scope.images, uuid);
+            $scope.images.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.STICKER) {
+
+            index = getIndexOfElement($scope.stickers, uuid);
+            $scope.stickers.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.VIDEO) {
+
+            index = getIndexOfElement($scope.videos, uuid);
+            $scope.videos.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.LINK) {
+
+            index = getIndexOfElement($scope.links, uuid);
+            $scope.links.splice(index, 1);
+
+        } else if (searchActor.type == ACTORTYPE.RANDOM) {
+
+            index = getIndexOfElement($scope.randoms, uuid);
+            $scope.randoms.splice(index, 1);
+        }else if (searchActor.type == ACTORTYPE.BOARD) {
+
+            index = getIndexOfElement($scope.boards, uuid);
+            $scope.boards.splice(index, 1);
+        }else if (searchActor.type == ACTORTYPE.MAP) {
+
+            index = getIndexOfElement($scope.maps, uuid);
+            $scope.maps.splice(index, 1);
+        }
+
+        //delete all arrows linked
+        if($scope.arrows.length > 0){
+            var arrowToDelete = [];
+            for(var i = 0; i < $scope.arrows.length; i++){
+                var apiObj = $scope.arrows[i].getApiObject();
+                if(searchActor.uuid == apiObj.first_object_id || searchActor.uuid == apiObj.second_object_id){
+                    arrowToDelete.push(apiObj);
+                }
+            }
+
+            for(var i = 0; i < arrowToDelete.length; i++){
+                var apiObj = arrowToDelete[i];
+                deleteArrowWithUuid($rootScope, $scope, ActorHttp, apiObj.uniqueid, triggerPusher);
+            }
+
+
+        }
+
+        if (triggerPusher) {
+
+            if (isTempBoard) {
+                ActorHttp.deleteActorTemp({temp_board_id: $rootScope.board.uuid, uniqueid : searchActor.uuid}).then(
+                    function (data, status, headers, config) {
+
+                        //presence.trigger("client-delete_actor", searchActor.getApiObject());
+
+                    }, function (data, status, headers, config) {
+                    });
+            } else {
+                ActorHttp.deleteActor({object_id : searchActor.uuid}).then(
+                    function (data, status, headers, config) {
+
+                        presence.trigger("client-delete_actor", searchActor.getApiObject());
+
+                    }, function (data, status, headers, config) {
+                    });
+            }
+
+        }
+
+
+    }
+
+
+}
+
+var deleteArrowWithUuid = function ($rootScope, $scope, ActorHttp, uuid, triggerPusher) {
+
+    var searchArrow = null;
+    if ($scope.arrows) {
+
+        var index = getIndexOfElement($scope.arrows, uuid);
+
+        if (index == -1) {
+            return;
+        }
+
+        $rootScope.currentArrow = null;
+        searchArrow = $scope.arrows[index];
+        $scope.arrows.splice(index, 1);
+
+
+        if (triggerPusher) {
+
+            ActorHttp.deleteArrow({board_id: $rootScope.board.uuid, uniqueid : searchArrow.uuid}).then(
+                function (data, status, headers, config) {
+
+                    presence.trigger("client-delete_arrow", searchArrow.getApiObject());
+
+                }, function (data, status, headers, config) {
+                });
+
+        }
+
+
+    }
+
+
+}
+
+var getLowestZindex = function (actors) {
+
+    var min = Number.MAX_VALUE;
+    var uuid = null;
+    for (var i = 0; i < actors.length; i++) {
+        var actor = actors[i];
+        if (actor.zIndex < min) {
+            min = actor.zIndex;
+            uuid = actor.uuid;
+        }
+    }
+
+    return {min: min, uuid: uuid};
+}
+
+var getHighestZindex = function (actors) {
+
+    var max = Number.MIN_VALUE;
+    var uuid = null;
+    for (var i = 0; i < actors.length; i++) {
+        var actor = actors[i];
+        if (actor.zIndex > max) {
+            max = actor.zIndex;
+            uuid = actor.uuid;
+        }
+    }
+
+    return {max: max, uuid: uuid};
+
+}
+
+var getIndexOfElement = function (array, uuid) {
+
+    var index = -1;
+    for (var i = 0; i < array.length; i++) {
+        var actor = array[i];
+        if (actor.uuid == uuid) {
+            index = i;
+            break;
+        }
+    }
+
+    return index;
+}
+
+var getActorWithUuid = function ($scope, uuid) {
+
+    var searchActor = null;
+    if ($scope.actors) {
+        for (var i = 0; i < $scope.actors.length; i++) {
+            var actor = $scope.actors[i];
+            if (actor.uuid == uuid) {
+                searchActor = actor;
+                break;
+            }
+        }
+
+    }
+
+    return searchActor;
+
+
+}
+
+var getArrowWithUuid = function (arrows, uuid) {
+
+    var searchArrow = null;
+    if (arrows) {
+        for (var i = 0; i < arrows.length; i++) {
+            var arrow = arrows[i];
+            if (arrow.uuid == uuid) {
+                searchArrow = arrow;
+                break;
+            }
+        }
+
+    }
+
+    return searchArrow;
+
+
+}
+
+var deleteBoard = function (boards, uuid) {
+
+    var delete_index = -1;
+    for (var i = 0; i < boards.length; i++) {
+        var board = boards[i];
+        if (board.uuid === uuid) {
+            delete_index = i;
+            break;
+        }
+    }
+
+    if (delete_index != -1) {
+        boards.splice(delete_index, 1);
+    }
+
+}
+
+var getInvitedWithUuid = function (tuzzers, uuid) {
+    var searchTuzzer = null;
+    if (tuzzers) {
+        for (var i = 0; i < tuzzers.length; i++) {
+            var tuzzer = tuzzers[i];
+            if (tuzzer.tuzzer_uuid == uuid) {
+                searchTuzzer = tuzzer;
+                break;
+            }
+        }
+
+    }
+
+    return searchTuzzer;
+}
+
+
+var genLocalHash = [];
+
+function guid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+}
+
+this.getLocalHash = function () {
+
+    var hash = guid();
+    genLocalHash.push(hash);
+    return hash;
+
+}
+
+this.isLocalHash = function (hash) {
+
+    for (var i = 0; i < genLocalHash.length; i++) {
+        if (genLocalHash[i] == hash) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+function colorLuminance(hex, lum) {
+
+    // validate hex string
+    hex = String(hex).replace(/[^0-9a-f]/gi, '');
+    if (hex.length < 6) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    lum = lum || 0;
+
+    // convert to decimal and change luminosity
+    var rgb = "#", c, i;
+    for (i = 0; i < 3; i++) {
+        c = parseInt(hex.substr(i * 2, 2), 16);
+        c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+        rgb += ("00" + c).substr(c.length);
+    }
+
+    return rgb;
+}
+
+function getGradienCss(hex, shape) {
+
+    if (shape === "shape1") {
+
+        return "linear-gradient(to bottom right, {0} 20%, {1} 100%)".format(colorLuminance(hex, 0.37), hex);
+//        return "url('/public/images/pli-postit.png'), linear-gradient(to bottom right, {0} 20%, {1} 100%)".format(colorLuminance(hex, 0.2), hex);
+    }
+
+    return "linear-gradient(to bottom right, {0} 20%, {1} 100%)".format(colorLuminance(hex, 0.37), hex);
+//return "background-image:url('/public/images/pli-postit.png'), linear-gradient(to bottom right, {0} 20%, {1} 100%);".format( d2h(dec2), d2h(dec3));
+}
+
+function getContrastYIQ(hexcolor) {
+    var hex = String(hexcolor).replace(/[^0-9a-f]/gi, '');
+    var r = parseInt(hex.substr(0, 2), 16);
+    var g = parseInt(hex.substr(2, 2), 16);
+    var b = parseInt(hex.substr(4, 2), 16);
+    var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? BLACK_HEX : WHITE_HEX;
+}
+
+function randomIntFromInterval(min, max, current) {
+
+
+    var gen = function(){
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
+    var rdn = min;
+
+    do{
+        rdn = gen();
+
+        if(rdn != current){
+            break;
+        }
+
+        LOG("dups in random, regenerating new int");
+
+    }while(true)
+
+    return rdn;
+}
+
+
+function minuteToMs(minute) {
+
+    return (minute * 1000 * 60) << 0;
+
+
+}
+
+
+angular.extend(angular, {
+    toParam: toParam
+});
+
+/**
+ * Object -> String
+ * Similar to [url]http://api.jquery.com/jQuery.param/[/url]
+ * Source from [url]http://stackoverflow.com/questions/1714786/querystring-encoding-of-a-javascript-object/1714899#1714899[/url]
+ *
+ * @param object
+ * @param [prefix]
+ * @returns {string}
+ */
+function toParam(object, prefix) {
+    var stack = [];
+    var value;
+    var key;
+
+    for (key in object) {
+        value = object[key];
+        key = prefix ? prefix + '[' + key + ']' : key;
+
+        if (value === null) {
+            value = encodeURIComponent(key) + '=';
+        } else if (typeof( value ) !== 'object') {
+            value = encodeURIComponent(key) + '=' + encodeURIComponent(value);
+        } else {
+            value = toParam(value, key);
+        }
+
+        stack.push(value);
+    }
+
+    return stack.join('&');
+}
+
+function getPercentValue(value, percent) {
+    return (value * percent) / 100;
+}
+
+function isNullOrEmpty(str) {
+    return (!str || 0 === str.length);
+}
+
+function isWhitespaceOrEmpty(text) {
+    return !/[^\s]/.test(text);
+}
+
+function escapeDoubleQuotes(str) {
+    return str.replace(/\\([\s\S])|(")/g,"\\$1$2");
+}
+
+function unescapeDoubleQuotes(str) {
+    return str.replace(/\\"/g, '"');
+}
+
+//map trigger
+var triggerMapInTool;
+
+//init finish trigger
+var init_listeners = [];
+var init_triggered = false;
+var pushInitListener = function (listener) {
+    if(!init_triggered){
+        init_listeners.push(listener);
+    }else{
+        listener();
+    }
+
+
+}
+var notifyAllInitListeners = function () {
+    init_triggered = true;
+    for (var i = 0; i < init_listeners.length; i++) {
+        var listener = init_listeners[i];
+        listener();
+    }
+}
+
+
+//Vector utils
+var VectorUtils = {
+    getAngle: function (A,B) {
+        return Math.atan2(this.cross(A, B), this.dot(A, B));
+    },
+    dot: function (A,B) {
+        return A.x * B.x + A.y * B.y;
+    },
+    cross: function (A,B) {
+        return A.x * B.y - A.y * B.x;
+    }
+
+};
+
+function LOG(text) {
+
+    try{
+
+        if (SERVER_ENV === "DEV") {
+        }
+
+    }catch (error){
+
+    }
+
+}
+
+function createArrowWithApiObject ($scope,apiObj){
+
+    if(!$scope || !apiObj) return;
+
+    var uniqueid = apiObj.uuid ? apiObj.uuid : apiObj.uniqueid;
+
+    var object1 = null;
+    var object2 = null;
+
+    switch (apiObj.a_type){
+        case ANCORTYPE.FREE:
+            var a_position_x = typeof apiObj.a_position_x === 'string' ? parseFloat(apiObj.a_position_x) : apiObj.a_position_x;
+            var a_position_y = typeof apiObj.a_position_y === 'string' ? parseFloat(apiObj.a_position_y) : apiObj.a_position_y;
+            object1 = new Vector2(a_position_x, a_position_y);
+            break;
+        case ANCORTYPE.ANCORED:
+
+            //get the actor
+            var actor_A = getActorWithUuid($scope, apiObj.first_object_id);
+            //get the ancor
+            object1 = actor_A.ancors[apiObj.anchor_a];
+
+            break;
+    }
+
+    switch (apiObj.b_type){
+        case ANCORTYPE.FREE:
+            var b_position_x = typeof apiObj.b_position_x === 'string' ? parseFloat(apiObj.b_position_x) : apiObj.b_position_x;
+            var b_position_y = typeof apiObj.b_position_y === 'string' ? parseFloat(apiObj.b_position_y) : apiObj.b_position_y;
+            object2 = new Vector2(b_position_x, b_position_y);
+            break;
+        case ANCORTYPE.ANCORED:
+
+            //get the actor
+            var actor_B = getActorWithUuid($scope, apiObj.second_object_id);
+            //get the ancor
+            object2 = actor_B.ancors[apiObj.anchor_b];
+
+            break;
+    }
+
+
+
+    if(object1 && object2){
+        var arrow = new Arrow(uniqueid, apiObj.type,object1,object2, apiObj.weight, apiObj.color, apiObj.arrow_side);
+
+        if(arrow){
+            $scope.createArrow(arrow, false);
+        }
+
+    }
+
+
+
+}
+
+function updateArrowWithApiObject ($scope,apiObj,arrow){
+
+    if(!$scope || !apiObj || !arrow) return;
+
+
+    var object1 = null;
+    var object2 = null;
+
+    switch (apiObj.a_type){
+        case ANCORTYPE.FREE:
+            var a_position_x = typeof apiObj.a_position_x === 'string' ? parseFloat(apiObj.a_position_x) : apiObj.a_position_x;
+            var a_position_y = typeof apiObj.a_position_y === 'string' ? parseFloat(apiObj.a_position_y) : apiObj.a_position_y;
+            object1 = new Vector2(a_position_x, a_position_y);
+            break;
+        case ANCORTYPE.ANCORED:
+
+            //get the actor
+            var actor_A = getActorWithUuid($scope, apiObj.first_object_id);
+            //get the ancor
+            object1 = actor_A.ancors[apiObj.anchor_a];
+
+            break;
+    }
+
+    switch (apiObj.b_type){
+        case ANCORTYPE.FREE:
+            var b_position_x = typeof apiObj.b_position_x === 'string' ? parseFloat(apiObj.b_position_x) : apiObj.b_position_x;
+            var b_position_y = typeof apiObj.b_position_y === 'string' ? parseFloat(apiObj.b_position_y) : apiObj.b_position_y;
+            object2 = new Vector2(b_position_x, b_position_y);
+            break;
+        case ANCORTYPE.ANCORED:
+
+            //get the actor
+            var actor_B = getActorWithUuid($scope, apiObj.second_object_id);
+            //get the ancor
+            object2 = actor_B.ancors[apiObj.anchor_b];
+
+            break;
+    }
+
+
+
+    if(object1 && object2){
+
+        apiObj.object1 = object1;
+        apiObj.object2 = object2;
+        arrow.updateWithApiObject(apiObj);
+
+
+    }
+
+
+
+}
+
+function cursorFromEvent (event){
+
+    var vector = new Vector2(0,0);
+
+    if(event.type === "touchstart" || event.type === "touchmove" || event.type === "touchend"){
+        vector.x = event.originalEvent.changedTouches[0].clientX;
+        vector.y = event.originalEvent.changedTouches[0].clientY;
+    }else{
+        vector.x = event.clientX;
+        vector.y = event.clientY;
+    }
+
+    return vector;
+
+}

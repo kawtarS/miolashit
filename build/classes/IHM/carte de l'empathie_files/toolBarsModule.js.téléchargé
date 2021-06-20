@@ -1,0 +1,1616 @@
+angular.module('toolBarsModule', [])
+    .directive('showMenuTop', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                var target = document.querySelector(attrs.menu);
+
+                element.bind('click', function () {
+
+
+                    if (element.hasClass('icon-close-menu')) {
+                        element.removeClass("icon-close-menu");
+                        angular.element(target).removeClass("showMenu");
+                    } else {
+                        angular.element(target).addClass("showMenu");
+                        element.addClass("icon-close-menu");
+                    }
+
+
+                });
+
+                element.on('destroy', function () {
+                    element.unbind("click");
+
+                });
+            }
+        }
+    })
+    .directive('showAccount', ["$rootScope", function ($rootScope) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+
+                var target = document.querySelector(attrs.menu);
+                var closing = document.querySelector(attrs.close);
+                var isOpen = false;
+
+                element.bind('click', function () {
+
+
+                    if (isOpen) {
+
+                        angular.element(target).removeClass("showMenu");
+                        angular.element(closing).css("display", "none");
+                    } else {
+                        angular.element(target).addClass("showMenu");
+                        angular.element(closing).css("display", "block");
+
+                    }
+                    isOpen = !isOpen;
+
+
+                });
+
+
+                angular.element(closing).bind('click', function () {
+
+                    isOpen = false;
+                    angular.element(target).removeClass("showMenu");
+                    angular.element(closing).css("display", "none");
+
+
+                });
+
+                element.on('destroy', function () {
+                    element.unbind("click");
+
+                });
+            }
+        }
+    }])
+    .directive('showDashboard', ["$rootScope", "$cacheFactory", function ($rootScope,$cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            link: function (scope, element, attrs) {
+                var target = document.querySelector(attrs.menu);
+                scope.isOpen = false;
+
+                var cache = $cacheFactory("showDashboard"); //dirty faudra trouver une solution pour ce probleme de bind avec le rootscoope et le dash
+                cache.put("closeDashBoard", function(){
+                    scope.isOpen = false;
+                });
+
+                var initOpenStatus = function(){
+                    if ($rootScope.tuzzer.after_login) {
+                        scope.isOpen = true;
+                    }
+                }
+
+                scope.$watch("isOpen", function(){
+
+                    if (!scope.isOpen) {
+                        //$rootScope.moderate_open = false; NE FONCTIONE PAS WTF
+                        angular.element(target).addClass("hiddenMenu");
+
+
+                    } else {
+                        angular.element(target).removeClass("hiddenMenu");
+
+
+                    }
+
+                });
+
+                pushInitListener(initOpenStatus);
+
+
+                element.bind('click', function () {
+
+                    scope.isOpen = !scope.isOpen;
+                    scope.$apply();
+
+                });
+
+                element.on('destroy', function () {
+                    element.unbind("click");
+
+                });
+            }
+        }
+    }])
+    .directive('menuTool', ["$rootScope", "$cacheFactory", function ($rootScope, $cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $rootScope.currentTool = null;
+                $scope.toolOpen = false;
+
+
+
+
+                $rootScope.$watch("boardState", function (newValue, oldValue) {
+                    if ($rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.REPLAY) {
+                        $rootScope.currentTool = null;
+                        $scope.toolOpen = false;
+
+
+                    }
+                });
+
+                $scope.$on("menu:closeTool", function(event, args) {
+
+                    $scope.closeTool();
+                });
+
+
+                $scope.toolClick = function (tool) {
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY) {
+                        return;
+                    }
+
+                    $rootScope.advertCurrentTool = null;
+                    $rootScope.currentTool = tool;
+                    $scope.toolOpen = true;
+
+                    if(tool === "stickers"){
+                        var toolStickersCache = $cacheFactory.get("toolStickers");
+                        toolStickersCache.get("getAllStickers")();
+                    }else  if (tool == "text") {
+                        $rootScope.textToAdd = createText(null, new Bounds(0, 0, TEXT_BASE_WIDTH, TEXT_BASE_HEIGHT), 5);
+                    }
+
+
+                }
+
+                //$scope.closedToolClick = function (tool) {
+                //
+                //    if ($rootScope.boardState == BOARD_MODE.READONLY) {
+                //        return;
+                //    }
+                //
+                //    $rootScope.advertCurrentTool = null;
+                //    $rootScope.currentTool = tool;
+                //    $scope.toolOpen = false;
+                //
+                //    if (tool == "text") {
+                //        $rootScope.textToAdd = createText(null, new Bounds(0, 0, TEXT_BASE_WIDTH, TEXT_BASE_HEIGHT), 5);
+                //    }
+                //}
+
+                $scope.closeTool = function () {
+                    $scope.toolOpen = false;
+                    $rootScope.currentTool = null;
+                }
+
+                $scope.showMenu = function () {
+
+                    if ($scope.toolOpen) {
+                        return {left: "0px"};
+                    }
+
+                    return null;
+                }
+
+
+                $scope.advertToolClick = function (tool) { 
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY) {
+                        return;
+                    }
+
+                    $rootScope.currentTool = null;
+                    $rootScope.advertCurrentTool = tool;
+                    $scope.toolOpen = true;
+
+
+
+                }
+
+
+                $scope.closeAdvertTool = function () {
+                    $rootScope.advertCurrentTool = null;
+                    $scope.toolOpen = false;
+                }
+
+            }
+        }
+    }])
+    .directive('toolNote', ["$cacheFactory", function ($cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                var shape = "shape1";
+                var colorHex = "#fdc706";
+
+
+                $scope.postitStuff = {text: "", shape: shape, color: colorHex, gradian: null, textColor: null};
+
+
+                function applyPostitColor (){
+                    $scope.postitStuff.gradian = getGradienCss($scope.postitStuff.color,$scope.postitStuff.shape);
+                    $scope.postitStuff.textColor = getContrastYIQ($scope.postitStuff.color);
+
+                }
+
+                applyPostitColor();
+
+                $scope.setColor = function (hex) {
+
+                    $scope.postitStuff.color = hex;
+                    //$scope.postitStuff.gradian = getGradienCss($scope.postitStuff.color);
+                    //$scope.postitStuff.textColor = getContrastYIQ($scope.postitStuff.color);
+
+
+                }
+
+                $scope.clearActor = function () {
+
+                    $scope.postitStuff = {
+                        text: "",
+                        shape: shape,
+                        color: colorHex,
+                        gradian: null,
+                        textColor: null
+                    };
+                    applyPostitColor();
+
+                }
+
+                $scope.getActor = function () {
+
+                    return $scope.postitStuff;
+
+
+                }
+
+                $scope. $watchGroup(["postitStuff.color", "postitStuff.shape"], function () {
+                    applyPostitColor();
+
+                });
+
+
+                var cache = $cacheFactory("postitActor");
+                cache.put("getActor", $scope.getActor);
+
+                cache.put("clearActor", $scope.clearActor);
+
+            }
+        }
+    }])
+    .directive('toolList', ["$cacheFactory", function ($cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.clearActor = function () {
+
+                    $scope.listStuff = {title: "", childs: ["", "", ""]};
+
+
+                }
+
+                $scope.clearActor();
+
+                $scope.getActor = function () {
+
+                    return $scope.listStuff;
+
+
+                }
+
+                var cache = $cacheFactory("listActor");
+                cache.put("getActor", $scope.getActor);
+
+                cache.put("clearActor", $scope.clearActor);
+
+            }
+        }
+    }])
+    .directive('toolMap', ["$cacheFactory", "$rootScope", function ($cacheFactory, $rootScope) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+                $scope.mapSearch = '';
+                $scope.geocoder = new google.maps.Geocoder();
+                var input = document.getElementById("mapSearchInput");
+                $scope.autocomplete = new google.maps.places.Autocomplete(input);
+
+                $scope.clearActor = function () {
+                    $scope.mapSearch = '';
+                    $scope.map = {title: "",location:"", src: PREFIX + "public/images/boardIcons/noMap.png", type: "roadmap", zoom:"12"};
+                }
+
+                $scope.clearActor();
+
+                $scope.getActor = function () {
+                    return $scope.map;
+                }
+
+                $scope.triggerSearch = function(event) {
+                    triggerMapInTool();
+                }
+
+                google.maps.event.addListener($scope.autocomplete, 'place_changed', function () {
+                    $scope.triggerSearch();
+                });
+
+
+                triggerMapInTool = function () {
+
+                    var partial_location = $scope.mapSearch = document.getElementById("mapSearchInput").value;
+                    var src = 'https://maps.googleapis.com/maps/api/staticmap';
+
+                    $scope.geocoder.geocode({'address': partial_location}, function(results, status) {
+
+                        if (status === google.maps.GeocoderStatus.OK) {
+                            src += '?center=' + encodeURIComponent(results[0].formatted_address) + "&size={0}x{1}&sensor=false&key=AIzaSyDrTHG54BGfdie0f9se3xx1Eo312bl0Cp0&markers=color:red%7Ccolor:red%7C" +encodeURIComponent(results[0].geometry.location.toString()) +"&maptype=" + $scope.map.type + "&zoom=" + $scope.map.zoom;
+
+                            $scope.map.title = results[0].formatted_address;
+                            $scope.map.src = src.format(398,345);
+                            $scope.map.location = results[0].geometry.location.toString();
+                            $scope.$apply();
+                        } else {
+                            $scope.clearActor();
+                            //alert('Geocode was not successful for the following reason: ' + status);
+                        }
+                    });
+
+
+
+                }
+
+                var cache = $cacheFactory("mapActor");
+                cache.put("getActor", $scope.getActor);
+                cache.put("clearActor", $scope.clearActor);
+
+                $scope.dragMe = function (event,map) {
+
+                    event.preventDefault();
+
+                    if(isNullOrEmpty(map.title)){
+                        return;
+                    }
+
+                    var cursor = cursorFromEvent(event);
+
+                    var actor = createMap(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (MAP_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, MAP_BASE_HEIGHT), 5000, $scope.map);
+
+                    $scope.clearActor();
+                    if (actor) {
+                        var cache = $cacheFactory.get("dragTemp");
+                        cache.get("displayMe")(true);
+                        cache.get("addActor")(actor);
+
+                    }
+
+
+                }
+
+            }
+        }
+    }])
+    .directive('toolLink', ["$cacheFactory", "ToolHttp", function ($cacheFactory, ToolHttp) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                var pattern = new RegExp(/^((http:\/\/|https:\/\/)?(www.)?(([a-zA-Z0-9-]){2,}\.){1,4}([a-zA-Z]){2,6}(\/([a-zA-Z-_\/\.0-9#:?=&;,]*)?)?)$/);
+                var currentImage = 0;
+
+                function isValidUrl() {
+
+
+                    return pattern.test($scope.linkStuff.link);
+
+                }
+
+
+                $scope.clearActor = function () {
+
+                    currentImage = 0;
+                    $scope.images = [];
+                    $scope.link = "";
+                    $scope.linkStuff = {link: "", title: "", description: "", image: ""};
+                    $scope.displayInvalide = false;
+                    $scope.displayResult = false;
+                    $scope.displayInfoBox = true;
+                    $scope.displayNext = true;
+
+
+                }
+
+                $scope.clearActor();
+
+                $scope.getActor = function () {
+
+                    return $scope.linkStuff;
+
+
+                }
+
+
+                $scope.searchLink = function () {
+
+                    if ($scope.linkStuff.link === $scope.link) {
+                        return;
+                    }
+                    var temp = $scope.link;
+                    $scope.clearActor();
+                    $scope.linkStuff.link = temp;
+
+                    var valid = isValidUrl();
+                    if(valid){
+
+                        //get url with http
+                        if (!/^(f|ht)tps?:\/\//i.test($scope.linkStuff.link)) {
+                            $scope.linkStuff.link = "http://" + $scope.linkStuff.link;
+                        }
+                        //--
+
+                        $scope.displayLoader = true;
+                        var data = {url: $scope.linkStuff.link};
+                        ToolHttp.getUrlInfo(data).then(
+                            function (data, status, headers, config) {
+
+
+                                console.log("success url info");
+                                $scope.displayLoader = false;
+
+                                if (data) {
+
+                                    $scope.displayInvalide = false;
+                                    $scope.displayResult = true;
+                                    $scope.displayInfoBox = false;
+
+                                    $scope.linkStuff.title = data.title;
+                                    $scope.linkStuff.description = data.description;
+                                    $scope.images = data.images;
+
+                                    if (data.images.length > 0) {
+                                        $scope.linkStuff.image = $scope.images[0];
+                                    } else {
+                                        $scope.displayNext = false;
+                                    }
+                                }else{
+                                    console.log("error url info data false");
+
+                                    $scope.displayInvalide = true;
+                                    $scope.displayResult = false;
+                                    $scope.displayInfoBox = true;
+                                }
+
+
+                            }, function (data, status, headers, config) {
+                                console.log("error url info");
+                                $scope.displayLoader = false;
+                                $scope.displayInvalide = true;
+                                $scope.displayResult = false;
+                                $scope.displayInfoBox = true;
+                            });
+
+                    }else{
+                        $scope.displayLoader = false;
+                        $scope.displayInvalide = true;
+                        $scope.displayResult = false;
+                        $scope.displayInfoBox = true;
+                    }
+
+
+
+                }
+
+                $scope.nextImage = function () {
+
+                    currentImage++;
+                    if (currentImage >= $scope.images.length) {
+                        currentImage = 0;
+                    }
+
+                    $scope.linkStuff.image = $scope.images[currentImage];
+
+                }
+
+                $scope.prevImage = function () {
+
+                    currentImage--;
+                    if (currentImage < 0) {
+                        currentImage = $scope.images.length - 1;
+                    }
+
+                    $scope.linkStuff.image = $scope.images[currentImage];
+
+                }
+
+
+                var cache = $cacheFactory("linkActor");
+                cache.put("getActor", $scope.getActor);
+
+                cache.put("clearActor", $scope.clearActor);
+
+            }
+        }
+    }])
+    .directive('toolStickers', ["$cacheFactory", "ToolHttp", "$rootScope", function ($cacheFactory, ToolHttp, $rootScope) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.stickers = [];
+                var firstTime = true;
+                $scope.displayLoader = false;
+
+                var getAllStickers = function(){
+
+                    if (firstTime) {
+                        firstTime = false;
+                        $scope.displayLoader = true;
+
+                        ToolHttp.getStickerList({with_code: true}).then(
+                            function (data, status, headers, config) {
+
+
+                                console.log("success stickers");
+
+                                for (var i = 0; i < data.length; i++) {
+
+                                    data[i].path = $rootScope.settings.prefix + data[i].path;
+                                    $scope.stickers.push(data[i]);
+                                }
+                                $scope.displayLoader = false;
+
+                            }, function (data, status, headers, config) {
+                                console.log("error stickers");
+
+                                $scope.displayLoader = false;
+                            });
+                    }
+
+                }
+
+                var toolStickersCache = $cacheFactory("toolStickers");
+                toolStickersCache.put("getAllStickers",getAllStickers);
+
+
+                $scope.dragMe = function (event,sticker) {
+                    event.preventDefault();
+                    //console.log(sticker);
+                    var cursor = cursorFromEvent(event);
+
+                    var actor = createSticker(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (POSTIT_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, POSTIT_BASE_HEIGHT), 5000, sticker.path, sticker.content);
+
+
+                    if (actor) {
+                        var cache = $cacheFactory.get("dragTemp");
+                        cache.get("displayMe")(true);
+                        cache.get("addActor")(actor);
+
+                    }
+
+
+                }
+
+
+            }
+        }
+    }])
+    .directive('toolBoard', ["$cacheFactory", "ToolHttp", "$rootScope", "$location", function ($cacheFactory, ToolHttp, $rootScope,$location) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.name = "";
+                $scope.displayBoard = false;
+                $scope.boards = [];
+                $scope.displayLoader = false;
+
+                $scope.createChildBoard = function () {
+
+                    $rootScope.toolCreatedBoardData = true;
+                    $location.path("/popup/canvas");
+
+
+                }
+
+
+                var createBoardFromPopup = function(canvas_path){
+
+                    var data = {name: $scope.name, parent_board_id: $rootScope.board.uuid, canvas_path:canvas_path};
+
+                    //escape double quote
+                    data.name = escapeDoubleQuotes(data.name);
+                    //
+
+                    $scope.displayLoader = true;
+
+                    ToolHttp.createChildBoard(data).then(
+                        function (data, status, headers, config) {
+
+                            if (data) {
+                                data.name = unescapeDoubleQuotes(data.name);
+                                $scope.boards.push(data);
+                                $scope.displayBoard = true;
+                            }
+
+                            $scope.displayLoader = false;
+
+                        }, function (data, status, headers, config) {
+                            $scope.displayBoard = false;
+                            $scope.displayLoader = false;
+
+                        });
+
+
+                }
+
+                var cache = $cacheFactory("toolBoard");
+                cache.put("createBoard",createBoardFromPopup);
+
+
+                $scope.dragMe = function (event,board) {
+                    event.preventDefault();
+
+                    var cursor = cursorFromEvent(event);
+                    var actor = createBoard(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (BOARD_TOOL_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, BOARD_TOOL_BASE_HEIGHT), 5000, board.uuid, board.name, board.path);
+
+
+                    if (actor) {
+                        var cache = $cacheFactory.get("dragTemp");
+                        cache.get("displayMe")(true);
+                        cache.get("addActor")(actor);
+
+                    }
+
+
+                }
+
+            }
+        }
+    }])
+    .directive('toolArrow', ["$cacheFactory", "$rootScope", function ($cacheFactory, $rootScope) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.toolArrows = [];
+
+                for(var key in ARROWTYPE){
+                    $scope.toolArrows.push({type:ARROWTYPE[key], background: ("/public/images/boardIcons/" + ARROWBACKGROUND[key])});
+                }
+
+
+                $scope.selectArrow = function(arrow){
+
+                    if($rootScope.toAddArrow == null || $rootScope.toAddArrow != arrow){
+                        $rootScope.toAddArrow = arrow;
+                        $rootScope.currentActor = null;
+                        $rootScope.currentArrow = null;
+                    }else{
+                        $rootScope.toAddArrow = null;
+                    }
+
+
+                }
+
+                $scope.deleteSelection= function(){
+
+                    $rootScope.toAddArrow = null;
+                    $rootScope.liveArrow = null;
+                    $rootScope.firstArrowClick = false;
+
+                }
+
+
+            }
+        }
+    }])
+    .directive('toolText', ["$cacheFactory", "$rootScope", function ($cacheFactory, $rootScope) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+
+                $scope.clearActor = function () {
+                    $scope.textStuff = {text:"", color:"#000000",bold:false,italic:false,underline:false , size: 32};
+                }
+
+                $scope.clearActor();
+
+                $scope.setColor = function(color){
+                    $scope.textStuff.color = color;
+                }
+
+                $scope.focused = function(){
+                    $rootScope.textToAdd = null;
+                }
+
+                $scope.changeBold = function(){
+                    $scope.textStuff.bold = !$scope.textStuff.bold;
+                }
+                $scope.changeItalic = function(){
+                    $scope.textStuff.italic = !$scope.textStuff.italic;
+                }
+                $scope.changeUnderline = function(){
+                    $scope.textStuff.underline = !$scope.textStuff.underline;
+                }
+
+                $scope.getTextObject = function(){
+                    return $scope.textStuff;
+                }
+
+
+                var cache = $cacheFactory("textObject");
+                cache.put("getTextObject", $scope.getTextObject);
+
+                cache.put("clearTextObject", $scope.clearActor);
+
+
+            }
+        }
+    }])
+    .directive('toolImage', ["$cacheFactory", "ToolHttp", 'Upload', "$rootScope", function ($cacheFactory, ToolHttp, Upload,$rootScope) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.searchName = "";
+                $scope.displayUploadResult = false;
+                $scope.displayGetImagesError = false;
+                $scope.displayErrorOnUpload = false;
+                $scope.displayFileTooBig = false;
+                $scope.uploadedImages1 = [];
+                $scope.uploadedImages2 = [];
+
+
+                $scope.clearActor = function () {
+
+                    $scope.images1 = [];
+                    $scope.images2 = [];
+                    $scope.displayNoResult = false;
+                    $scope.displayResult = false;
+                    $scope.displayLoader = false;
+                    $scope.displayLoaderUpload = false;
+
+
+                }
+
+                $scope.clearActor();
+
+                $scope.getActor = function () {
+
+                    return $scope.imageStuff;
+
+
+                }
+
+
+                $scope.search = function () {
+
+
+                    var data = {query: $scope.searchName};
+                    $scope.clearActor();
+
+                    $scope.displayLoader = true;
+
+                    ToolHttp.getFlirkImage(data).then(
+                        function (data, status, headers, config) {
+
+                            $scope.displayLoader = false;
+                            console.log("success images");
+
+
+                            if (data && data.length > 0) {
+                                $scope.displayNoResult = false;
+                                $scope.displayResult = true;
+
+                                for(var i=0; i< data.length; i++){
+
+                                    var img = data[i];
+                                    if(i < data.length / 2){
+                                        $scope.images1.push(img);
+                                    }else{
+                                        $scope.images2.push(img);
+                                    }
+
+                                }
+
+
+
+                            } else {
+                                $scope.displayNoResult = true;
+                                $scope.displayResult = false;
+                            }
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error images");
+                            $scope.displayLoader = false;
+                        });
+
+
+                }
+
+                $scope.deleteSearch = function () {
+
+
+                    $scope.clearActor();
+                    $scope.searchName = "";
+
+                }
+
+                $scope.dragMe = function (event, image) {
+
+                    event.preventDefault();
+                    var offsetHeight = angular.element(event.currentTarget).prop('offsetHeight');
+                    var offsetWidth = angular.element(event.currentTarget).prop('offsetWidth');
+                    var ratio = offsetWidth / offsetHeight;
+
+                    var height = Math.floor(POSTIT_BASE_HEIGHT / ratio);
+
+                    var cursor = cursorFromEvent(event);
+
+                    var actor = createImage(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (height / 2), POSTIT_BASE_HEIGHT, height), 5000, image.path);
+
+
+                    if (actor) {
+                        var cache = $cacheFactory.get("dragTemp");
+                        cache.get("displayMe")(true);
+                        cache.get("addActor")(actor);
+
+                    }
+
+
+                }
+
+                //NO NEED FOR CACHE
+
+                //UPLOAD IMAGE
+
+                $scope.upload = function (files) {
+                    console.log("file upload image");
+                    if (files && files.length) {
+
+                        $scope.displayErrorOnUpload = false;
+                        $scope.displayFileTooBig = false;
+
+                        $scope.displayLoaderUpload = true;
+                        $scope.displayUploadResult = true;
+                        var responses = 0;
+
+                        for (var i = 0; i < files.length; i++) {
+                            var file = files[i];
+                            Upload.upload({
+                                url: "/api/1/framework/Tool/uploadTuzzerImage",
+                                fields: {
+                                    'username': "test"
+                                },
+                                file: file
+                            }).success(function (data, status, headers, config) {
+
+                                if (data && data.data && data.data.original) {
+
+                                    if($scope.uploadedImages1.length <= $scope.uploadedImages2.length){
+
+                                        $scope.uploadedImages1.push({path: PREFIX + data.data.original});
+
+                                    }else{
+                                        $scope.uploadedImages2.push({path: PREFIX + data.data.original});
+                                    }
+
+
+                                }
+
+                                responses++;
+                                if (responses == files.length) {
+                                    $scope.displayLoaderUpload = false;
+
+                                }
+
+
+                            }).error(function (data, status, headers, config) {
+                                console.log("error upload image");
+
+                                if(data.error.code == 410){ //file too big
+                                    $scope.displayFileTooBig = true;
+                                }else{
+                                    $scope.displayErrorOnUpload = true;
+                                }
+
+
+                                responses++;
+                                if (responses == files.length) {
+                                    $scope.displayLoaderUpload = false;
+
+                                }
+                            });
+                        }
+
+                    }
+                }
+
+            },
+            link: function (scope, element, attr) {
+
+                scope.displayGetImagesError = false;
+                var initImageLoad = function(){
+
+                    if(!$rootScope.settings.rights.canUploadImage){
+                        return;
+                    }
+
+                    var firstTime = true;
+
+                    element.bind("mouseover", function () {
+
+                        element.unbind("mouseover");
+
+                        if (firstTime) {
+                            firstTime = false;
+
+                            ToolHttp.getTuzzerImageList(null).then(
+                                function (data, status, headers, config) {
+
+
+                                    console.log("success images");
+
+
+                                    if (data && data.length > 0) {
+
+                                        scope.displayUploadResult = true;
+
+                                        for (var i = 0; i < data.length; i++) {
+
+                                            if(i < data.length / 2){
+                                                scope.uploadedImages1.push({path: PREFIX + data[i]});
+                                            }else{
+                                                scope.uploadedImages2.push({path: PREFIX + data[i]});
+                                            }
+
+                                        }
+
+
+                                    }
+
+                                    scope.displayLoaderUpload = false;
+
+                                }, function (data, status, headers, config) {
+                                    console.log("error images");
+                                    scope.displayGetImagesError = true;
+                                    scope.displayLoaderUpload = false;
+
+
+                                });
+                        }
+
+                    });
+
+                }
+
+                pushInitListener(initImageLoad);
+
+            }
+        }
+    }])
+    .directive('toolVideo', ["$cacheFactory", "ToolHttp", function ($cacheFactory, ToolHttp) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.query = "";
+                $scope.displayLoader = false;
+
+
+                $scope.clearActor = function () {
+
+                    $scope.videos = [];
+                    $scope.displayInfoBox = true;
+                    $scope.displayError = false;
+
+
+                }
+
+                $scope.clearActor();
+
+                $scope.getActor = function () {
+
+                    return $scope.imageStuff;
+
+
+                }
+
+
+                $scope.search = function () {
+
+
+                    if ($scope.query.length > 0 && $scope.query !== "") {
+
+                        $scope.displayLoader = true;
+                        $scope.displayInfoBox = false;
+                        var data = {query: $scope.query};
+
+
+                        ToolHttp.getVideos(data).then(
+                            function (data, status, headers, config) {
+
+                                $scope.displayLoader = false;
+                                console.log("success videos");
+                                $scope.clearActor();
+
+
+                                if (data && data.item && data.item.length > 0) {
+                                    $scope.displayInfoBox = false;
+                                    $scope.displayError = false;
+
+                                    $scope.videos = data.item;
+
+
+                                } else {
+                                    $scope.displayInfoBox = true;
+                                    $scope.displayError = true;
+                                }
+
+
+                            }, function (data, status, headers, config) {
+                                console.log("error videos");
+                                $scope.displayLoader = false;
+                            });
+
+
+                    }
+
+
+                }
+
+                $scope.dragMe = function (event,video) {
+                    event.preventDefault();
+
+                    var cursor = cursorFromEvent(event);
+
+                    var actor = createVideo(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (VIDEO_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, VIDEO_BASE_HEIGHT), 5000, video);
+
+
+                    if (actor) {
+                        var cache = $cacheFactory.get("dragTemp");
+                        cache.get("displayMe")(true);
+                        cache.get("addActor")(actor);
+
+                    }
+
+
+                }
+
+                //NO NEED FOR CACHE
+
+            }
+        }
+    }])
+    .directive('toolRandom', ["$timeout", "ToolHttp", "$cacheFactory", function ($timeout, ToolHttp, $cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                var list = null;
+
+                ToolHttp.getRandomList(null).then(
+                    function (data, status, headers, config) {
+                        console.log("success random list");
+                        list = data;
+
+                    }, function (data, status, headers, config) {
+                        console.log("error random list");
+
+
+                    });
+
+                $scope.type = "default";
+
+
+                var i = 0;
+                var timer = null;
+                var canRool = true;
+
+                var roll = function () {
+                    timer = $timeout(function () {
+                        $timeout.cancel(timer);
+                        timer = null;
+
+                        var roulette = list[$scope.type];
+                        $scope.background = "url('{0}')".format(roulette[i].imageUrl);
+
+                        i++;
+
+                        if (i > roulette.length - 1) {
+                            i = 0;
+                        }
+
+                        if (canRool) {
+                            roll();
+                        }
+
+
+                    }, 80);
+                }
+
+
+                $scope.generateRandom = function () {
+
+                    if (timer) {
+                        return;
+                    }
+                    $scope.randomizedObject = null;
+                    canRool = true;
+
+                    var roulette = list[$scope.type];
+                    $scope.background = "url('{0}')".format(roulette[roulette.length - 1].imageUrl);
+                    roll();
+
+                    var timer2 = $timeout(function () {
+
+                        canRool = false;
+
+                        $timeout.cancel(timer2);
+                        timer2 = null;
+
+                        $timeout.cancel(timer);
+                        timer = null;
+
+                        //get random
+                        var roulette = list[$scope.type];
+                        var rdIndex = randomIntFromInterval(0, roulette.length - 1);
+                        var obj = roulette[rdIndex];
+                        //$scope.background = "url('{0}')".format(obj.imageUrl);
+                        $scope.randomizedObject = obj;
+                        $scope.background = "";
+
+                    }, 2000);
+
+                }
+
+
+                $scope.clearRandomObject = function () {
+                    $scope.randomizedObject = null;
+                    $scope.background = "";
+
+                }
+
+
+                $scope.getRandomObject = function () {
+
+                    return $scope.randomizedObject;
+
+
+                }
+
+                var cache = $cacheFactory("randomObject");
+                cache.put("getRandomObject", $scope.getRandomObject);
+
+                cache.put("clearRandomObject", $scope.clearRandomObject);
+
+
+            }
+        }
+    }])
+    .directive('dragClick', ["$cacheFactory", "$translate", function ($cacheFactory, $translate) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+
+
+                var mouseDown = function(event){
+
+                    event.preventDefault();
+
+                    var cursor = cursorFromEvent(event);
+
+                    if (attrs.type === "postit") {
+
+                        var cache = $cacheFactory.get("postitActor");
+                        var actor = cache.get("getActor")();
+
+
+                        var colorHex = actor.color;
+                        var text = actor.text;
+                        var shape = actor.shape;
+
+
+                        var postitWidth = POSTIT_BASE_HEIGHT;
+                        var postitHeight = POSTIT_BASE_HEIGHT;
+                        if(shape === "shape5"){
+                            postitWidth = POSTIT_BASE_HEIGHT + Math.round(POSTIT_BASE_HEIGHT / 3);
+                            postitHeight = POSTIT_BASE_HEIGHT;
+                        }
+
+
+                        var actor = createPostIT(null, new Bounds(cursor.x - (postitWidth / 2), cursor.y - (postitHeight / 2), postitWidth, postitHeight), 5000, text, colorHex, shape);
+
+
+                        cache.get("clearActor")();
+
+                    } else if (attrs.type === "list") {
+
+                        var cache = $cacheFactory.get("listActor");
+                        var actor = cache.get("getActor")();
+                        var title = actor.title;
+                        if(isNullOrEmpty(title)){
+                            title = $translate.instant("TITLE_LIST");
+                        }
+
+                        var childs = [];
+
+                        angular.forEach(actor.childs, function (text, key) {
+
+                            if (text != "") {
+                                this.push({text:text,checked:false});
+                            }
+
+                        }, childs);
+
+                        var actor = createUlist(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (POSTIT_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, POSTIT_BASE_HEIGHT), 5000, title, childs);
+                        cache.get("clearActor")();
+
+                    } else if (attrs.type === "link") {
+
+                        var cache = $cacheFactory.get("linkActor");
+                        var actor = cache.get("getActor")();
+                        var link = actor.link;
+                        var title = actor.title;
+                        var description = actor.description;
+                        var image = actor.image;
+
+
+                        var actor = createLink(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (POSTIT_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, POSTIT_BASE_HEIGHT), 5000, link, title, description, image);
+                        cache.get("clearActor")();
+
+                    } else if (attrs.type === "random") {
+
+                        var cache = $cacheFactory.get("randomObject");
+                        var randomObject = cache.get("getRandomObject")();
+
+
+                        var actor = createRandom(null, new Bounds(cursor.x - (POSTIT_BASE_HEIGHT / 2), cursor.y - (POSTIT_BASE_HEIGHT / 2), POSTIT_BASE_HEIGHT, POSTIT_BASE_HEIGHT), 5000, randomObject);
+                        cache.get("clearRandomObject")();
+
+                    }else if (attrs.type === "text") {
+
+                        var cache = $cacheFactory.get("textObject");
+                        var textObject = cache.get("getTextObject")();
+
+
+                        var actor = createText(null, new Bounds(cursor.x - (TEXT_BASE_WIDTH / 2), cursor.y - (TEXT_BASE_HEIGHT / 2), TEXT_BASE_WIDTH, TEXT_BASE_HEIGHT), 5000);
+                        actor.text = textObject.text;
+                        actor.color = textObject.color;
+
+                        actor.bold = textObject.bold;
+                        actor.italic = textObject.italic;
+                        actor.underline = textObject.underline;
+
+                        cache.get("clearTextObject")();
+
+                    }
+
+                    if (actor) {
+                        var cache = $cacheFactory.get("dragTemp");
+                        cache.get("displayMe")(true);
+                        cache.get("addActor")(actor);
+                        cache.get("updateScope")();
+
+
+                    }
+
+
+
+
+                }
+
+                element.on('mousedown', mouseDown);
+                element.bind('touchstart', mouseDown);
+                
+              
+
+                element.on('destroy', function () {
+                    element.off('mousedown');
+                    element.unbind('touchstart');
+
+                });
+            }
+        }
+    }])
+    .directive('tempDrag', ['$document', "$cacheFactory", "$timeout", function ($document, $cacheFactory,$timeout) {
+        return {
+            scope: {
+                actor: '=actor'
+            },
+            restrict: 'A',
+            link: function (scope, element, attr) {
+
+
+                //move
+                $document.on('mousemove', mousemove);
+                $document.bind('touchmove', mousemove);
+
+                //up
+                $document.on('mouseup', mouseup);
+                $document.bind('touchend', mouseup);
+
+
+
+
+                function mousemove(event) {
+                    event.preventDefault();
+
+                    var cursor = cursorFromEvent(event);
+
+                    scope.actor.setX(cursor.x  - (scope.actor.getWidth() / 2));
+                    scope.actor.setY(cursor.y - (scope.actor.getHeight() / 2));
+
+
+                    try {
+                        $timeout(function () {
+                            scope.$apply();
+                        });
+
+                    } catch (error) {
+
+                    }
+
+
+
+                }
+
+                function mouseup(event) {
+
+                    event.preventDefault();
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    var cursor = cursorFromEvent(event);
+
+
+                    var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                    var sActor = scope.actor;
+                    dropPoint.x = dropPoint.x - sActor.getWidth() / 2;
+                    dropPoint.y = dropPoint.y - sActor.getHeight() / 2;
+
+                    var cache = $cacheFactory.get("dragTemp");
+                    cache.get("displayMe")(false);
+                    cache.get("clearActor")();
+                    cache.get("updateScope")();
+
+
+                    var cache = $cacheFactory.get("mainController");
+                    cache.get("dropActor")(sActor, dropPoint);
+
+
+                }
+
+
+            }
+        };
+    }])
+    .directive('contextMenuTool', ["$timeout",function ($timeout) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                var timer = false;
+
+                $scope.$watch("menuColorPickerHex", function () {
+                    if ($scope.currentActor) {
+                        $scope.currentActor.setColorNoUpdate($scope.menuColorPickerHex);
+
+                        var tempActor = $scope.currentActor;
+                        if(!timer){
+                            timer = $timeout(function () {
+
+                                tempActor.updateMe();
+
+                                $timeout.cancel(timer);
+                                timer = null;
+
+                            }, 500);
+                        }
+                    }
+
+
+                });
+
+            },
+            link: function (scope, element, attr) {
+
+                //FOR MOBILE TOUCH
+                var menu = $(element).find(".colorPicker").not(".miniPicker,.stickerPicker");
+
+                $(menu).on("touchstart", function(){
+
+
+
+                    var ul = $(menu).find("ul");
+
+                    if($(ul).css("height") === "141px"){
+                        $(ul).css("height","35px");
+                        $(ul).css("width","100%");
+                    }else{
+                        $(ul).css("height","141px");
+                        $(ul).css("width","71px");
+                    }
+
+
+                });
+                //-----
+
+
+            }
+        }
+    }])
+    .directive('textMenuTool', ["$timeout",function ($timeout) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                var timer = false;
+
+                $scope.$watch("menuColorPickerHex", function () {
+                    if ($scope.currentActor) {
+                        $scope.currentActor.setColorNoUpdate($scope.menuColorPickerHex);
+
+                        if(!timer){
+                            timer = $timeout(function () {
+
+                                $scope.currentActor.updateMe();
+
+                                $timeout.cancel(timer);
+                                timer = null;
+
+                            }, 500);
+                        }
+                    }
+
+
+                });
+
+                $scope.fontSizes = [16,26,32,48,64,72,100,140];
+                $scope.opacity = 0;
+                $scope.height = "0px";
+
+
+                $scope.mouseOver = function ($event) {
+                    console.log("mouseOver");
+                    $scope.opacity = 1;
+                    $scope.height = "auto";
+
+                }
+
+                $scope.mouseLeave = function ($event) {
+                    console.log("mouseLeave");
+                    $scope.opacity = 0;
+                    $scope.height = "0px";
+                }
+
+                $scope.sizeChoice = function(size){
+                    $scope.currentActor.size = size;
+                    $scope.currentActor.sizeChanged();
+                }
+
+            },
+            link: function (scope, element, attr) {
+
+                //FOR MOBILE TOUCH
+                var menu = $(element).find(".textToolSprite.textSize");
+
+                $(menu).on("touchstart", function(){
+
+                    var select = $(element).find("select");
+
+                    if($(select).css("width") === "53px"){
+                        $(select).css("width","0");
+                        $(select).css("opacity","0");
+                        $(select).css("z-index","0");
+                    }else{
+                        $(select).css("width","53px");
+                        $(select).css("opacity","1");
+                        $(select).css("z-index","1000");
+                    }
+
+
+                });
+                //---
+
+
+            }
+        }
+    }])
+    .directive('arrowContextMenuTool', ["$rootScope", "$timeout", function ($rootScope,$timeout) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+                
+                var timer = false;
+
+
+                $scope.$watch("menuColorPickerHex", function () {
+                    if ($rootScope.currentArrow) {
+                        $rootScope.currentArrow.setColor($scope.menuColorPickerHex);
+
+                        if(!timer){
+                            timer = $timeout(function () {
+
+                                $rootScope.currentArrow.updateMe();
+
+                                $timeout.cancel(timer);
+                                timer = null;
+
+                            }, 500);
+                        }
+                        
+                    }
+
+
+                });
+
+            },
+            link: function (scope, element, attr) {
+
+                //FOR MOBILE TOUCH
+                var menus = $(element).find(".mainSubmenuItem").not(".colorPicker");
+
+                angular.forEach(menus, function(value, key) {
+
+                    $(value).on("touchstart", function(){
+
+                        var ul = $(value).find("ul.thicknessMenu");
+
+                        if($(ul).css("height") === "144px"){
+                            $(ul).css("height","0");
+                        }else{
+                            $(ul).css("height","144px");
+                        }
+
+
+                        angular.forEach(menus, function(value2, key) {
+
+                            if(value2 != value){
+                                $(value2).find("ul.thicknessMenu").css("height","0");
+                            }
+
+                        });
+
+                    });
+
+
+                });
+                //-----
+
+
+            }
+        }
+    }]);

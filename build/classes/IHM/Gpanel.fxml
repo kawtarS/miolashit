@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="490.0" prefWidth="810.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="IHM.GpanelController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="322.0">
+         <children>
+            <ImageView fitHeight="446.0" fitWidth="383.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@iconfinder-infographic-management-4341272_120578.png" />
+               </image>
+            </ImageView>
+         </children>
+      </AnchorPane>
+      <ImageView fx:id="btn_client" fitHeight="41.0" fitWidth="49.0" layoutX="444.0" layoutY="31.0" onMouseClicked="#switchclient" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@users_people_workers_customers_icon_124243.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="btn_voiture" fitHeight="50.0" fitWidth="50.0" layoutX="447.0" layoutY="116.0" onMouseClicked="#switchvoiture" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@car_13260.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="btn_Alerts" fitHeight="41.0" fitWidth="62.0" layoutX="452.0" layoutY="215.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@hiiiiiiiiiiiii.png" />
+         </image>
+      </ImageView>
+      <Label layoutX="631.0" layoutY="41.0" prefHeight="20.0" prefWidth="103.0" text="Gestion Clients">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+      <Label layoutX="621.0" layoutY="141.0" text="Gestion Voiture">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+      <Label layoutX="631.0" layoutY="222.0" prefHeight="27.0" prefWidth="127.0" text="Gestion Alerts">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+      <Label layoutX="636.0" layoutY="347.0" prefHeight="27.0" prefWidth="118.0" text="Gestion Emprunts">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+      <ImageView fx:id="btn_Emp" fitHeight="73.0" fitWidth="61.0" layoutX="430.0" layoutY="324.0" onMouseClicked="#switchEmprunt" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@gestion2.png" />
+         </image>
+      </ImageView>
+   </children>
+</AnchorPane>

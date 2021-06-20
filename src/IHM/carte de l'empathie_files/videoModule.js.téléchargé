@@ -1,0 +1,330 @@
+/**
+ * Created by geoffrey on 27/08/15.
+ */
+
+angular.module('videoModule', ['opentok'])
+    .directive('videoTrigger', ["$rootScope", "$location", function ($rootScope, $location) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.triggerVideo = function () {
+
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked) {
+                        return;
+                    }
+
+                    if ($rootScope.videoStarted) {
+
+                        $rootScope.clearVideo();
+
+                    } else {
+                        $location.path('/popup/confirmationVideoChat');
+                    }
+
+                }
+
+
+            }
+        }
+    }])
+    .directive('tuzzVideo', ["$rootScope", "VideoHttp", "OTSession", "$location", "$timeout", "TB", function ($rootScope, VideoHttp, OTSession, $location, $timeout, TB) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $rootScope.videoStarted = false;
+                $scope.sessionId = null;
+                $scope.token = null;
+                $scope.apiKey = "44927942";
+                $scope.session = null;
+
+
+                var clearVideo = function () {
+                    if ($scope.session) {
+                        if ($scope.publisher) {
+                            $scope.session.unpublish($scope.publisher);
+                        }
+
+                    }
+                    else {
+                        $scope.publisher.destroy();
+                    }
+
+
+                    $scope.publisher = null;
+
+
+                    $scope.session.disconnect();
+                    $scope.session = null;
+
+                    if($rootScope.tuzzer.is_board_owner){
+                        angular.element(document.getElementsByClassName("actualVideo")).append("<div id='publisher'></div>");
+                    }
+
+                }
+
+                $scope.showAllowImage = function(value){
+
+                    $scope.displayAllowImage = value;
+
+                    try {
+                        $timeout(function () {
+                            $scope.$apply();
+                        });
+
+                    } catch (error) {
+
+                    }
+                }
+
+                $rootScope.clearVideo = clearVideo;
+
+                if ($rootScope.tuzzer.is_board_owner) { //publisher part
+                    $rootScope.startVideo = function () {
+
+
+                        if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked) {
+                            return;
+                        }
+
+                        //si on est le owner, on crée une session
+                        $rootScope.loadingVideo = true;
+
+                        VideoHttp.createOpentokSession().then(
+                            function (data, status, headers, config) {
+                                $scope.sessionId = data;
+
+
+                                VideoHttp.generatePublisherToken({session_id: $scope.sessionId}).then(
+                                    function (data, status, headers, config) {
+
+                                        $scope.token = data;
+
+                                        $scope.session = TB.initSession($scope.sessionId);
+                                        $scope.publisher = TB.initPublisher($scope.apiKey, 'publisher');
+                                        $scope.publisher.setStyle("nameDisplayMode", "off");
+                                        $scope.publisher.setStyle("buttonDisplayMode", "off");
+
+                                        $scope.session.on({
+                                            sessionConnected: function (event) {
+
+                                                $scope.session.publish($scope.publisher);
+                                            }
+
+                                        });
+
+
+                                        $scope.publisher.on({
+                                            accessDenied: function () {
+                                                console.log('otAccessDenied');
+                                                $scope.showAllowImage(true);
+                                            },
+                                            accessDialogOpened: function () {
+                                                console.log('otAccessDialogOpened');
+                                                $scope.showAllowImage(true);
+                                            },
+                                            accessDialogClosed: function () {
+                                                console.log('otAccessDialogClosed');
+
+                                                $rootScope.loadingVideo = false;
+                                            },
+                                            accessAllowed: function () {
+
+                                                console.log('otAccessAllowed');
+                                                $scope.showAllowImage(false);
+                                            },
+                                            loaded: function () {
+                                                console.log('otLayout');
+                                            },
+                                            streamCreated: function (event) {
+
+                                                console.log('otStreamCreated');
+
+                                                $scope.showAllowImage(false);
+                                                $rootScope.loadingVideo = false;
+                                                $rootScope.videoStarted = true;
+                                                try {
+                                                    $timeout(function () {
+                                                        $rootScope.$apply();
+                                                    });
+
+                                                } catch (error) {
+
+                                                }
+
+                                                VideoHttp.setTokSessionIdForBoard({board_id: $rootScope.board.uuid,session_id: $scope.sessionId}).then(
+                                                    function (data, status, headers, config) {
+
+                                                    },
+                                                    function (data, status, headers, config) {
+                                                        console.log("error on setTokSessionIdForBoard");
+                                                });
+
+                                                //send pusher to initiate subscribers
+                                                presence.trigger("client-start_video", {sessionId: $scope.sessionId});
+
+                                                $scope.stream = event.stream;
+
+                                            },
+                                            streamDestroyed: function () {
+                                                console.log('otStreamDestroyed');
+
+
+                                                VideoHttp.unsetTokSessionIdForBoard({board_id: $rootScope.board.uuid}).then(
+                                                    function (data, status, headers, config) {
+
+                                                    },
+                                                    function (data, status, headers, config) {
+                                                        console.log("error on unsetTokSessionIdForBoard");
+                                                    });
+
+
+                                                $rootScope.loadingVideo = false;
+                                                $rootScope.videoStarted = false;
+                                                $scope.showAllowImage(false);
+
+
+                                            }
+                                        });
+
+
+                                        $scope.session.connect($scope.apiKey, $scope.token);
+
+
+                                    }, function (data, status, headers, config) {
+                                        console.log("error on publisher token generation");
+                                    });
+
+                            }, function (data, status, headers, config) {
+                                console.log("error on save temporary board");
+                            });
+
+
+                    }
+
+                    $scope.activateMic = function(){
+
+                        var mic = !$scope.stream.hasAudio;
+                        $scope.publisher.publishAudio(mic);
+                        $scope.stream.hasAudio = mic;
+
+
+                    }
+
+                } else { //subscriber part
+
+
+                    var initTok = function(sessionId){
+
+                        if(sessionId){
+
+                            $scope.session = TB.initSession(sessionId);
+
+                            $scope.session.on({
+                                sessionConnected: function (event) {
+
+
+                                },
+                                streamCreated: function (event) {
+
+
+                                    $rootScope.videoStarted = true;
+                                    // Create a container for a new Subscriber, assign it an id using the streamId, put it inside
+                                    // the element with id="subscribers"
+                                    var subContainer = document.createElement('div');
+                                    subContainer.id = 'stream-' + event.stream.streamId;
+                                    document.getElementById('subscribers').appendChild(subContainer);
+
+                                    // Subscribe to the stream that caused this event, put it inside the container we just made
+                                    $scope.session.subscribe(event.stream, subContainer,{
+                                        style: {buttonDisplayMode: 'off'}
+                                    });
+
+                                    $scope.stream = event.stream;
+
+                                },
+                                streamDestroyed: function (event) {
+                                    $rootScope.videoStarted = false;
+                                    clearVideo();
+
+                                }
+
+                            });
+
+                            VideoHttp.generateSubscriberToken({session_id: sessionId}).then(
+                                function (data, status, headers, config) {
+
+                                    $scope.token = data;
+
+                                    $scope.session.connect($scope.apiKey, $scope.token);
+
+                                }, function (data, status, headers, config) {
+                                    console.log("error on Subscriber token generation");
+                                });
+
+
+                        }
+
+
+                    }
+
+
+
+
+                    //subscribe to pusher
+                    presence.bind("client-start_video",
+                        function (data) {
+                            console.log("pusher" + "start_video");
+
+
+
+                            if (data.sessionId) {
+
+                                initTok(data.sessionId);
+
+                            }
+
+                        }
+                    );
+
+
+
+                    var initAfterLoad = function(){
+
+                        if(!isNullOrEmpty($rootScope.board.session_id)){
+                            initTok($rootScope.board.session_id);
+                        }
+
+                    }
+                    pushInitListener(initAfterLoad);
+
+                }
+
+
+                $scope.forceOpen = true;
+                $scope.openVideo = function(){
+
+                    if($rootScope.videoStarted){
+                        $scope.forceOpen = !$scope.forceOpen;
+                    }
+
+
+                }
+
+                $scope.$on('$destroy', function () {
+                    clearVideo();
+                });
+
+            },
+            link: function (scope, element, attrs) {
+
+
+
+            }
+        }
+    }]);

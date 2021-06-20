@@ -1,0 +1,495 @@
+angular.module('dragModule', [])
+    .directive('actorDrag', ['$document', "$cacheFactory", "$rootScope", "$timeout", function ($document, $cacheFactory, $rootScope,$timeout) {
+        return {
+            restrict: 'AC',
+            scope: {
+                actor: '=actor'
+            },
+            link: function (scope, element, attr) {
+
+
+                var parentScope = scope.$parent;
+                var moved = false;
+
+                function mouseDown (event){
+                    // Prevent default dragging of selected content
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.ANCOR || $rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY || scope.actor.getState() == ACTORSTATE.MODERATION || scope.actor.getState() == ACTORSTATE.LOCK) {
+                        return;
+                    }
+                    if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.actor.owner_uuid){
+                        return;
+                    }
+
+                    boardCanMove = false;
+
+                    //check if element is resize or rotate
+
+                    if (!(angular.element(event.target).hasClass('resize') || angular.element(event.target).hasClass('rotate') || angular.element(event.target).hasClass('ancorSpan'))) {
+
+                        if (!$rootScope.currentActor || $rootScope.currentActor.uuid != scope.actor.uuid) {
+
+                            $rootScope.currentActor = scope.actor;
+                            $rootScope.currentArrow = null;
+
+
+                            var cache = $cacheFactory.get("mainController");
+
+                            clearEditMode(parentScope.actors);
+
+                            if (!($rootScope.boardState == BOARD_MODE.ANCOR || $rootScope.boardState == BOARD_MODE.MULTISELECT)) {
+                                scope.actor.setSelectMode(true);
+
+                                if(event.type === "touchstart"){
+
+                                    try {
+                                        $timeout(function () {
+                                            parentScope.$apply();
+                                        });
+
+                                    } catch (error) {
+
+                                    }
+
+                                }
+
+                            }
+
+
+                        }
+
+
+                        //move
+                        $document.on('mousemove', mousemove);
+                        $document.bind('touchmove', mousemove);
+
+                        //up
+                        $document.on('mouseup', mouseup);
+                        $document.bind('touchend', mouseup);
+
+
+                    }
+
+                }
+
+                element.on('mousedown', mouseDown);
+                element.bind('touchstart', mouseDown);
+
+
+                function mousemove(event) {
+
+                    //console.log(event);
+
+                    event.preventDefault();
+                    if (scope.actor.getState() != ACTORSTATE.ANCORING && scope.actor.getState() != ACTORSTATE.RESIZING && scope.actor.getState() != ACTORSTATE.ROTATE && scope.actor.getState() != ACTORSTATE.EDIT && scope.actor.getState() != ACTORSTATE.MODERATION && scope.actor.getState() != ACTORSTATE.LOCK) {
+
+                        if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.actor.owner_uuid){
+                            return;
+                        }
+
+                        moved = true;
+                        scope.actor.setState(ACTORSTATE.MOVING);
+
+                        var cursor = cursorFromEvent(event);
+
+
+                        //move
+                        parentScope.inputHelper.setMousePosition(new Vector2(cursor.x, cursor.y));
+                        var point = parentScope.inputHelper.getTranslation();
+
+                        point.x /= SCALE;
+                        point.y /= SCALE;
+                        scope.actor.translate(point);
+
+                        if(event.type === "touchmove"){
+
+                            try {
+                                $timeout(function () {
+                                    parentScope.$apply();
+                                });
+
+                            } catch (error) {
+
+                            }
+
+                        }
+
+
+
+                    }
+
+
+                }
+
+                function mouseup() {
+
+
+
+                    if(moved){
+                        scope.actor.updateMe();
+                    }
+                    moved = false;
+
+                    scope.actor.setState(ACTORSTATE.SELECT);
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    boardCanMove = true;
+
+                }
+
+
+
+
+            }
+        };
+    }])
+    .directive('actorResize', ['$document', "$rootScope", "$timeout", function ($document, $rootScope,$timeout) {
+        return {
+            scope: {
+                actor: '=actor'
+            },
+            link: function (scope, element, attr) {
+
+
+                var parentScope = scope.$parent;
+                var moved = false;
+
+                function mouseDown (event){
+
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.ANCOR || $rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY || scope.actor.getState() == ACTORSTATE.MODERATION || scope.actor.getState() == ACTORSTATE.LOCK) {
+                        return;
+                    }
+
+                    if(!scope.actor.canResize){
+                        return;
+                    }
+
+                    if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.actor.owner_uuid){
+                        return;
+                    }
+
+                    boardCanMove = false;
+                    // Prevent default dragging of selected content
+                    event.preventDefault();
+
+
+                    $rootScope.currentActor = scope.actor;
+                    scope.actor.setResizeMode();
+
+                    //move
+                    $document.on('mousemove', mousemove);
+                    $document.bind('touchmove', mousemove);
+
+                    //up
+                    $document.on('mouseup', mouseup);
+                    $document.bind('touchend', mouseup);
+
+
+                }
+
+                element.on('mousedown', mouseDown);
+                element.bind('touchstart', mouseDown);
+
+                function mousemove(event) {
+
+                    event.preventDefault();
+
+
+
+
+                    //resize
+                    if (scope.actor.getState() != ACTORSTATE.ANCORING && scope.actor.getState() != ACTORSTATE.MOVING && scope.actor.getState() != ACTORSTATE.ROTATE && scope.actor.getState() != ACTORSTATE.MODERATION && scope.actor.getState() != ACTORSTATE.LOCK) {
+
+                        if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.actor.owner_uuid){
+                            return;
+                        }
+
+                        var cursor = cursorFromEvent(event);
+
+                        moved = true;
+                        parentScope.inputHelper.setMousePosition(new Vector2(cursor.x, cursor.y));
+                        var point = parentScope.inputHelper.getTranslation();
+                        point.x /= SCALE;
+                        point.y /= SCALE;
+
+                        scope.actor.resize(point);
+
+
+                        if(event.type === "touchmove"){
+
+                            try {
+                                $timeout(function () {
+                                    parentScope.$apply();
+                                });
+
+                            } catch (error) {
+
+                            }
+
+                        }
+
+                    }
+
+
+                }
+
+                function mouseup() {
+
+
+                    if(moved){
+                        scope.actor.updateMe();
+                    }
+                    moved = false;
+
+                    scope.actor.setState(ACTORSTATE.SELECT);
+
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    boardCanMove = true;
+
+                }
+
+
+            }
+        };
+    }])
+    .directive('actorRotate', ['$document', "$rootScope", "$timeout", function ($document, $rootScope, $timeout) {
+        return {
+            scope: {
+                actor: '=actor'
+            },
+            link: function (scope, element, attr) {
+
+
+                var parentScope = scope.$parent;
+                var initialPoint = new Vector2();
+                var initialAngle = 0;
+                var moved = false;
+
+
+                function mouseDown (event){
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.ANCOR || $rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY || scope.actor.getState() == ACTORSTATE.MODERATION || scope.actor.getState() == ACTORSTATE.LOCK) {
+                        return;
+                    }
+                    if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.actor.owner_uuid){
+                        return;
+                    }
+
+                    boardCanMove = false;
+
+
+                    $rootScope.currentActor = scope.actor;
+                    scope.actor.setRotateMode();
+
+
+                    var cursor = cursorFromEvent(event);
+
+                    initialPoint = new Vector2(cursor.x, cursor.y);
+                    initialAngle = scope.actor.getAngle();
+
+
+                    //move
+                    $document.on('mousemove', mousemove);
+                    $document.bind('touchmove', mousemove);
+
+                    //up
+                    $document.on('mouseup', mouseup);
+                    $document.bind('touchend', mouseup);
+
+                }
+
+                element.on('mousedown', mouseDown);
+                element.bind('touchstart', mouseDown);
+
+
+                function mousemove(event) {
+
+                    event.preventDefault();
+
+                    //rotate
+                    if (scope.actor.getState() != ACTORSTATE.ANCORING && scope.actor.getState() != ACTORSTATE.MOVING && scope.actor.getState() != ACTORSTATE.RESIZING && scope.actor.getState() != ACTORSTATE.MODERATION && scope.actor.getState() != ACTORSTATE.LOCK) {
+
+                        if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.actor.owner_uuid){
+                            return;
+                        }
+
+                        moved = true;
+
+                        var cursor = cursorFromEvent(event);
+
+                        var cursorPoint = new Vector2(cursor.x, cursor.y);
+                        var rotatePoint = new Vector2(((scope.actor.getX() + (scope.actor.getWidth() /2)) * SCALE) + OFFSET_X,  ((scope.actor.getY() + (scope.actor.getHeight() /2)) * SCALE) + OFFSET_Y );
+
+                        var vector1 = new Vector2(cursorPoint.x - rotatePoint.x , cursorPoint.y - rotatePoint.y );
+                        var vector2 = new Vector2(initialPoint.x - rotatePoint.x , initialPoint.y - rotatePoint.y );
+
+                        var angle = VectorUtils.getAngle(vector1,vector2) * (180 / Math.PI);
+
+
+                        angle = -angle;
+                        angle = Math.round(angle);
+
+                        var resAngle = initialAngle + angle;
+                        scope.actor.setAngle(resAngle);
+
+                        if(event.type === "touchmove"){
+
+                            try {
+                                $timeout(function () {
+                                    parentScope.$apply();
+                                });
+
+                            } catch (error) {
+
+                            }
+
+                        }
+
+                    }
+
+
+                }
+
+                function mouseup() {
+
+                    if(moved){
+                        scope.actor.updateMe();
+                    }
+                    moved = false;
+
+                    scope.actor.setState(ACTORSTATE.SELECT);
+
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    boardCanMove = true;
+
+                }
+
+
+            }
+        };
+    }])
+    .directive('multiDrag', ['$document', "$cacheFactory", "$rootScope", "$timeout", function ($document, $cacheFactory, $rootScope,$timeout) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.getMultiPolyline = function(){
+
+                    if($scope.actor){
+                        return "<polyline style='stroke-dasharray: 10;animation: dash {3}s linear infinite;' stroke-miterlimit='10' fill-opacity='0' fill='#FFFFFF' stroke='#34495e' stroke-width='3' points='0,0 {0},0 {0},{1} 0,{1} 0,0'></polyline>".format(($scope.actor.getWidth() + 8) * SCALE,($scope.actor.getHeight() + 8) * SCALE, 10 / SCALE, 10 / SCALE);
+
+                    }
+
+
+                }
+
+            },
+            link: function (scope, element, attr) {
+
+
+
+                var parentScope = scope.$parent;
+
+
+                element.on("mousedown", function (event) {
+
+                    event.preventDefault();
+
+                    multiCanChange = false;
+                    $document.on("mousemove", mousemove);
+                    $document.on("mouseup", mouseup);
+
+
+                });
+
+                function mouseup(event) {
+                    event.preventDefault();
+
+                    for (var i = 0; i < $rootScope.selectedItems.length; i++) {
+                        var actor = $rootScope.selectedItems[i];
+                        actor.updateMeWithoutReplaySave();
+
+
+                    }
+
+                    for (var i = 0; i < $rootScope.selectedArrows.length; i++) {
+                        var arrow = $rootScope.selectedArrows[i];
+                        arrow.updateMe();
+
+                    }
+
+                    $timeout(function(){
+                        $rootScope.saveForReplay();
+                    },3000);
+
+
+                    $document.off("mousemove");
+                    $document.off("mouseup");
+                    multiCanChange = true;
+
+                };
+
+
+                function mousemove(event) {
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.MULTISELECT) {
+
+
+                        var cursor = cursorFromEvent(event);
+
+                        //move
+                        parentScope.inputHelper.setMousePosition(new Vector2(cursor.x, cursor.y));
+                        var point = parentScope.inputHelper.getTranslation();
+                        point.x /= SCALE;
+                        point.y /= SCALE;
+                        roundifyVector(point);
+
+
+                        for (var i = 0; i < $rootScope.selectedItems.length; i++) {
+                            var actor = $rootScope.selectedItems[i];
+                            actor.setState(ACTORSTATE.MOVING);
+                            actor.translate(point);
+
+                        }
+
+                        for (var i = 0; i < $rootScope.selectedArrows.length; i++) {
+                            var arrow = $rootScope.selectedArrows[i];
+                            arrow.translateArrow(point);
+
+                        }
+
+
+                    }
+
+
+                }
+
+
+
+
+            }
+        };
+    }]);

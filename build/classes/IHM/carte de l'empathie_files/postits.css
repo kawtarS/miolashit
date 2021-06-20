@@ -1,0 +1,626 @@
+/* -- Règles concernant les post-its -- */
+
+
+/* Post-its & couleurs */
+
+.black,.blackColor{
+    /*background-color:#515151;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #dfdfdf), color-stop(1, #c6c6c6));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #dfdfdf 20%,  #c6c6c6 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #dfdfdf 20%,  #c6c6c6 100%);
+}
+
+.yellow,.yellowColor{
+    /*background-color:#fdc706;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #feed5b), color-stop(1, #fcd000));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #feed5b 20%,  #fcd000 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #feed5b 20%,  #fcd000 100%);
+}
+
+.orange,.orangeColor{
+    /*background-color:#ff9800;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #ffc62a), color-stop(1, #ff9e00));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #ffc62a 20%,  #ff9e00 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #ffc62a 20%,  #ff9e00 100%);
+}
+
+.red,.redColor{
+    /*background-color:#fd3d29;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #ff918b), color-stop(1, #ff5b45));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #ff918b 20%,  #ff5b45 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #ff918b 20%,  #ff5b45 100%);
+}
+
+.purple,.purpleColor{
+    /*background-color:#b646db;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #d0bdda), color-stop(1, #ac88bc));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #d0bdda 20%,  #ac88bc 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #d0bdda 20%,  #ac88bc 100%);
+}
+
+.blue,.blueColor{
+    /*background-color:#00ccff;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #94d1ef), color-stop(1, #43afe3));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #94d1ef 20%,  #43afe3 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #94d1ef 20%,  #43afe3 100%);
+}
+.green,.greenColor{
+    /*background-color:#7de529;*/
+    background-image: url('/public/images/pli-postit.png'),-webkit-gradient(linear, left top, right bottom, color-stop(0.2, #c0e03c), color-stop(1, #83cb43));
+    background-image: url('/public/images/pli-postit.png'), -moz-linear-gradient(to bottom right,  #c0e03c 20%,  #83cb43 100%);
+    background-image: url('/public/images/pli-postit.png'), linear-gradient(to bottom right,  #c0e03c 20%,  #83cb43 100%);
+}
+
+.postitElement{
+    display: block;
+    width: 210px;
+    height: 210px;
+    padding: 0px;
+    line-height: 1;
+    white-space: nowrap;
+    text-align: center;
+    color: #34495e;
+    border-bottom-right-radius: 9%;
+    background-position: bottom left;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    -moz-background-size: 95%;
+    word-break: break-all;
+}
+
+.initialsBlock{
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.90);
+    background-color: rgba(255, 255, 255, 0.16);
+    width: 18%;
+    height: 18%;
+}
+
+    .roundPostit .initialsBlock, .ovalPostit .initialsBlock, .containerTrianglePostit .initialsBlock{
+        width: 20%;
+        height: 20%;
+
+        border: 1px solid #719cc5;
+    }
+
+    .ovalPostit svg, .roundPostit svg, .ovalPostitMenu+svg, .roundPostit+svg{
+        display: none !important;
+    }
+
+        .roundPostit .letters, .ovalPostit .letters, .containerTrianglePostit .letters{
+            color: #516b84;
+        }
+
+        .containerTrianglePostit .initialsBlock{
+            left: 0;
+            right: 0;
+            margin: auto;
+            top: 26.5%;
+
+            width: 18.5%;
+            height: 18.5%;
+            background-color: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.90);
+        }
+
+            .containerTrianglePostit .initialsBlock .letters{
+                color: white;
+            }
+
+        .ovalPostit .initialsBlock{
+            height: 30%;
+            left: -1.6%;
+            top: -2.7%;
+        }
+
+        .rectanglePostit .initialsBlock{
+            height: 27%;
+        }
+
+.letters{
+    color: white;
+    /*padding-top: 32%;*/
+    font-size: 18px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+
+    position: relative;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.connectCircle{
+    display: block;
+    position: absolute;
+    left: -22px;
+    top: -22px;
+
+
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+
+    width: 15px;
+    height: 15px;
+
+    opacity: 0.8;
+
+    background-color: rgb(190,190,190) !important;
+    background-image: none !important;
+
+    -webkit-transition: opacity 0.4s ease;
+    -moz-transition: opacity 0.4s ease;
+    -ms-transition: opacity 0.4s ease;
+    -o-transition: opacity 0.4s ease;
+    transition: opacity 0.4s ease;
+}
+
+.postitElement .connectCircle, .postitElement .connectCircle>span{
+    cursor: pointer !important;
+}
+
+.connectCircle>span {
+    background-color: white;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    width: 9px;
+    height: 9px;
+    display: block;
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    opacity: 0.9;
+    margin: auto;
+}
+
+    .connectCircle>span.linkOutside{
+        display: none;
+    }
+
+
+.connectCircle+.connectCircle{
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+
+    .connectCircle span.linkOutside{
+        -ms-transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+
+        -ms-transform-origin: bottom center;
+        -webkit-transform-origin: bottom center;
+        transform-origin: bottom center;
+    }
+
+    .connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+
+    .connectCircle+.connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+
+    .connectCircle+.connectCircle+.connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(90deg);
+        -webkit-transform: rotate(90deg);
+        transform: rotate(90deg);
+    }
+
+    .connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(135deg);
+        -webkit-transform: rotate(135deg);
+        transform: rotate(135deg);
+    }
+
+    .connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(180deg);
+        -webkit-transform: rotate(180deg);
+        transform: rotate(180deg);
+    }
+
+    .connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(225deg);
+        -webkit-transform: rotate(225deg);
+        transform: rotate(225deg);
+    }
+
+    .connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle span.linkOutside{
+        -ms-transform: rotate(270deg);
+        -webkit-transform: rotate(270deg);
+        transform: rotate(270deg);
+    }
+
+
+.connectCircle+.connectCircle+.connectCircle{
+    left: auto;
+    right: -22px;
+}
+
+.connectCircle+.connectCircle+.connectCircle+.connectCircle{
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle{
+    top: auto;
+    bottom: -22px;
+}
+
+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle{
+    right: 0;
+    left: 0;
+    margin: auto;
+}
+
+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle{
+    left: -22px;
+    right: auto;
+}
+
+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle+.connectCircle{
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+
+/* Shapes */
+
+.roundPostit{
+    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;
+    border-radius: 50% !important;
+
+    text-align: center;
+
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.roundPostit p,.roundPostit textarea{
+    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;
+    border-radius: 50% !important;
+
+    text-align: center;
+    padding-top: 40% !important;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.smallStuff.noteStuff textarea.roundPostit{
+    padding-top: 14%;
+}
+
+.ovalPostit{
+    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;
+    border-radius: 50% !important;
+
+    text-align: center;
+
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.ovalPostit p,.ovalPostit textarea{
+    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;
+    border-radius: 50% !important;
+
+    text-align: center;
+    padding-top: 20% !important;
+
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.ovalPostitMenu{
+    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;
+    border-radius: 50% !important;
+
+    text-align: center;
+    padding-top: 31.5% !important;
+    height: 210px !important;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+textarea.rectanglePostitMenu{
+    height: 170px !important;
+}
+
+
+/*---*/
+
+.containerTrianglePostit{
+    margin-right: 0 !important;
+    display: block;
+    position: relative;
+}
+
+.trianglePostit{
+    width: 0 !important;
+    height: 0 !important;
+    border-style: solid !important;
+
+    border-color: transparent transparent #fdc706 transparent;
+    background: none !important;
+
+    -webkit-border-radius: 0 !important;
+    -moz-border-radius: 0 !important;
+    border-radius: 0 !important;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: relative;
+
+}
+
+.triangleTextContainer{
+    position: absolute;
+    bottom: 0px;
+    width: 70%;
+    left: 0;
+    height: 40%;
+    right: 0;
+    margin: auto;
+    margin-bottom: 10px;
+}
+
+.triangleTextContainer span{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.triangleTextContainer textarea{
+
+    height: auto !important;
+    margin: auto !important;
+    background-color: transparent !important;
+    text-align: center !important;
+    position: absolute;
+    left: 0;
+    right: 0;
+
+    bottom: 4%;
+
+    z-index: 300;
+}
+
+.containerTrianglePostit p{
+    height: auto !important;
+    margin: auto !important;
+    background-color: transparent !important;
+    text-align: center !important;
+    position: absolute;
+    left: 0;
+    right: 0;
+
+    bottom: 4%;
+
+    z-index: 300;
+}
+
+/*--*/
+
+.containerTrianglePostitMenu{
+    width: 320px !important;
+    margin-right: 0 !important;
+    height: 248px;
+    display: block;
+    position: relative;
+}
+
+.trianglePostitMenu{
+    width: 0 !important;
+    height: 0 !important;
+    border-style: solid !important;
+    border-width: 0 146px 248px 146px !important;
+    border-color: transparent transparent #fdc706 transparent;
+    background: none !important;
+
+    -webkit-border-radius: 0 !important;
+    -moz-border-radius: 0 !important;
+    border-radius: 0 !important;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: relative;
+
+    margin-left: 13px !important;
+}
+
+    .containerTrianglePostitMenu textarea{
+        width: 210px !important;
+        height: auto !important;
+        margin: auto !important;
+        background-color: transparent !important;
+        text-align: center !important;
+        position: absolute;
+        left: 0;
+        right: 0;
+
+        bottom: 4%;
+
+        z-index: 300;
+    }
+
+    .containerTrianglePostitMenu p{
+    width: 210px !important;
+    height: auto !important;
+    margin: auto !important;
+    background-color: transparent !important;
+    text-align: center !important;
+    position: absolute;
+    left: 0;
+    right: 0;
+
+    bottom: 4%;
+
+    z-index: 300;
+    }
+
+/* Inputs dans les postits */
+
+.postitElement p{
+    border: none;
+    display: block;
+    width: 100%;
+    text-align: center;
+    cursor: text !important;
+    padding-top: 40%;
+}
+
+.postitTextContainer{
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.postitElement > .postitTextContainer > span{
+    display: inline-block;
+    white-space: pre-wrap;
+    text-align: center;
+    word-break: keep-all;
+    cursor: text !important;
+    line-height: inherit;
+    font-weight: 100;
+
+    -moz-transform: scale(0.85) translateY(-50%);
+    -webkit-transform: scale(0.85) translateY(-50%);
+    -o-transform: scale(0.85) translateY(-50%);
+    -ms-transform: scale(0.85) translateY(-50%);
+    transform: scale(0.85) translateY(-50%);
+
+    position: relative;
+    top: 50%;
+
+}
+
+
+.postitElement textarea{
+    border: none;
+    display: block;
+    width: 100%;
+    text-align: center;
+    height: 100%;
+    background-color: rgba(255,255,255,0.55);
+    cursor: text !important;
+    /*padding-top: 40%;*/
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    word-break: keep-all;
+    line-height: inherit;
+    font-weight: 100;
+
+    -moz-transform: scale(0.85);
+    -webkit-transform: scale(0.85);
+    -o-transform: scale(0.85);
+    -ms-transform: scale(0.85);
+    transform: scale(0.85);
+
+    font-size: 50px;
+}
+
+.listItemLabelText input.listItemField, .listItemLabelText input{
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    line-height: 50px;
+    float: none;
+    height: auto;
+}
+
+    .listItemLabelText input:focus{
+        background-color: rgba(85, 85, 85, 0.05);
+        left: 0;
+        right: 0;
+        top: 0;
+        font-size: 21px;
+        bottom: 0;
+        padding-left: 3.8%;
+        position: absolute;
+
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+.listItemLabelText{
+    line-height: 49px;
+
+    padding-bottom: 0;
+    height: 50px;
+
+    white-space: nowrap;
+    overflow-x: hidden;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+}
+
+.listTitleCont input{
+    background: transparent;
+    color: #fff;
+    border: 0;
+    font-size: 24px;
+    font-weight: bold;
+    width: 100%;
+    height: auto;
+    line-height: 45px;
+    outline: 0;
+    margin: 0;
+    margin-top: 1px !important;
+    padding: 0;
+    padding-left: 10px;
+    display: block;
+}
+
+/* Coin en svg */
+
+.pliPostit{
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 93%;
+}
+
+.toolsDetail .pliPostit{
+    bottom: 2px;
+}

@@ -1,0 +1,91 @@
+/**
+ * Created by nicolas on 26/08/15.
+ */
+function Vector2(x, y) {
+    this.x = x;
+    this.y = y;
+}
+function Bounds(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+
+    this.getSize = function () {
+        return new Vector2(this.width, this.height);
+    };
+    this.getPosition = function () {
+        return new Vector2(this.x, this.y);
+    };
+
+    this.update = function (x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    this.contains = function (b2) {
+        var xmin = b2.x;
+        var xmax = xmin + b2.width;
+
+        var ymin = b2.y;
+        var ymax = ymin + b2.height;
+
+        return ((xmin > this.x && xmin < this.x + this.width) && (xmax > this.x && xmax < this.x + this.width))
+            && ((ymin > this.y && ymin < this.y + this.height) && (ymax > this.y && ymax < this.y + this.height));
+    }
+
+    this.overlaps = function (b2) {
+        return this.x < b2.x + b2.width && this.x + this.width > b2.x && this.y < b2.y + b2.height && this.y + this.height > b2.y;
+    }
+}
+
+
+function SelectBox(x, y) {
+
+    this.bounds = new Bounds(x, y, 0, 0);
+
+    this.getBounds = function () {
+        return this.bounds;
+    }
+
+
+    this.getWidth = function () {
+        if (this.bounds.width < 0) {
+            return -this.bounds.width;
+        }
+        return this.bounds.width;
+
+    }
+
+    this.getHeight = function () {
+        if (this.bounds.height < 0) {
+            return -this.bounds.height;
+        }
+
+        return this.bounds.height;
+    }
+
+    this.getX = function () {
+
+        if (this.bounds.width < 0) {
+
+            return this.bounds.x - this.getWidth();
+        }
+        return this.bounds.x;
+
+
+    }
+
+    this.getY = function () {
+
+        if (this.bounds.height < 0) {
+            return this.bounds.y - this.getHeight();
+        }
+        return this.bounds.y;
+
+    }
+
+
+}

@@ -1,0 +1,585 @@
+/* -- CSS de la page "mon compte -- */
+
+/* Main */
+
+.accountMenu{
+    background-image: none;
+    background-color: rgb(235, 237, 239);
+}
+
+.accountMenu .centerBlock{
+    height: -webkit-calc(100% - 60px);
+    height: -moz-calc(100% - 60px);
+    height: calc(100% - 60px);
+
+    overflow: auto;
+    margin-top: 32px;
+}
+
+.firstPartForm, .secondPartForm{
+    background-color: white;
+}
+
+.accountMenu h2, .specialLabelThingie{
+    font-size: 18px;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    color: #34495e;
+    margin-bottom: 14px;
+}
+
+    #moderationPannel h2, #moderationSettingsPannel h2{
+        margin-bottom: 0;
+    }
+
+#accountForm input{
+    margin-bottom: -1px;
+    border: 1px solid rgb(225,225,225);
+    padding: 14px;
+    display: inline-block;
+    font-weight: 100;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    color: #545454;
+}
+
+#accountForm input:focus{
+    border: 1px solid rgba(253, 196, 0, 0.6);
+    z-index: 10;
+    position: relative;
+}
+
+#accountForm input.readonlyInput{
+    color: #cedbdc !important;
+    background-color: #e6eef1;
+    border: 1px solid rgb(205,205,205);
+}
+
+#accountForm fieldset{
+    margin-bottom: 34px;
+}
+
+#accountForm select{
+    width: 100%;
+    padding: 11px;
+    padding-left: 8px;
+    color: #656565;
+    border: 1px solid rgb(225,225,225);
+    cursor: pointer;
+}
+
+    #accountForm select:hover{
+        border: 1px solid rgba(253, 196, 0, 0.6);
+    }
+
+#deleteAccount{
+    display: block;
+    border: none;
+    padding: 12px 15px;
+    padding-left: 43px;
+    outline: 0;
+    cursor: pointer;
+    color: white;
+    text-transform: uppercase;
+    font-weight: 300;
+
+    background-color: #E02D17;
+    background-image: url(/public/images/icon-close-menu.png);
+    background-repeat: no-repeat;
+    background-position: 12px 13px;
+}
+
+    #deleteAccount:hover{
+        background-color: #EB4C43;
+    }
+
+#boardListSettings li, #billListSettings li{
+    width: 100%;
+    padding: 19px 17px;
+    padding-bottom: 20px;
+    margin-bottom: 0;
+
+    border-left: 5px solid transparent;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: relative;
+}
+
+    #boardListSettings li a, #billListSettings li a{
+        color: #34495e;
+        display: inline-block;
+        vertical-align: middle;
+        width: 410px;
+        margin-right: 25px;
+        overflow: hidden;
+    }
+
+        #boardListSettings li a:hover, #billListSettings li a:hover{
+            color: #f1b900;
+        }
+
+
+#boardListSettings li:nth-child(odd), #billListSettings li:nth-child(odd){
+    background-color: #f6f6f6;
+}
+
+#billListSettings span{
+    color: #545454;
+    display: inline-block;
+    vertical-align: top;
+}
+
+    #billListSettings span:first-child{
+        margin-right: 36px;
+    }
+
+    #billListSettings span:nth-child(2) {
+        width: -webkit-calc(100% - 300px);
+        width: -moz-calc(100% - 300px);
+        width: calc(100% - 340px);
+        height: 18px;
+        display: inline-block;
+        font-weight: 300;
+    }
+
+    #billListSettings li a{
+        position: absolute;
+        right: -6px;
+        width: 125px;
+    }
+
+.modeBlock{
+    text-transform: uppercase;
+    color: #545454;
+    display: inline-block;
+    vertical-align: middle;
+    width: 150px;
+}
+
+#boardListSettings li a.deleteThisBoard{
+    position: absolute;
+    right: 14px;
+    top: 15px;
+    width: 23px;
+    margin: 0;
+    height: 25px;
+    display: block;
+    background-image: url('/public/images/trashSprite.png');
+}
+
+#boardListSettings li a.deleteThisBoard:hover{
+    background-position: 23px 0;
+}
+
+.proMode{
+    color: #34495e;
+    width: 360px;
+}
+
+.price{
+    color: #545454;
+    text-transform: uppercase;
+    font-size: 17px;
+}
+
+.notifList{
+    margin-top: 20px;
+}
+
+.subChoice{
+    margin-left: 68px;
+}
+
+.notifInputs{
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+    .notifInputs label{
+        color: #829293;
+        position: relative;
+        left: 1px;
+        top: -9px;
+        cursor: pointer;
+        font-weight: 300;
+    }
+
+    .yellowSquare{
+        display: inline-block;
+        width: 25px;
+        height: 25px;
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        background-color: rgb(179, 181, 182);
+    }
+
+    input:checked+.yellowSquare{
+        left: 29px;
+        background-color: #fdc300;
+    }
+
+#accountForm .similiCheck{
+    display: inline-block;
+    position: relative;
+    height: 29px;
+    width: 56px;
+    background: #34495e;
+    margin-left: 0;
+    margin-right: 8px;
+}
+
+#accountForm input.switch{
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    z-index: 10;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.firstPartForm{
+    width: -webkit-calc(100% - 25px);
+    width: -moz-calc(100% - 25px);
+    width: calc(100% - 25px);
+
+    padding: 21px;
+    border: 1px solid rgb(225,225,225);
+    margin: 31px 0;
+    margin-top: 0;
+    position: relative;
+    padding-bottom: 50px;
+}
+
+.secondPartForm, #myPlan{
+    padding: 21px;
+    margin-top: 86px;
+    border: 1px solid rgb(225,225,225);
+
+    width: -webkit-calc(100% - 25px);
+    width: -moz-calc(100% - 25px);
+    width: calc(100% - 25px);
+    position: relative;
+}
+
+    #myPlan{
+        margin-top: 0;
+        background-color: white;
+        padding-bottom: 85px !important;
+    }
+
+#accountForm .secondPartForm fieldset{
+    margin-bottom: 0;
+}
+
+.centerBlock{
+    width: 1150px;
+}
+
+#saveButtonFom, .duoAccountButton{
+    background-color: #1ddc6e;
+    border: 1px solid #1ddc6e;
+    color: #fff !important;
+    width: 100%;
+    height: 70px;
+    line-height: 70px;
+
+    font-size: 23px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    cursor: pointer;
+    outline: 0;
+
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+}
+
+    .duoAccountButton{
+        right: auto;
+        width: 50%;
+    }
+
+        .duoAccountButton+.duoAccountButton{
+            right: 0;
+            left: auto !important;
+            width: 50%;
+            background-color: #99a3ae;
+            border: 1px solid #99a3ae;
+        }
+
+    #saveButtonFom:hover, .duoAccountButton:hover{
+        background-color: #fdc300;
+        border: 1px solid #fdc300;
+    }
+
+#boardListLabel, #billListLabel{
+    position: absolute;
+    opacity: 0;
+    width: 1px !important;
+    height: 1px !important;
+    right: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.conditionalFieldset{
+    display: none;
+}
+
+#boardListLabel:checked~.boardFieldset{
+    display: block;
+}
+
+#billListLabel:checked~.billFieldset{
+    display: block;
+}
+
+.specialLabelThingie{
+    cursor: pointer;
+    margin-right: 17px;
+    margin-bottom: -1px;
+    display: inline-block;
+    color: rgba(84, 110, 137, 0.66);
+}
+
+.labelContainer{
+    position: absolute;
+    top: -47px;
+}
+
+    #boardListLabel:checked+#billListLabel+.labelContainer label:first-child, #billListLabel:checked+.labelContainer label+label{
+        color: #34495e !important;
+        background-color: white;
+        padding: 14px 17px;
+        border: 1px solid rgb(225,225,225);
+        border-bottom: 0;
+        margin-left: -2px;
+    }
+
+    .secondPartForm .labelContainer label:first-child{
+        margin-left: -22px !important;
+    }
+
+/* Adaptations de la partie account */
+
+#accountForm, #accountForm2{
+    display: none;
+}
+
+#accountFormLabel:checked~#accountForm, #accountForm2Label:checked~#accountForm2{
+    display: block;
+}
+
+.mainSpecialThingie{
+    font-size: 21px !important;
+}
+
+#accountFormLabel:checked~.labelContainer .mainSpecialThingie:first-child, #accountForm2Label:checked~.labelContainer .mainSpecialThingie+.mainSpecialThingie{
+    color: #34495e !important;
+    background-color: white;
+    padding: 14px 17px;
+    border: 1px solid rgb(225,225,225);
+    border-bottom: 0;
+    margin-left: -2px;
+}
+
+#accountForm2Label+.labelContainer{
+    position: relative !important;
+    top: 0;
+    z-index: 100;
+    margin-left: 2px !important;
+    margin-top: 10px;
+}
+
+    #accountFormLabel, #accountForm2Label{
+        position: absolute;
+        right: 0;
+        top: 0;
+        opacity: 0;
+    }
+
+#pricingBlock {
+    margin-top: 19px !important;
+    margin-left: 2px !important;
+    margin-right: 2px !important;
+}
+
+.languageBlock{
+    width: 243px;
+    margin-bottom: 12px;
+}
+
+#accountForm .duoInput input:first-child{
+    width: 135px !important;
+    display: inline-block !important;
+    vertical-align: top;
+}
+
+#accountForm .duoInput input+.requiredField{
+    left: 120px;
+    right: auto;
+}
+
+#accountForm .duoInput select{
+    vertical-align: top;
+    display: inline-block;
+    width: 160px;
+
+    margin-bottom: -1px;
+    border: 1px solid rgb(225,225,225);
+    padding: 13px;
+    font-weight: 100;
+    font-size: 15px;
+    color: rgb(169, 169, 169);
+    float: right;
+    cursor: pointer;
+}
+
+#accountForm .duoInput select+.ui-selectmenu-button{
+    float: right;
+    margin-top: -1px;
+}
+
+.specialPricingTable .deprecatedPlan .pricingTD:first-child{
+    background-color: #fcb800 !important;
+    background-image: url(../images/tuzzitSpark.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.specialPricingTable .pricingRow:nth-child(2) .pricingTD:first-child, .pricingRow:nth-child(2) .getStarted {
+    background-color: #0086ce;
+    background-image: none;
+}
+
+#accountForm2 .pricingRow:hover{
+    top: 0;
+}
+
+#accountForm2 .pricingRow .pricingTD:last-child{
+    display: none;
+}
+
+#accountForm2 .pricingRow{
+    margin-bottom: 0;
+}
+
+.bottomLi a.noModFalseLink:hover, .bottomLi a.noModFalseLink{
+    color: #747474;
+    text-decoration: none;
+    cursor: default;
+}
+
+/* Corrections selectbox */
+
+.tuzSelect{
+    width: 100% !important;
+}
+
+.duoInput .tuzSelect{
+    float: right;
+    width: 235px !important;
+}
+
+    .duoInput .tuzSelect input, #accountForm .duoInput .tuzSelect input{
+        width: 100% !important;
+    }
+
+/* Mediaqueries de la page */
+
+@media (max-width:1600px){
+    .centerBlock{
+        width: 1000px;
+    }
+
+    #boardListSettings li a {
+        width: 360px;
+    }
+
+    .proMode{
+        width: 350px;
+    }
+
+    .accountMenu h2, .specialLabelThingie h2{
+        font-size: 18px;
+        margin-bottom: 13px;
+    }
+
+    #accountForm input{
+        padding: 13px;
+    }
+}
+
+@media (max-width:1080px){
+    .centerBlock{
+        width: 800px;
+    }
+
+    #saveButtonFom{
+        font-size: 22px;
+        height: 65px;
+        line-height: 62px;
+    }
+
+    .proMode{
+        width: 210px;
+    }
+
+    #boardListSettings li a{
+        width: 330px;
+    }
+
+    .duoInput .tuzSelect {
+        width: 185px !important;
+    }
+}
+
+@media (max-width:1010px){
+    #myPlan{
+        padding-bottom: 40px !important;
+    }
+
+    .duoAccountButton{
+        font-size: 22px;
+    }
+}
+
+@media (max-width:865px){
+    .centerBlock{
+        width: 650px;
+    }
+
+    #deleteAccount{
+        font-size: 15px;
+    }
+
+    .proMode{
+        width: 170px;
+    }
+
+    #boardListSettings li a{
+        width: 230px;
+        margin-right: 30px;
+    }
+
+    .duoAccountButton{
+        font-size: 20px;
+    }
+
+    .duoInput .tuzSelect{
+        width: 100% !important;
+        float: none;
+        clear: both;
+    }
+}

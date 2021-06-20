@@ -1,0 +1,162 @@
+/**
+ * Created by nicolas on 15/09/15.
+ */
+angular.module('livePointerModule', [])
+    .directive('livePoint', ["$rootScope", "$timeout", "$document", function ($rootScope, $timeout,$document) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                
+
+                var POINTER_MILLIS_UPDATE = 100;
+
+                var initLivePoint = function () {
+                    if (!$rootScope.isTempBoard && $rootScope.tuzzer.is_board_owner && $rootScope.tuzzer.stripe_plan_id === "interaction") {
+
+                        var timer = null;
+                        var timerMouseDown = null;
+                        var timerMouseUp = null;
+
+                        element.bind("mousemove", function (event) {
+
+
+                            if (presence.members.count <= 1 || !$rootScope.videoStarted) { //1
+                                return;
+                            }
+
+                            var dropPoint = new Vector2((event.clientX - OFFSET_X) / SCALE, (event.clientY - OFFSET_Y) / SCALE);
+                            var data = {x: dropPoint.x, y: dropPoint.y};
+
+
+                            if (!timer) {
+                                timer = $timeout(function () {
+                                    $timeout.cancel(timer);
+                                    timer = null;
+
+                                    console.log("update");
+                                    data.x = Math.round(data.x);
+                                    data.y = Math.round(data.y);
+                                    presence.trigger("client-pointer-move", data);
+                                }, POINTER_MILLIS_UPDATE);
+                            }
+
+
+                        });
+
+                        element.bind("mousedown", function (event) {
+                            event.preventDefault();
+
+                            if (!timerMouseDown) {
+                                timerMouseDown = $timeout(function () {
+                                    $timeout.cancel(timerMouseDown);
+                                    timerMouseDown = null;
+
+                                    presence.trigger("client-pointer-click", {up: false});
+                                }, POINTER_MILLIS_UPDATE);
+                            }
+
+
+
+
+                        });
+
+                        element.bind("mouseup", function (event) {
+                            event.preventDefault();
+
+                            if (!timerMouseUp) {
+                                timerMouseUp = $timeout(function () {
+                                    $timeout.cancel(timerMouseUp);
+                                    timerMouseUp = null;
+
+                                    presence.trigger("client-pointer-click", {up: true});
+                                }, POINTER_MILLIS_UPDATE);
+                            }
+
+
+
+                        });
+
+                        $document.bind("mouseleave", function (event) {
+
+                            event.preventDefault();
+                            presence.trigger("client-pointer-click", {up: true});
+
+
+                        });
+
+
+
+                    }
+                }
+                pushInitListener(initLivePoint); //trigger when init is finished
+
+
+            }
+
+        };
+    }])
+    .directive('livepointer', ["$rootScope", "$timeout", function ($rootScope, $timeout) {
+        return {
+            restrict: 'E',
+            link: function (scope, element, attrs) {
+
+                scope.live_cursor = null;
+                scope.live_cursor_clicked = false;
+
+                var POINTER_WIDTH = 50;
+
+                var initLivePointer = function () {
+                    if (!$rootScope.isTempBoard && !$rootScope.tuzzer.is_board_owner) {
+
+
+                        presence.bind("client-pointer-move",
+                            function (data) {
+
+                                data.x = ((data.x * SCALE) + OFFSET_X) - (POINTER_WIDTH / 2);
+                                data.y = ((data.y * SCALE) + OFFSET_Y) - (POINTER_WIDTH / 2);
+
+                                scope.live_cursor = data;
+
+                                try {
+                                    $timeout(function () {
+                                        scope.$apply();
+                                    });
+
+                                } catch (error) {
+
+                                }
+
+                            }
+                        );
+
+                        presence.bind("client-pointer-click",
+                            function (data) {
+
+
+                                scope.live_cursor_clicked = !data.up;
+
+                                try {
+                                    $timeout(function () {
+                                        scope.$apply();
+                                    });
+
+                                } catch (error) {
+
+                                }
+                            }
+                        );
+
+
+                    }
+
+
+                }
+
+                pushInitListener(initLivePointer); //trigger when init is finished
+
+
+            }
+
+        };
+    }]);
+

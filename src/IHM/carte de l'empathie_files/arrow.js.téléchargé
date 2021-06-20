@@ -1,0 +1,728 @@
+/**
+ * Created by nicolas on 26/08/15.
+ */
+function Ancor(placement, actor) {
+    this.actor = actor;
+    this.placement = placement;
+    this.highLight = false;
+    this.absolutePositionWithRotation = new Vector2();
+    this.absolutePosition = new Vector2();
+    this.domElement = null;
+
+
+    this.getAbsolutePositionWithRotation = function () {
+
+        this.domElement = $("#{0} .ancor.{1}".format(this.actor.uuid, this.placement));
+        this.absolutePosition.x = this.actor.getX() + this.domElement[0].offsetLeft + (this.domElement[0].clientWidth / 2);
+        this.absolutePosition.y = this.actor.getY() + this.domElement[0].offsetTop + (this.domElement[0].clientHeight / 2);
+
+        var centerPoint = new Vector2(this.actor.getX() + (this.actor.getWidth() / 2), this.actor.getY() + (this.actor.getHeight() / 2));
+
+        var rad = this.actor.getAngle() * (Math.PI / 180);
+        this.absolutePositionWithRotation.x = centerPoint.x + (this.absolutePosition.x - centerPoint.x) * Math.cos(rad) - (this.absolutePosition.y - centerPoint.y) * Math.sin(rad);
+        this.absolutePositionWithRotation.y = centerPoint.y + (this.absolutePosition.x - centerPoint.x) * Math.sin(rad) + (this.absolutePosition.y - centerPoint.y) * Math.cos(rad);
+
+        return this.absolutePositionWithRotation;
+    };
+
+
+    this.setHighlight = function (value) {
+
+
+        this.highLight = value;
+
+    };
+
+
+}
+
+function ArrowInfo(cx, cy, length, angle) {
+
+    this.cx = cx;
+    this.cy = cy;
+    this.length = length;
+    this.angle = angle;
+
+    this.update = function (cx, cy, length, angle) {
+        this.cx = cx;
+        this.cy = cy;
+        this.length = length;
+        this.angle = angle;
+    };
+
+
+}
+
+
+function Arrow(uuid, type, object1, object2, thickness, color, arrowSide) {
+
+
+    this.uuid = uuid;
+    if (!uuid) {
+        this.uuid = getLocalHash();
+    }
+
+
+    this.type = type;
+    this.thickness = thickness;
+    this.placement = new ArrowInfo();
+    this.color = color;
+    this.arrowSide = arrowSide;
+    this.updateCallBack = null;
+    this.multiSelected = false;
+    this.owner_uuid = null;
+
+    this.rect = new Bounds();
+    this.strategy = ArrowStrategyFactory(this);
+
+    if (object1 instanceof Vector2) {
+
+        this.v1 = object1;
+        this.getAbsolutePositionA = function () {
+            return this.v1;
+
+        }
+
+    } else {
+        this.ancorA = object1;
+        this.getAbsolutePositionA = function () {
+            return this.ancorA.getAbsolutePositionWithRotation();
+
+        }
+    }
+
+    if (object2 instanceof Vector2) {
+
+        this.v2 = object2;
+        this.getAbsolutePositionB = function () {
+            return this.v2;
+
+        }
+
+    } else {
+        this.ancorB = object2;
+        this.getAbsolutePositionB = function () {
+            return this.ancorB.getAbsolutePositionWithRotation();
+
+        }
+    }
+
+
+    this.updatePointBWithPosition = function (v2) {
+
+        if (this.v2) {
+            this.v2 = v2;
+        }
+
+    }
+
+    this.translateArrow = function (translation) {
+
+
+        if (this.v1 && this.v2) {
+            this.v1 = additionVector(this.v1, translation);
+            this.v2 = additionVector(this.v2, translation);
+        }
+
+    }
+
+    this.updatePointAWithPosition = function (v1) {
+
+        if (this.v1) {
+            this.v1 = v1;
+        }
+    }
+
+    this.changeAPointToAncor = function (ancor) {
+
+        if (this.ancorB && isSiblingAncor(this.ancorB, ancor)) {
+            return;
+        }
+
+        this.ancorA = ancor;
+
+        this.getAbsolutePositionA = function () {
+            return this.ancorA.getAbsolutePositionWithRotation();
+
+        }
+
+        this.v1 = null;
+    }
+
+    this.changeBPointToAncor = function (ancor) {
+
+        if (this.ancorA && isSiblingAncor(this.ancorA, ancor)) {
+            return;
+        }
+
+        this.ancorB = ancor;
+
+        this.getAbsolutePositionB = function () {
+            return this.ancorB.getAbsolutePositionWithRotation();
+
+        }
+
+        this.v2 = null;
+
+    }
+
+    this.changeAPointToVector = function () {
+
+        if (!this.ancorA) {
+            return;
+        }
+
+        this.v1 = this.getAbsolutePositionA();
+
+        this.getAbsolutePositionA = function () {
+            return this.v1;
+
+        }
+
+        this.ancorA = null;
+    }
+
+    this.changeBPointToVector = function () {
+
+        if (!this.ancorB) {
+            return;
+        }
+
+        this.v2 = this.getAbsolutePositionB();
+
+        this.getAbsolutePositionB = function () {
+            return this.v2;
+
+        }
+
+        this.ancorB = null;
+
+    }
+
+    this.getRelativeAPointX = function () {
+
+        if (!this.v1) {
+            return (((this.getAbsolutePositionA().x) * SCALE) + OFFSET_X);
+        }
+
+        return (((this.v1.x) * SCALE) + OFFSET_X);
+
+    }
+
+    this.getRelativeAPointY = function () {
+
+        if (!this.v1) {
+            return (((this.getAbsolutePositionA().y) * SCALE) + OFFSET_Y);
+        }
+
+        return (((this.v1.y) * SCALE) + OFFSET_Y);
+
+    }
+
+    this.getRelativeBPointX = function () {
+
+        if (!this.v2) {
+            return (((this.getAbsolutePositionB().x) * SCALE) + OFFSET_X);
+        }
+
+        return (((this.v2.x) * SCALE) + OFFSET_X);
+    }
+
+    this.getRelativeBPointY = function () {
+
+        if (!this.v2) {
+            return (((this.getAbsolutePositionB().y) * SCALE) + OFFSET_Y);
+        }
+
+        return (((this.v2.y) * SCALE) + OFFSET_Y);
+    }
+
+    this.displayAAncor = function () {
+        return this.v1 ? true : false;
+    }
+
+    this.displayBAncor = function () {
+        return this.v2 ? true : false;
+    }
+
+
+    this.getRect = function () {
+
+        var posA = this.getAbsolutePositionA();
+        var posB = this.getAbsolutePositionB();
+
+
+        this.rect.update(Math.min(posA.x, posB.x), Math.min(posA.y, posB.y), Math.max(this.thickness, Math.max(posA.x - posB.x, posB.x - posA.x)), Math.max(this.thickness, Math.max(posA.y - posB.y, posB.y - posA.y)));
+
+        return this.rect;
+    }
+
+    this.getSvg = function () {
+
+        return this.strategy.getSvg();
+
+    }
+
+
+    this.setColor = function (hex) {
+
+        this.color = hex;
+    }
+
+    this.setArrowSide = function (number) {
+
+        if (this.arrowSide != number) {
+            this.arrowSide = number;
+            this.updateMe();
+        }
+
+
+    }
+
+
+    this.changeThickness = function (thickness) {
+
+        if (this.thickness != thickness) {
+            this.thickness = thickness;
+            this.updateMe();
+        }
+
+
+    }
+
+    this.changeType = function (type) {
+
+        if (this.type != type) {
+            this.type = type;
+            this.strategy = ArrowStrategyFactory(this);
+            this.updateMe();
+        }
+
+
+    }
+
+
+    this.getMenuX = function () {
+
+
+        return this.rect.x + this.rect.width / 2;
+
+
+    }
+
+    this.getMenuY = function () {
+
+        return this.rect.y;
+
+    }
+
+    this.getAnimation = function () {
+        if (this.ancorA.actor.animating && this.ancorB.actor.animating) {
+            return "all " + P_ANIMATION_TIME + "ms cubic-bezier(0.250, 0.250, 0.750, 0.750)";
+        }
+        return "";
+    }
+
+    this.updateMe = function () {
+
+        if (this.updateCallBack) {
+            this.updateCallBack(this);
+        }
+
+    };
+
+
+    this.getApiObject = function () {
+
+        var apiObj = {};
+        if (this.ancorA) {
+            apiObj.a_type = ANCORTYPE.ANCORED;
+            apiObj.first_object_id = this.ancorA.actor.uuid;
+            apiObj.anchor_a = this.ancorA.placement;
+        } else if (this.v1) {
+            apiObj.a_type = ANCORTYPE.FREE;
+            apiObj.a_position_x = Math.round(this.v1.x);
+            apiObj.a_position_y = Math.round(this.v1.y);
+        }
+
+        if (this.ancorB) {
+            apiObj.b_type = ANCORTYPE.ANCORED;
+            apiObj.second_object_id = this.ancorB.actor.uuid;
+            apiObj.anchor_b = this.ancorB.placement;
+        } else if (this.v2) {
+            apiObj.b_type = ANCORTYPE.FREE;
+            apiObj.b_position_x = Math.round(this.v2.x);
+            apiObj.b_position_y = Math.round(this.v2.y);
+        }
+
+
+        apiObj.weight = this.thickness;
+        apiObj.color = this.color;
+        apiObj.arrow_side = this.arrowSide;
+        apiObj.type = this.type;
+        apiObj.owner_uuid = this.owner_uuid;
+
+        if (!isLocalHash(this.uuid)) {
+            apiObj.uniqueid = this.uuid;
+        }
+
+        return apiObj;
+
+    }
+
+    this.updateWithApiObject = function (apiObj) {
+
+        this.thickness = apiObj.weight;
+        this.arrowSide = apiObj.arrow_side;
+        this.color = apiObj.color;
+        this.owner_uuid = apiObj.owner_uuid;
+
+        if (apiObj.object1 instanceof Vector2) {
+
+            this.v1 = apiObj.object1;
+            this.getAbsolutePositionA = function () {
+                return this.v1;
+
+            }
+            this.ancorA = null;
+
+        } else {
+            this.ancorA = apiObj.object1;
+            this.getAbsolutePositionA = function () {
+                return this.ancorA.getAbsolutePositionWithRotation();
+
+            }
+            this.v1 = null;
+        }
+
+        if (apiObj.object2 instanceof Vector2) {
+
+            this.v2 = apiObj.object2;
+            this.getAbsolutePositionB = function () {
+                return this.v2;
+
+            }
+            this.ancorB = null;
+
+        } else {
+            this.ancorB = apiObj.object2;
+            this.getAbsolutePositionB = function () {
+                return this.ancorB.getAbsolutePositionWithRotation();
+
+            }
+            this.v2 = null;
+        }
+
+
+        if (this.type != apiObj.type) {
+            this.type = apiObj.type;
+            this.strategy = ArrowStrategyFactory(this);
+        }
+
+    }
+
+
+}
+
+function ArrowStrategyFactory(arrow) {
+
+    var arrowStrategy = null;
+    switch (arrow.type) {
+        case ARROWTYPE.STRAIGHT:
+            arrowStrategy = new ArrowStraightStrategy(arrow);
+            break;
+        case ARROWTYPE.BROKEN:
+            arrowStrategy = new ArrowBrokenStrategy(arrow);
+            break;
+        case ARROWTYPE.COURBED:
+            arrowStrategy = new ArrowCourbedStrategy(arrow);
+            break;
+        default :
+            arrowStrategy = new ArrowStraightStrategy(arrow);
+            break;
+    }
+
+    return arrowStrategy;
+
+
+}
+
+function ArrowStraightStrategy(arrow) {
+
+    this.arrow = arrow;
+
+    this.getMarkerStyle = function () {
+
+
+        switch (this.arrow.arrowSide) {
+            default:
+            case ARROW_SIDE.LEFT:
+                return "marker-end: url(#marker{0}_1);".format(this.arrow.uuid);
+
+            case ARROW_SIDE.RIGHT:
+                return "marker-start: url(#marker{0}_2);".format(this.arrow.uuid);
+            case ARROW_SIDE.BOTH:
+                return "marker-end: url(#marker{0}_1);marker-start: url(#marker{0}_2);".format(this.arrow.uuid);
+
+        }
+    }
+
+    this.getDashClass = function () {
+
+        if(this.arrow.multiSelected){
+            return "animatedDash";
+        }
+
+        return "";
+
+    }
+
+    this.getMarker = function () {
+
+        return ("<defs>" +
+        "<marker id='marker{1}_1' markerWidth='50' markerHeight='50' refX='8' refY='5' orient='auto'>  <polygon points='0,0 10,5 0,10' fill='{0}'/></marker>" +
+        "<marker id='marker{1}_2' markerWidth='50' markerHeight='50' refX='2' refY='5' orient='auto'>  <polygon points='10,10 0,5 10,0' fill='{0}'/></marker>" +
+        "</defs>").format(this.arrow.color, this.arrow.uuid);
+
+    }
+
+    this.getSvg = function () {
+
+        var posA = this.arrow.getAbsolutePositionA();
+        var posB = this.arrow.getAbsolutePositionB();
+
+
+        if (posA.y > posB.y) {
+
+            if (posA.x > posB.x) {
+                //console.log("1");
+
+                return ( "<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{5}' class='pointerEvent {6}' stroke-width='{0}' fill='transparent' stroke='{1}' points='{2},{3} 0,{4}'/>" +
+                "</svg>" ).format(this.arrow.thickness, this.arrow.color, this.arrow.rect.width, this.arrow.rect.height - (this.arrow.thickness / 2), (this.arrow.thickness / 2), this.getMarkerStyle(), this.getDashClass());
+
+
+            } else {
+                //console.log("2");
+                return ( "<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{5}' class='pointerEvent {6}' stroke-width='{0}' fill='transparent' stroke='{1}' points='0,{3} {2},{4}'/>" +
+                "</svg>" ).format(this.arrow.thickness, this.arrow.color, this.arrow.rect.width, this.arrow.rect.height - (this.arrow.thickness / 2), (this.arrow.thickness / 2), this.getMarkerStyle(), this.getDashClass());
+            }
+
+
+        } else {
+
+            if (posA.x > posB.x) {
+                //console.log("3");
+                return ( "<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{5}' class='pointerEvent {6}' stroke-width='{0}' fill='transparent' stroke='{1}' points='{2},{4} 0,{3}'/>" +
+                "</svg>" ).format(this.arrow.thickness, this.arrow.color, this.arrow.rect.width, this.arrow.rect.height - (this.arrow.thickness / 2), (this.arrow.thickness / 2), this.getMarkerStyle(), this.getDashClass());
+            } else {
+                //console.log("4");
+                return ( "<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{5}' class='pointerEvent {6}' stroke-width='{0}' fill='transparent' stroke='{1}' points='0,{4} {2},{3}'/>" +
+                "</svg>" ).format(this.arrow.thickness, this.arrow.color, this.arrow.rect.width, this.arrow.rect.height - (this.arrow.thickness / 2), (this.arrow.thickness / 2), this.getMarkerStyle(), this.getDashClass());
+            }
+
+        }
+
+    }
+
+
+}
+
+function ArrowCourbedStrategy(arrow) {
+
+    this.arrow = arrow;
+
+
+    this.getMarkerStyle = function () {
+
+
+        switch (this.arrow.arrowSide) {
+            default:
+            case ARROW_SIDE.LEFT:
+                return "marker-start: url(#marker{0}_2);".format(this.arrow.uuid);
+
+            case ARROW_SIDE.RIGHT:
+                return "marker-end: url(#marker{0}_1);".format(this.arrow.uuid);
+            case ARROW_SIDE.BOTH:
+                return "marker-end: url(#marker{0}_1);marker-start: url(#marker{0}_2);".format(this.arrow.uuid);
+
+        }
+    }
+
+    this.getMarker = function () {
+
+        return ("<defs>" +
+        "<marker id='marker{1}_1' markerWidth='50' markerHeight='50' refX='8' refY='5' orient='auto'>  <polygon points='0,0 10,5 0,10' fill='{0}'/></marker>" +
+        "<marker id='marker{1}_2' markerWidth='50' markerHeight='50' refX='2' refY='5' orient='auto'>  <polygon points='10,10 0,5 10,0' fill='{0}'/></marker>" +
+        "</defs>").format(this.arrow.color, this.arrow.uuid);
+
+    }
+
+    this.getDashClass = function () {
+
+        if(this.arrow.multiSelected){
+            return "animatedDash";
+        }
+
+        return "";
+
+    }
+
+
+    this.getSvg = function () {
+
+        var posA = this.arrow.getAbsolutePositionA();
+        var posB = this.arrow.getAbsolutePositionB();
+
+
+        if (posA.y > posB.y) {
+
+            if (posA.x > posB.x) {
+                //console.log("1");
+
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<path style='{7}' class='pointerEvent {8}' stroke-width='{0}' fill='transparent' stroke='{1}' d='M0,{2} C{5},{2} {6},{4} {3},{4}'/>" +
+                "</svg>").format(this.arrow.thickness, this.arrow.color, this.arrow.thickness / 2, this.arrow.rect.width, this.arrow.rect.height - (this.arrow.thickness / 2), Math.round((this.arrow.rect.width * 2) / 3), Math.round((this.arrow.rect.width) / 3), this.getMarkerStyle(), this.getDashClass());
+
+
+
+            } else {
+                //console.log("2");
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<path style='{7}' class='pointerEvent {8}' stroke-width='{0}' fill='transparent' stroke='{1}' d='M{6},{5} C{4},{5} {3},{2} 0,{2}'/>" +
+                "</svg>").format(this.arrow.thickness, this.arrow.color, this.arrow.rect.height - (this.arrow.thickness / 2), Math.round((this.arrow.rect.width * 2) / 3), Math.round((this.arrow.rect.width) / 3), (this.arrow.thickness / 2), this.arrow.rect.width, this.getMarkerStyle(), this.getDashClass());
+
+            }
+
+
+        } else {
+
+            if (posA.x > posB.x) {
+                //console.log("3");
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<path style='{7}' class='pointerEvent {8}' stroke-width='{0}' fill='transparent' stroke='{1}' d='M0,{2} C{3},{2} {4},{5} {6},{5}'/>" +
+                "</svg>").format(this.arrow.thickness, this.arrow.color, this.arrow.rect.height - (this.arrow.thickness / 2), Math.round((this.arrow.rect.width * 2) / 3), Math.round((this.arrow.rect.width) / 3), (this.arrow.thickness / 2), this.arrow.rect.width, this.getMarkerStyle(), this.getDashClass());
+
+            } else {
+                //console.log("4");
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<path style='{7}' class='pointerEvent {8}' stroke-width='{0}' fill='transparent' stroke='{1}' d='M{3},{4} C{6},{4} {5},{2} 0,{2}'/>" +
+                "</svg>").format(this.arrow.thickness, this.arrow.color, this.arrow.thickness / 2, this.arrow.rect.width, this.arrow.rect.height - (this.arrow.thickness / 2), Math.round((this.arrow.rect.width * 2) / 3), Math.round((this.arrow.rect.width) / 3), this.getMarkerStyle(), this.getDashClass());
+
+            }
+
+        }
+
+        //----
+
+    }
+
+
+}
+
+function ArrowBrokenStrategy(arrow) {
+
+    this.arrow = arrow;
+
+    this.getMarkerStyle = function () {
+
+
+        switch (this.arrow.arrowSide) {
+            default:
+            case ARROW_SIDE.LEFT:
+                return "marker-start: url(#marker{0}_2);".format(this.arrow.uuid);
+
+            case ARROW_SIDE.RIGHT:
+                return "marker-end: url(#marker{0}_1);".format(this.arrow.uuid);
+
+            case ARROW_SIDE.BOTH:
+                return "marker-end: url(#marker{0}_1);marker-start: url(#marker{0}_2);".format(this.arrow.uuid);
+
+        }
+    }
+
+    this.getMarker = function () {
+
+        return ("<defs>" +
+        "<marker id='marker{1}_1' markerWidth='50' markerHeight='50' refX='8' refY='5' orient='auto'>  <polygon points='0,0 10,5 0,10' fill='{0}'/></marker>" +
+        "<marker id='marker{1}_2' markerWidth='50' markerHeight='50' refX='2' refY='5' orient='auto'>  <polygon points='10,10 0,5 10,0' fill='{0}'/></marker>" +
+        "</defs>").format(this.arrow.color, this.arrow.uuid);
+
+    }
+
+    this.getDashClass = function () {
+
+        if(this.arrow.multiSelected){
+            return "animatedDash";
+        }
+
+        return "";
+
+    }
+
+    this.getSvg = function () {
+
+        var posA = this.arrow.getAbsolutePositionA();
+        var posB = this.arrow.getAbsolutePositionB();
+
+
+        if (posA.y > posB.y) {
+
+            if (posA.x > posB.x) {
+                //console.log("1");
+
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{6}' class='pointerEvent {7}' stroke-width='{4}' fill='transparent' stroke='{5}' points='0,{3} {0},{3} {0},{1} {2},{1}'/>" +
+                "</svg>").format(this.arrow.rect.width / 2, this.arrow.rect.height - (this.arrow.thickness / 2), this.arrow.rect.width - (this.arrow.thickness / 2), (this.arrow.thickness / 2), this.arrow.thickness, this.arrow.color, this.getMarkerStyle(), this.getDashClass());
+
+
+
+            } else {
+                //console.log("2");
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{6}' class='pointerEvent {7}' stroke-width='{0}' fill='transparent' stroke='{1}' points='{4},{5} {3},{5} {3},{2} {5},{2}'/>" +
+                "</svg>").format(this.arrow.thickness, this.arrow.color, this.arrow.rect.height - (this.arrow.thickness / 2), this.arrow.rect.width / 2, this.arrow.rect.width, (this.arrow.thickness / 2), this.getMarkerStyle(), this.getDashClass());
+
+            }
+
+
+        } else {
+
+            if (posA.x > posB.x) {
+                //console.log("3");
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{6}' class='pointerEvent {7}' stroke-width='{0}' fill='transparent' stroke='{1}' points='{5},{2} {3},{2} {3},{5} {4},{5}'/>" +
+                "</svg>").format(this.arrow.thickness, this.arrow.color, this.arrow.rect.height - (this.arrow.thickness / 2), this.arrow.rect.width / 2, this.arrow.rect.width, (this.arrow.thickness / 2), this.getMarkerStyle(), this.getDashClass());
+
+
+            } else {
+                //console.log("4");
+                return ("<svg width='100%' height='100%'>" +
+                this.getMarker() +
+                "<polyline style='{6}' class='pointerEvent {7}' stroke-width='{4}' fill='transparent' stroke='{5}' points='{2},{1} {0},{1} {0},{3} 0,{3}'/>" +
+                "</svg>").format(this.arrow.rect.width / 2, this.arrow.rect.height - (this.arrow.thickness / 2), this.arrow.rect.width - (this.arrow.thickness / 2), (this.arrow.thickness / 2), this.arrow.thickness, this.arrow.color, this.getMarkerStyle(), this.getDashClass());
+
+
+            }
+
+        }
+
+        //---
+    }
+
+
+}

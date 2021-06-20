@@ -1,0 +1,673 @@
+/* --- Règles pricing --- */
+
+#pricingBlock, #comparisonBlock, #faqBlock{
+    margin: 32px;
+    margin-bottom: 15px;
+}
+
+#faqBlock{
+    margin-bottom: 30px;
+}
+
+#pricingBlock{
+    margin-top: 35px !important;
+    margin-bottom: 0 !important;
+}
+
+    .saveUpgrade#pricingBlock{
+        margin-right: 3px !important;
+        margin-left: 3px !important;
+    }
+
+    .saveUpgrade .pricingRow{
+        margin-bottom: 0 !important;
+    }
+
+    .saveUpgrade .pricingRow .pricingTD:last-child{
+        display: none;
+    }
+
+/*- Règles block pricing -*/
+
+#pricingTable, #startedTable, #comparisonTable{
+    width: 100%;
+    margin: 44px 0;
+    margin-top: 35px;
+    text-align: center;
+}
+
+#pricingTable{
+    margin-bottom: 20px !important;
+    position: relative;
+    left: -2px;
+}
+
+#startedTable{
+    margin-top: 30px;
+}
+
+#comparisonTable{
+    border: 1px solid #606060;
+    margin-bottom: 65px;
+}
+
+.pricingRow{
+    width: 33.33% !important;
+
+    margin-right: -5px;
+    vertical-align: top;
+    background-color: white;
+
+    display: inline-block;
+    border: 1px solid #606060;
+}
+
+#startedTable .pricingRow{
+    border: 1px solid white;
+}
+
+#startedTable .pricingRow a, a.getStarted{
+    color: white;
+    background-color: #1ddc6e;
+    border: 1px solid white;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    padding: 16px 0;
+    margin: auto;
+}
+
+.pricingRow .pricingTD{
+    width: 100%;
+    display: block;
+    text-align: center;
+    font-size: 16px;
+    padding: 13px;
+    font-weight: 300;
+
+    line-height: 150%;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.comparisonRow .comparisonTD{
+    line-height: 150%;
+    height: 54px;
+    width: 100%;
+    display: block;
+    font-size: 16px;
+    padding: 16px;
+    padding-left: 17px;
+    font-weight: 300;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    position: relative;
+
+    border-right: 1px solid #606060;
+}
+
+.comparisonRow:nth-child(2){
+    position: relative;
+    z-index: 2;
+}
+
+.comparisonRow:last-child .comparisonTD{
+    border-right: none;
+}
+
+.comparisonRow .comparisonTD:first-child{
+    background-color: rgb(237, 237, 237);
+}
+
+.comparisonRow+.comparisonRow+.comparisonRow .comparisonTD{
+    text-align: center;
+}
+
+.comparisonTD:nth-child(even){
+    background-color: white;
+}
+
+.comparisonTD:nth-child(odd){
+    background-color: rgb(247, 247, 247);
+}
+
+.pricingRow .pricingTD:nth-child(odd){
+    background-color: rgb(247,247,247);
+}
+
+.pricingRow .pricingTD:first-child{
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    background-color: #0086ce;
+    margin-bottom: 3px;
+}
+
+.pricingRow:nth-child(2) .pricingTD:first-child{
+    background-color: #00aefe;
+    background-image: url(../images/tuzzitSpark.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.pricingRow .pricingTD:nth-last-child(2){
+    border-top: 1px solid #515151;
+    font-size: 18px;
+    line-height: 100%;
+    color: #00abfa;
+
+    font-weight: 500;
+    background-color: white;
+}
+
+.pricingRow .pricingTD:nth-child(2){
+    border-bottom: 1px solid #515151;
+    font-weight: 500;
+    line-height: 100%;
+    font-size: 20px;
+    color: #00abfa;
+    background-color: white;
+}
+
+.pricingRow{
+    position: relative;
+    margin-bottom: 88px;
+}
+
+.pricingRow .pricingTD:last-child{
+    position: absolute;
+    bottom: -75px;
+    left: 0;
+    padding: 0;
+}
+
+.pricingTD .getStarted{
+    padding: 13px 0;
+    width: 100%;
+    overflow: hidden;
+    font-weight: 600;
+}
+
+.pricingRow .pricingTD+.pricingTD+.pricingTD{
+    height: auto;
+    min-height: 52px;
+}
+
+.hasExplanation{
+    cursor: pointer;
+    border-bottom: 1px dotted #0091dc;
+    color: #0091dc;
+    padding-bottom: 1px;
+}
+
+.hasExplanation{
+    border-bottom: 1px dotted #009dea;
+    color: #009dea;
+}
+
+.hasExplanation:after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 130%;
+    -webkit-transform: translate(-15%);
+    -moz-transform: translate(-15%);
+    -ms-transform: translate(-15%);
+    -o-transform: translate(-15%);
+    transform: translate(-15%);
+    background: #009dea; /*Dynamic*/
+    padding: 10px 12px;
+    color: white;
+    white-space: nowrap;
+    -moz-transition: all .2s ease-out;
+    -webkit-transition: all .9s ease-out;
+    -o-transition: all .2s  ease-out;
+    transition: all .2s  ease-out;
+    font-size: 12px !important;
+    z-index: 300;
+}
+
+.hasExplanation:before {
+    content: "";
+    position: absolute;
+    height: 0;
+    border-bottom: 10px solid #009dea; /*Dynamic*/
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    -moz-transition: all .2s  ease-out;
+    -webkit-transition: all .2s  ease-out;
+    -o-transition: all .2s  ease-out;
+    transition: all .2s  ease-out;
+    opacity: 0;
+    left: 0;
+    right: 0;
+    top: 90%;
+    margin: auto;
+    width: 1px;
+    z-index: 300;
+}
+
+.hasExplanation:before, .hasExplanation:after{
+    display:none;
+}
+
+.hasExplanation:hover:after {
+    top: 107%;
+    display: block;
+    opacity: 1;
+}
+
+.hasExplanation:hover:before {
+    top: 90%;
+    display: block;
+    opacity: 1;
+}
+
+.centeredLink{
+    text-align: center;
+    margin-bottom: 80px;
+}
+
+.centeredLink p{
+    color: #34495e;
+    font-weight: 300;
+    margin-bottom: 19px;
+}
+
+.centeredLink a, .questionBlock a{
+    color: #95a5a6;
+    font-weight: 300;
+}
+
+.centeredLink a:hover, .questionBlock a:hover{
+    color: #fcc200;
+}
+
+/*- Règles block comparison -*/
+
+.comparisonTD img{
+    position: relative;
+    top: -2px;
+}
+
+.titleBlock .scrollTo{
+    position: relative;
+    top: -4px;
+    padding: 0 4px;
+}
+
+/*- Règles block FAQ -*/
+
+.questionBlock{
+    display: block;
+    margin-bottom: 25px;
+}
+
+.questionBlock *{
+    text-align: justify;
+    font-weight: 300;
+    font-size: 16px;
+    padding: 10px;
+    line-height: 155%;
+}
+
+.questionBlock h3{
+    background-color: rgb(247, 247, 247);
+    letter-spacing: 0.2px;
+    font-weight: 400;
+}
+
+.questionBlock p{
+    font-size: 15px;
+}
+
+.questionBlock a{
+    padding: 0;
+}
+
+#faqBlock .halfBlock{
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#actionNav{
+    width: 100%;
+    text-align: right;
+    margin-bottom: 45px;
+}
+
+#actionNav a.getStarted{
+    width: auto;
+    display: inline-block;
+    padding: 16px;
+}
+
+#actionNav .getStarted+.getStarted{
+    margin-left: 15px;
+    background-color: #0086ce;
+}
+
+.anchorThing{
+    position: relative;
+    top: -50px;
+    display: block;
+    height: 10px;
+}
+
+/* Corrections design */
+
+.pricingRow{
+    position: relative;
+    top: 0;
+}
+
+.pricingRow:hover{
+    top: -17px;
+}
+
+.pricingRow:hover .colorFill, #educationTrigger:hover .colorFill{
+    height: 100%;
+}
+
+#pricingTable .pricingRow .pricingTD:nth-child(2){
+    height: 56px;
+    padding: 17px;
+}
+
+.colorFill{
+    background-color: #1dee72;
+    position: absolute;
+    left: 1px;
+    right: -1px;
+    bottom: -1px;
+    height: 0;
+    display: block;
+}
+
+.getStarted span:first-child{
+    position: relative;
+    z-index: 10;
+}
+
+#pricingTable{
+    margin-top: 0 !important;
+    position: relative;
+}
+
+.pricingRow:nth-child(2) .pricingTD:first-child, .pricingRow:nth-child(2) .getStarted{
+    background-color: #fcb800;
+}
+
+/* Icône qui bouge */
+
+.pricingRow .pricingTD:last-child{
+    overflow: hidden;
+    background-color: transparent;
+}
+
+/* Mediaqueries de la page */
+
+@media (max-width:1450px){
+    .pricingRow .pricingTD, .comparisonRow .comparisonTD, #actionNav a.getStarted, #startedTable .pricingRow a, a.getStarted{
+        font-size: 15px;
+    }
+
+    #pricingBlock {
+        margin-top: 35px;
+    }
+
+    .pricingRow .pricingTD:first-child{
+        font-size: 16px;
+    }
+
+    .comparisonTD img{
+        width: 27px;
+        height: auto;
+    }
+
+    .pricingRow .pricingTD {
+        padding: 13px;
+    }
+
+    .pricingRow .pricingTD+.pricingTD{
+        padding: 10px 13px;
+        line-height: 140%;
+    }
+
+    .comparisonRow .comparisonTD{
+        padding: 14px;
+        height: 52px;
+    }
+
+    .pricingRow .pricingTD+.pricingTD+.pricingTD{
+        min-height: 41px;
+    }
+
+    .pricingRow .pricingTD:nth-child(2){
+        font-size: 16px;
+    }
+
+    #pricingTable .pricingRow .pricingTD:nth-child(2) {
+        padding: 12px;
+        font-size: 19px;
+        height: auto;
+    }
+
+    .pricingRow .pricingTD:last-child{
+        padding: 0 !important;
+    }
+
+    .pricingTD .getStarted{
+        font-weight: 500;
+    }
+
+    .pricingRow .pricingTD:nth-last-child(2){
+        font-size: 16px;
+    }
+
+    .price-bottom h4 {
+        font-size: 22px;
+        max-width: 490px;
+    }
+
+    .price-bottom p{
+        font-size: 15px;
+    }
+}
+
+@media (max-width:1150px){
+    #actionNav{
+        padding: 0 32px;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+    .pricingRow .pricingTD, .comparisonRow .comparisonTD, #actionNav a.getStarted, #startedTable .pricingRow a, a.getStarted {
+        font-size: 14px;
+    }
+
+    .pricingRow .pricingTD:first-child {
+        font-size: 16px;
+    }
+
+    .questionBlock *, .centeredLink p, .centeredLink p *{
+        font-size: 15px;
+    }
+
+    .pricingRow .pricingTD:last-child{
+        font-size: 17px;
+    }
+}
+
+@media (max-width:1010px){
+
+    .pricingRow{
+        width: 33%;
+    }
+
+    .pricingRow .pricingTD, a.getStarted {
+        font-size: 16px;
+    }
+
+    .pricingTD:nth-child(3){
+        padding: 13px 27px !important;
+    }
+
+    .pricingRow:nth-child(1), .pricingRow:nth-child(2), .pricingRow:nth-child(3){
+        margin-bottom: 120px;
+    }
+
+    .comparisonRow .comparisonTD{
+        padding: 12px;
+        height: 47px;
+    }
+
+    .comparisonTD img{
+        width: 23px;
+        height: auto;
+        top: 2px;
+    }
+
+    .comparisonRow+.comparisonRow+.comparisonRow{
+        width: 12.75%;
+    }
+
+    .comparisonRow+.comparisonRow {
+        width: -moz-calc(30% - 10px);
+        width: -webkit-calc(30% - 10px);
+        width: -o-calc(30% - 10px);
+        width: calc(30% - 10px);
+    }
+
+    .pricingRow:nth-child(3){
+        top: 0;
+    }
+
+    .pricingRow:nth-child(3) .pricingTD:last-child{
+        bottom: -75px;
+    }
+
+    .pricingRow .pricingTD+.pricingTD+.pricingTD {
+        min-height: 42px;
+    }
+}
+
+@media (max-width:960px){
+    .comparisonRow:first-child{
+        display: none;
+    }
+
+    .comparisonRow+.comparisonRow+.comparisonRow{
+        width: 15.5%;
+    }
+
+    .comparisonRow+.comparisonRow {
+        width: -moz-calc(39% - 10px);
+        width: -webkit-calc(39% - 10px);
+        width: -o-calc(39% - 10px);
+        width: calc(39% - 10px);
+    }
+}
+
+@media (max-width:800px){
+    #faqBlock .halfBlock{
+        display: block;
+        width: 100%;
+        margin: 0;
+        margin-top: 30px;
+    }
+
+
+    .centeredLink p, .centeredLink p *{
+        font-size: 14px;
+        line-height: 160%;
+    }
+
+}
+
+@media (max-width:760px){
+    #comparisonBlock{
+        display: none;
+    }
+
+    .centeredLink{
+        margin-bottom: 10px;
+    }
+
+    #actionNav{
+        text-align: center;
+    }
+
+    .pricingRow {
+        width: 50%;
+    }
+
+    .pricingTD:nth-child(3) {
+        padding: 13px 33px !important;
+    }
+}
+
+@media (max-width:550px){
+
+    #pricingTable{
+        margin-top: 25px;
+    }
+
+    .centeredLink p{
+        line-height: 150%;
+    }
+
+    .pricingRow .pricingTD, a.getStarted{
+        font-size: 15px;
+    }
+}
+
+@media (max-width:480px){
+    .pricingRow {
+        width: 100%;
+    }
+
+    .pricingTD{
+        padding: 11px;
+    }
+
+    .pricingRow .pricingTD, a.getStarted{
+        font-size: 16px;
+    }
+
+    .pricingTD{
+        height: auto;
+    }
+
+    .pricingRow:last-child{
+        margin-left: 0;
+        margin-top: 30px;
+    }
+
+    #faqBlock{
+        margin: 20px;
+    }
+
+    #actionNav a{
+        margin: 0 !important;
+    }
+
+    #actionNav a:first-child{
+        margin-bottom: 25px !important;
+    }
+
+    .questionBlock *{
+        font-size: 14px;
+        line-height: 160%;
+    }
+
+    .pricingRow .pricingTD{
+        height: auto !important;
+    }
+}

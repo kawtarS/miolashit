@@ -1,0 +1,255 @@
+/**
+ * Created by geoffrey on 4/08/15.
+ */
+
+popupModule = angular.module('popupToolsModule', [])
+    .directive('tzPopupBlockUser',["$location", function($location) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+            }
+        }
+    }])
+    .directive('tzPopupExport',["$rootScope", "FormHttp","$cacheFactory","$location", function($rootScope, FormHttp, $cacheFactory, $location) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.displayLoader = false;
+                scope.board_id = $rootScope.board.uuid;
+                scope.tuzzer = $rootScope.tuzzer;
+
+
+                scope.exportBoard = function () {
+                    $rootScope.fullLoader = true;
+                    var data = {board_id: scope.board_id, email: scope.tuzzer.email};
+                    FormHttp.sendExportedBoardToTuzzer(data).then(
+                        function (data, status, headers, config) {
+                            $rootScope.tuzzer = scope.tuzzer;
+                            $location.path('popup/confirmationExport');
+                            $rootScope.fullLoader = false;
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error on export board");
+                            $rootScope.fullLoader = false;
+
+                        });
+                }
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationExport',["$rootScope", "FormHttp","$cacheFactory","$location", function($rootScope, FormHttp, $cacheFactory, $location) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.tuzzer = $rootScope.tuzzer;
+
+                scope.closePopup = function () {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+            }
+        }
+    }])
+    .directive('tzPopupVideo',["$rootScope", "$cacheFactory","$sce", function($rootScope, $cacheFactory, $sce) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.currentVideoId) {
+                    var videoUrl = "https://www.youtube.com/watch?v=" + $rootScope.currentVideoId;
+                    var videoEmbedUrl = "https://www.youtube.com/embed/" + $rootScope.currentVideoId + "?rel=0&amp;showinfo=0";
+                    scope.videoUrl = $sce.trustAsUrl(videoUrl);
+                    scope.videoEmbedUrl = $sce.trustAsResourceUrl(videoEmbedUrl);
+                    $rootScope.currentVideoId = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+
+                }
+            }
+        }
+    }])
+    .directive('tzPopupMap',["$rootScope", "$cacheFactory","$sce", function($rootScope, $cacheFactory, $sce) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.currentMap) {
+                    var mapCustom = $rootScope.currentMap;
+                    var mapLink = "https://maps.google.com/maps?q=" + mapCustom.location;
+                    scope.mapLink = $sce.trustAsUrl(mapLink);
+
+                    var locationSub = mapCustom.location.substring(1, mapCustom.location.length-1);
+                    var locationArray = locationSub.split(",");
+                    var lat_long = new google.maps.LatLng(parseFloat(locationArray[0]), parseFloat(locationArray[1]));
+                    var mapOptions = {
+                        zoom: parseInt(mapCustom.map_zoom),
+                        center: lat_long,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP,
+                        backgroundColor: '#FFFFFF',
+                        panControl: false,
+                        zoomControlOptions: {
+                            style: google.maps.ZoomControlStyle.SMALL
+                        },
+                        scaleControl: false,
+                        mapTypeControl: false,
+                        scrollwheel: false,
+                        streetViewControl: false,
+                        styles: [{
+                            "featureType": "landscape",
+                            "stylers": [{"saturation": -100}, {"lightness": 65}, {"visibility": "on"}]
+                        }, {
+                            "featureType": "poi",
+                            "stylers": [{"saturation": -100}, {"lightness": 51}, {"visibility": "simplified"}]
+                        }, {
+                            "featureType": "road.highway",
+                            "stylers": [{"saturation": -100}, {"visibility": "simplified"}]
+                        }, {
+                            "featureType": "road.arterial",
+                            "stylers": [{"saturation": -100}, {"lightness": 30}, {"visibility": "on"}]
+                        }, {
+                            "featureType": "road.local",
+                            "stylers": [{"saturation": -100}, {"lightness": 40}, {"visibility": "on"}]
+                        }, {
+                            "featureType": "transit",
+                            "stylers": [{"saturation": -100}, {"visibility": "simplified"}]
+                        }, {
+                            "featureType": "administrative.province",
+                            "stylers": [{"visibility": "off"}]
+                        }, {
+                            "featureType": "water",
+                            "elementType": "labels",
+                            "stylers": [{"visibility": "on"}, {"lightness": -25}, {"saturation": -100}]
+                        }, {
+                            "featureType": "water",
+                            "elementType": "geometry",
+                            "stylers": [{"hue": "#ffff00"}, {"lightness": -25}, {"saturation": -97}]
+                        }]
+                    };
+
+                    var map = new google.maps.Map(document.getElementById('mapArea'),
+                        mapOptions);
+
+                    var marker = new google.maps.Marker({
+                        animation: google.maps.Animation.DROP,
+                        icon: 'images/map_marker.png',
+                        position: lat_long,
+                        map: map
+                    });
+
+                    $rootScope.currentMap = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+
+                }
+            }
+        }
+    }])
+    .directive('tzPopupLocked',["$location", "$rootScope", function($location, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+
+            }
+        }
+    }])
+    .directive('tzPopupCreateBoard',["$location","$rootScope", "$cacheFactory", "FormHttp", function($location,$rootScope, $cacheFactory, FormHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.newBoard = {name:'', password:null, board_type_id: 1};
+
+                scope.canCreateNewBoard = $rootScope.tuzzer.stripe_plan_id === "connection" && $rootScope.boards.length >= 3 ? false : true;
+
+                scope.createBoard = function() {
+
+                    if(!scope.canCreateNewBoard){
+                        return;
+                    }
+
+                    //FIX : on doit unsetter le password pour ne pas que le backend hash un string vide ou un null
+                    if (!scope.newBoard.password || scope.newBoard.password == '') {
+                        delete scope.newBoard.password;
+                    }
+
+                    //on récupère les information encodées et on les passe à la popup de canvas
+                    $rootScope.popupCreatedBoardData = scope.newBoard;
+                    $location.path('/popup/canvas');
+                    //
+                    //FormHttp.updateBoard(scope.newBoard).then(
+                    //    function (data, status, headers, config) {
+                    //        console.log(data);
+                    //        unbindBeforeUnload();
+                    //        //window.location.href = data;
+                    //
+                    //    }, function (data, status, headers, config) {
+                    //        console.log("error on save new board");
+                    //    });
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+            }
+        }
+    }])
+    .directive('tzPopupReplay',["$location", "$rootScope", function($location, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+
+            }
+        }
+    }])
+    .directive('tzPopupStartVideo',["$location", "$rootScope", function($location, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+
+            }
+        }
+    }])
+    .directive('tzPopupEmbedCode',["$rootScope","$cacheFactory", function($rootScope,$cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.shareBoardUuid = $rootScope.board.uuid;
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                if (scope.cachePopupCtrl.get("EmbedBoardId")){
+                    scope.shareBoardUuid = scope.cachePopupCtrl.get("EmbedBoardId")
+                    scope.cachePopupCtrl.put("EmbedBoardId", null);
+                }
+
+                scope.frame_width = 560;
+                scope.frame_height = 315;
+
+                scope.getFrameText = function(){
+                    return "<iframe width=\"{1}\" height=\"{2}\" src=\"{3}embed/{0}\"></iframe>".format(scope.shareBoardUuid,scope.frame_width,scope.frame_height, PREFIX);
+                }
+
+                //scope.copyToClipboard = function (event) {
+                //    window.clipboardData.setData('text/html', scope.getFrameText());
+                //}
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationInvitations',["$location", "$rootScope", function($location, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+
+            }
+        }
+    }])
+

@@ -1,0 +1,89 @@
+/**
+ * Created by nicolas on 3/09/15.
+ */
+
+angular.module('dragTempModule', [])
+    .directive('actorTempZone', ["$cacheFactory", function ($cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                var cache = $cacheFactory("dragTemp");
+
+
+                $scope.updateMe = function () {
+
+                    $scope.$apply();
+                }
+
+                $scope.displayMe = function (value) {
+                    $scope.display = value;
+
+                }
+
+                $scope.addActor = function (actor) {
+
+                    switch (actor.type){
+                        case ACTORTYPE.POSTIT:
+                            $scope.postits.push(actor);
+                            break;
+                        case ACTORTYPE.ULIST:
+                            $scope.ulists.push(actor);
+                            break;
+                        case ACTORTYPE.LINK:
+                            $scope.links.push(actor);
+                            break;
+                        case ACTORTYPE.STICKER:
+                            $scope.stickers.push(actor);
+                            break;
+                        case ACTORTYPE.IMAGE:
+                            $scope.images.push(actor);
+                            break;
+                        case ACTORTYPE.VIDEO:
+                            $scope.videos.push(actor);
+                            break;
+                        case ACTORTYPE.BOARD:
+                            $scope.boards.push(actor);
+                            break;
+                        case ACTORTYPE.RANDOM:
+                            $scope.randoms.push(actor);
+                            break;
+                        case ACTORTYPE.MAP:
+                            $scope.maps.push(actor);
+                            break;
+                        case ACTORTYPE.TEXT:
+                            $scope.texts.push(actor);
+                            break;
+                    }
+
+
+                }
+
+                $scope.clearActor = function () {
+
+                    $scope.postits = [];
+                    $scope.ulists = [];
+                    $scope.links = [];
+                    $scope.stickers = [];
+                    $scope.images = [];
+                    $scope.videos = [];
+                    $scope.boards = [];
+                    $scope.randoms = [];
+                    $scope.maps = [];
+                    $scope.texts = [];
+                }
+
+                $scope.clearActor();
+
+                cache.put("updateScope", $scope.updateMe);
+                cache.put("displayMe", $scope.displayMe);
+                cache.put("addActor", $scope.addActor);
+                cache.put("clearActor", $scope.clearActor);
+
+
+
+            }
+
+        };
+    }]);

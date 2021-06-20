@@ -1,0 +1,6 @@
+angular.module('exceptionOverride', []).factory('$exceptionHandler', function () {
+    return function (exception, cause) {
+        console.log("bababa")
+        Bugsnag.notifyException(exception, {diagnostics:{cause: cause}});
+    };
+});

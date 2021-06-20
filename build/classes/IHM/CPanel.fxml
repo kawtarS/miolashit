@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: Blue;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="IHM.CPanelController">
+   <children>
+      <Button fx:id="btn_client" layoutX="278.0" layoutY="56.0" mnemonicParsing="false" onAction="#switchclient" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: Red;" text="Gestion Client">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btn_voiture" layoutX="278.0" layoutY="128.0" mnemonicParsing="false" onAction="#switchvoiture" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: green;" text="Gestion Voiture">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btn_Emp" layoutX="278.0" layoutY="200.0" mnemonicParsing="false" onAction="#switchEmprunt" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: orange;" text="Gestion Emprunt">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btn_Alerts" layoutX="278.0" layoutY="289.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: yellow;" text="Gestion Alerts">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <AnchorPane layoutX="1.0" layoutY="-1.0" prefHeight="400.0" prefWidth="207.0">
+         <children>
+            <ImageView fitHeight="200.0" fitWidth="187.0" layoutX="4.0" layoutY="90.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@gestion2.png" />
+               </image>
+            </ImageView>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

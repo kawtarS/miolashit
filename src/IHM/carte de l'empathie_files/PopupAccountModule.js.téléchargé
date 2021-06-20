@@ -1,0 +1,523 @@
+/**
+ * Created by geoffrey on 4/08/15.
+ */
+
+popupModule = angular.module('popupAccountModule', [])
+    .directive('tzPopupDeleteAccount',["$location", '$cacheFactory', "AccountHttp", "$rootScope", "$translate", function($location, $cacheFactory, AccountHttp,$rootScope,$translate) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.serverErrors = [];
+
+
+                if ($rootScope.accessDeleteAccount) {
+                    $rootScope.accessDeleteAccount = null;
+                    scope.dataSave = {deleteString: "", password:null};
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.cancelDelete = function() {
+                    $location.path('#');
+                }
+
+                scope.confirmDeleteAccount = function(event) {
+                    $rootScope.fullLoader = true;
+                    if (scope.dataSave && scope.dataSave.deleteString == $translate.instant("POP_DELACCOUNT_CONFIRM_PATTERN")) {
+                        AccountHttp.archiveTuzzer(scope.dataSave).then(
+                            function (data, status, headers, config) {
+                                scope.serverErrors = [];
+                                unbindBeforeUnload();
+                                window.location.href = "https://www.tuzzit.com";
+
+                            }, function (data, status, headers, config) {
+                                $rootScope.fullLoader = false;
+                                scope.serverErrors = [data.error];
+
+                                console.log("error deleteAccount");
+                            });
+                    }
+
+                }
+            }
+        }
+    }])
+    .directive('tzPopupDowngradeAccount',["$location", "$rootScope","$cacheFactory", "FormHttp", function($location, $rootScope, $cacheFactory, FormHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessDowngradeAccount) {
+                    $rootScope.accessDowngradeAccount = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.dataSave = {reason:"", password:""};
+
+                scope.sendDowngradeMail = function() {
+                    $rootScope.fullLoader = true;
+
+                    FormHttp.downgradeAccount(scope.dataSave).then(
+                        function (data, status, headers, config) {
+                            $rootScope.accessConfirmationDowngrade = true;
+                            $location.path('popup/confirmationDowngrade');
+                            $rootScope.fullLoader = false;
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error on downgrade account");
+                        });
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+
+
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationDowngrade',["$location", "$cacheFactory", "$rootScope", function($location, $cacheFactory, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessConfirmationDowngrade) {
+                    $rootScope.accessConfirmationDowngrade = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupUpgradeAccount',["$location","$cacheFactory", "$rootScope", function($location,$cacheFactory, $rootScope) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                scope.languageKey = $rootScope.settings.language_short;
+
+                if ($rootScope.accessUpgradePopup) {
+                    $rootScope.accessUpgradePopup = null;
+                }
+                else {
+                    //scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.planToUpgrade = '';
+
+                scope.setPopupPlanToUpgrade = function (plan) {
+                    scope.planToUpgrade = plan;
+                    $rootScope.popupPaymentSelectedPlan = scope.planToUpgrade;
+                    $rootScope.accessPopupPayment = scope.planToUpgrade;
+                    $location.path('popup/payment');
+
+                }
+
+                //scope.upgradeAccount = function () {
+                //    if (scope.planToUpgrade != '') {
+                //
+                //    }
+                //
+                //}
+            }
+        }
+    }])
+    .directive('tzPopupConfirmUpgrade',["$location", "$rootScope","$cacheFactory","FormHttp","AccountHttp", function($location, $rootScope, $cacheFactory, FormHttp,AccountHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                //on sette la publishable key de stripe
+                Stripe.setPublishableKey(STRIPE_PUBLISH_KEY);
+
+                scope.hasStripeResponse = false;
+                scope.paymentInfos = {plan : 'connection', agree:false};
+                scope.keepData = true;
+                scope.plans = null;
+
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+
+                //on récupère la liste des plans disponibles
+                FormHttp.getStripePlansList().then(
+                    function (data, status, headers, config) {
+                        scope.plans = data;
+                        $rootScope.fullLoader = false
+                    }, function (data, status, headers, config) {
+                        scope.plans = null;
+                        console.log("error on get stripe plans");
+                    });
+
+
+                if ($rootScope.accessUpgradeAccount) {
+                    scope.planName = $rootScope.accessUpgradeAccount;
+                    scope.paymentInfos.plan = $rootScope.accessUpgradeAccount;
+                    $rootScope.accessUpgradeAccount = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.stripeCallback =function (code, result) {
+                    $rootScope.fullLoader = true;
+
+                    if (result.error) {
+                        $rootScope.fullLoader = false;
+                    } else {
+                        //on notifie la directive que stripe à répondu
+                        scope.hasStripeResponse = true;
+                        scope.paymentInfos.token = result.id;
+                        scope.checkPayBoard();
+                    }
+                };
+
+                scope.checkPayBoard = function ($form) {
+                    $rootScope.fullLoader = true;
+
+                    //on vérifie si le plan existe bien chez stripe
+                    if (scope.hasStripeResponse) {
+                        var planId = null;
+                        angular.forEach(scope.plans, function(key, val) {
+                            if (key.id == scope.paymentInfos.plan) {
+                                planId = key.id;
+                            }
+                        });
+
+                        if (planId) {
+                            scope.paymentInfos.email = scope.tuzzer.email;
+
+                            if (scope.keepData) {
+                                $rootScope.fullLoader = false;
+
+                                scope.finalizePayBoard();
+                            }
+                            else {
+                                AccountHttp.updateTuzzer(scope.tuzzer).then(
+                                    function (data, status, headers, config) {
+                                        scope.finalizePayBoard();
+
+                                    }, function (data, status, headers, config) {
+                                        console.log("error on update Tuzzer");
+                                        $rootScope.fullLoader = false;
+                                    });
+                            }
+                        }
+                        else {
+                            $rootScope.fullLoader = false;
+                        }
+                    }
+
+                }
+
+                scope.finalizePayBoard = function() {
+                    $rootScope.fullLoader = true;
+
+                    FormHttp.createTuzzerAndPay(scope.paymentInfos).then(
+                        function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            $rootScope.accessConfirmationUpgradePopup = true;
+                            $location.path('popup/confirmationUpgrade');
+
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error on upgrade plan");
+                        });
+                }
+
+
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationUpgrade',["$location", "$rootScope","$cacheFactory", function($location, $rootScope, $cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+                if ($rootScope.accessConfirmationUpgradePopup) {
+                    $rootScope.accessConfirmationUpgradePopup = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.reloadBoard = function() {
+                    $rootScope.fullLoader = true;
+                    unbindBeforeUnload();
+                    window.location.reload();
+                }
+
+
+            }
+        }
+    }])
+    .directive('tzPopupDeleteBoard',["$location", '$cacheFactory',"$rootScope", "AccountHttp", "$translate", function($location, $cacheFactory,$rootScope, AccountHttp, $translate) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.currentDeletedBoard) {
+                    scope.board = $rootScope.currentDeletedBoard;
+                    $rootScope.currentDeletedBoard = null;
+                    scope.dataSave = {deleteString: "", password:null};
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+
+                }
+
+                scope.cancelDelete = function() {
+                    $location.path('#');
+                }
+
+                scope.confirmDeleteBoard = function(event) {
+                    if (scope.dataSave &&  scope.dataSave.deleteString == $translate.instant("POP_DELACCOUNT_CONFIRM_PATTERN")) {
+                        $rootScope.fullLoader = true;
+                        var sended_data = {board_id: scope.board.uuid};
+
+                        AccountHttp.archiveBoard(sended_data).then(
+                            function (data, status, headers, config) {
+                                if(data){
+
+                                    deleteBoard($rootScope.boards,sended_data.board_id);
+
+                                    if(sended_data.board_id == $rootScope.board.uuid){
+                                        unbindBeforeUnload();
+                                        window.location.href = PREFIX + '/dashboard/'; //TODO ne fonctione pas
+                                    }
+                                    else {
+                                        $rootScope.fullLoader = false;
+                                        $rootScope.accessConfirmationDelete = true;
+                                        $location.path('popup/confirmationDelete');
+                                    }
+
+                                }
+
+                            }, function (data, status, headers, config) {
+                                $rootScope.fullLoader = false;
+                                console.log("error archiveBoard");
+                            });
+                    }
+
+                }
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationDelete',["$rootScope", "$cacheFactory", function($rootScope, $cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessConfirmationDelete) {
+                    $rootScope.accessConfirmationDelete = null
+                }
+                else {
+                    scope.closePopup();
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+            }
+        }
+    }])
+    .directive('tzPopupForgottenPassword',["$location","$rootScope", "$cacheFactory", "AccountHttp", function($location, $rootScope, $cacheFactory, AccountHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                scope.email = null;
+                scope.serverErrors = [];
+
+                scope.sendForgotRequest = function() {
+                    $rootScope.fullLoader = true;
+                    var data = {email: scope.email};
+                    AccountHttp.sendRecoveryDemand(data).then(
+                        function (data, status, headers, config) {
+                            $rootScope.accessConfirmationForgotPassword = scope.email;
+                            $rootScope.fullLoader = false;
+                            scope.serverErrors = [];
+
+                            $location.path('popup/confirmationReset');
+                        }, function (data, status, headers, config) {
+                            scope.serverErrors = [data.error];
+                            $rootScope.fullLoader = false;
+
+                            console.log("error send recovery demand");
+                        });
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationReset',["$location","$rootScope", "$cacheFactory", "AccountHttp", function($location, $rootScope, $cacheFactory, AccountHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessConfirmationForgotPassword) {
+                    scope.email = $rootScope.accessConfirmationForgotPassword;
+                    $rootScope.accessConfirmationForgotPassword = null
+                }
+                else {
+                    scope.closePopup();
+                }
+
+                scope.closePopup = function() {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+            }
+        }
+    }])
+    .directive('tzPopupForgottenInvitation',["$location", "$rootScope", "$cacheFactory", "AccountHttp", function($location, $rootScope, $cacheFactory, AccountHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessForgottenInvitation) {
+                    $rootScope.accessForgottenInvitation = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.invitationEmail = '';
+
+
+                scope.sendInvitation = function() {
+                    $rootScope.fullLoader = true;
+                    var data = {email:scope.invitationEmail, board_id : $rootScope.board.uuid};
+                    AccountHttp.resendInvitation(data).then(
+                        function (data, status, headers, config) {
+                            $rootScope.accessConfirmationInvitation = scope.invitationEmail;
+                            $rootScope.fullLoader = false;
+                            $location.path('popup/confirmationInvitation');
+
+
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error on send Invitation");
+                        });
+                }
+
+                scope.backToGuestPopup = function() {
+                    $rootScope.accessGuestPopup = true;
+                    $location.path('popup/guest');
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationInvitation',["$location", "$rootScope", "$cacheFactory", "AccountHttp", function($location, $rootScope, $cacheFactory, AccountHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessConfirmationInvitation) {
+                    scope.InvitationEmail = $rootScope.accessConfirmationInvitation;
+                    $rootScope.accessConfirmationInvitation = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+
+
+                scope.backToGuestPopup = function() {
+                    $rootScope.accessGuestPopup = true;
+                    $location.path('popup/guest');
+                }
+
+            }
+        }
+    }])
+    .directive('tzPopupEnterAccountPassword',["$location", "$rootScope", "$cacheFactory", "AccountHttp", function($location, $rootScope, $cacheFactory, AccountHttp) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessEnterAccountPassword) {
+                    scope.recoveryId = $rootScope.accessEnterAccountPassword;
+                    $rootScope.accessEnterAccountPassword = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.password = '';
+                scope.confirmation = '';
+                scope.serverErrors = [];
+
+                scope.createNewPassword = function() {
+                    $rootScope.fullLoader = true;
+                    var data = {recovery_id: scope.recoveryId, new_password: scope.password, check_password: scope.confirmation}
+
+                    AccountHttp.modifyRecoveryPassword(data).then(
+                        function (data, status, headers, config) {
+                            scope.serverErrors = [];
+                            $rootScope.accessConfirmationTuzzerRecovery = data;
+                            $rootScope.fullLoader = false;
+                            $location.path('popup/confirmationAccountPassword');
+
+
+                        }, function (data, status, headers, config) {
+                            scope.serverErrors = [data.error];
+                            $rootScope.fullLoader = false;
+                            console.log("error on reset Password");
+                        });
+                }
+
+
+            }
+        }
+    }])
+    .directive('tzPopupConfirmationAccountPassword',["$location", "$rootScope", "$cacheFactory", function($location, $rootScope, $cacheFactory) {
+        return {
+            restrict : "E",
+            link: function (scope, element, attrs) {
+                scope.cachePopupCtrl = $cacheFactory.get("popupCtrl");
+
+                if ($rootScope.accessConfirmationTuzzerRecovery) {
+                    scope.path = $rootScope.accessConfirmationTuzzerRecovery;
+                    $rootScope.accessConfirmationTuzzerRecovery = null;
+                }
+                else {
+                    scope.cachePopupCtrl.get("closePopup")();
+                }
+
+                scope.closePopup = function() {
+                    $rootScope.fullLoader = true;
+                    unbindBeforeUnload();
+                    window.location.href = scope.path;
+                }
+
+
+            }
+        }
+    }])

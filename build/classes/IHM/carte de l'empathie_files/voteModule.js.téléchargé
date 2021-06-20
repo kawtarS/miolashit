@@ -1,0 +1,125 @@
+/**
+ * Created by nicolas on 27/08/15.
+ */
+angular.module('voteModule', [])
+    .directive('voteTool', ["$rootScope", "ToolHttp", function ($rootScope, ToolHttp) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.open = false;
+                $scope.triggerVote = function () {
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked) {
+                        return;
+                    }
+
+                    $scope.open = !$scope.open;
+                };
+
+
+
+                var initVoteTool = function () {
+
+                    $scope.checked = $rootScope.board.voteModeActive;
+                    var firstTime = true;
+                    $scope.$watch("checked", function(){
+
+                        if(firstTime){
+                            firstTime = false;
+                            return;
+                        }
+
+                        //console.log("state "  +$scope.checked);
+                        if (!$scope.checked) {
+                            ToolHttp.unsetVoteModeForBoard({board_id: $rootScope.board.uuid}).then(
+                                function (data, status, headers, config) {
+                                    LOG("success unsetVoteModeForBoard");
+
+                                    if (data) {
+                                        $rootScope.board.voteModeActive = false;
+                                        //pusher unset vote
+                                        presence.trigger("client-set_vote", {value: false});
+                                    }
+
+
+                                }, function (data, status, headers, config) {
+                                    LOG("error unsetVoteModeForBoard");
+                                });
+                        } else {
+                            ToolHttp.setVoteModeForBoard({board_id: $rootScope.board.uuid}).then(
+                                function (data, status, headers, config) {
+                                    LOG("success setVoteModeForBoard");
+
+                                    if (data) {
+                                        $rootScope.board.voteModeActive = true;
+                                        presence.trigger("client-set_vote", {value: true});
+                                    }
+
+
+                                }, function (data, status, headers, config) {
+                                    LOG("error setVoteModeForBoard");
+                                });
+                        }
+
+
+                    })
+                }
+
+                pushInitListener(initVoteTool);
+
+
+            }
+        }
+    }])
+    .directive('vote', ["$rootScope", "ActorHttp", function ($rootScope, ActorHttp) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $scope.vote = function (actor) {
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY) {
+                        return;
+                    }
+
+                    var data = {object_id: actor.uuid};
+                    ActorHttp.newVote(data).then(
+                        function (data, status, headers, config) {
+                            LOG("success vote");
+
+                            actor.voteCount = data.count;
+
+                            actor.voted = data.status === "unvoted" ? false : true;
+
+                            //pusher update vote count for others
+                            presence.trigger("client-update_vote_count", {
+                                uniqueid: actor.uuid,
+                                voteCount: actor.voteCount
+                            });
+
+                        }, function (data, status, headers, config) {
+                            LOG("error vote");
+                        });
+                }
+
+
+            },
+            link: function ($scope, $element, $attr) {
+
+
+                $scope.getX = function(){
+                    return ((($scope.actor.getX() + ($scope.actor.getWidth() / 2)) * $rootScope.getScale()) + $rootScope.OFFSET_X) - ($element[0].clientWidth / 2);
+                }
+
+                $scope.getY = function(){
+                    return ((($scope.actor.getY() + $scope.actor.getHeight()) * $rootScope.getScale()) + $rootScope.OFFSET_Y) + ($element[0].clientHeight / 2);
+                }
+
+
+            }
+        }
+    }]);

@@ -1,0 +1,529 @@
+/**
+ * Created by nicolas on 27/08/15.
+ */
+
+angular.module('dashModule', [])
+    .directive('dashboard', ["$rootScope", "DashHttp", "FormHttp", "$cacheFactory", "$window", "$location", "$timeout", function ($rootScope, DashHttp, FormHttp, $cacheFactory, $window, $location,$timeout) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $rootScope.boards = [];
+                $scope.current_board = null;
+                $rootScope.moderate_open = false;
+                $scope.displayLoader = false;
+                $scope.moderate_list = [];
+
+
+                var handleModerateNew = function (data) {
+                    console.log("pusher" + "moderate_actor");
+
+                    if (data.object_type_id == ACTORTYPE.ULIST) {
+                        data.childs = JSON.parse(data.childs);
+                    }
+
+                    $scope.moderate_list.push(data);
+                    $scope.current_board.to_moderate = $scope.moderate_list.length;
+
+                    try {
+                        $timeout(function () {
+                            $scope.$apply();
+                        });
+
+                    } catch (error) {
+
+                    }
+
+                }
+
+                var deleteModerateWithUuid = function (list, uniqueid) {
+                    var searchIndex = -1;
+                    for (key in list) {
+                        var moderate = list[key];
+                        if (moderate.uniqueid === uniqueid) {
+                            searchIndex = key;
+                            break;
+                        }
+                    }
+
+                    if (searchIndex >= 0) {
+
+                        list.splice(searchIndex, 1);
+                        $scope.current_board.to_moderate = $scope.moderate_list.length;
+
+                    }
+                }
+
+                //validate object
+                $scope.validateObject = function (moderate) {
+
+
+                    $scope.displayTopLoader = true;
+
+                    DashHttp.validateModeratedObject({
+                        board_id: $scope.current_board.uuid,
+                        object_id: moderate.uniqueid
+                    }).then(
+                        function (data, status, headers, config) {
+
+                            if (data) {
+                                console.log("validate object success");
+
+                                //remove element from list
+                                deleteModerateWithUuid($scope.moderate_list, moderate.uniqueid);
+
+
+                                $scope.current_board.presence.trigger("client-validate-object", moderate);
+
+
+                                //set blocked object to status none
+                                if($rootScope.boardState != BOARD_MODE.REPLAY) {
+                                    var mcCache = $cacheFactory.get("mainController");
+                                    mcCache.get("ownerModerateActor")(false, moderate);
+                                }
+
+                            }
+
+                            $scope.displayTopLoader = false;
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error validateModeratedObject");
+                            $scope.displayTopLoader = false;
+
+                        });
+
+                }
+
+                $scope.rejectObject = function (moderate) {
+
+                    $scope.displayTopLoader = true;
+
+                    DashHttp.blockObject({board_id: $scope.current_board.uuid, object_id: moderate.uniqueid}).then(
+                        function (data, status, headers, config) {
+
+                            if (data) {
+                                console.log("block object success");
+
+                                //remove element from list
+                                deleteModerateWithUuid($scope.moderate_list, moderate.uniqueid);
+
+                                $scope.current_board.presence.trigger("client-reject-object", moderate);
+
+
+                                //remove actor from board
+                                if($rootScope.boardState != BOARD_MODE.REPLAY){
+                                    var mcCache = $cacheFactory.get("mainController");
+                                    mcCache.get("ownerModerateActor")(true, moderate);
+                                }
+
+                            }
+
+                            $scope.displayTopLoader = false;
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error blockObject");
+                            $scope.displayTopLoader = false;
+
+                        });
+
+                }
+
+                $scope.zoomObject = function (moderate) {
+
+                    if ($scope.current_board.uuid === $rootScope.board.uuid) { //selected board is current board
+
+                        if($rootScope.boardState == BOARD_MODE.REPLAY){
+                            return;
+                        }
+
+                        var mcCache = $cacheFactory.get("mainController");
+                        mcCache.get("zoomOnActor")(moderate.uniqueid);
+
+                    } else {
+
+                        var zoomObjectLoc = "{0}board/{1}/{2}".format($rootScope.settings.prefix, $scope.current_board.uuid, moderate.uniqueid);
+
+                        $window.location.href = zoomObjectLoc;
+                        //$window.location.reload();
+
+                    }
+
+                }
+
+
+                var watcher = null;
+                var unbindWatch = function(){
+                    if(watcher){
+                        watcher();
+                    }
+                }
+
+                //$scope.refreshModUsersList = function(){
+                //
+                //}
+
+                $scope.triggerModerate = function (board) {
+
+
+                    if ($scope.current_board != null) {
+                        unbindWatch();
+                        $scope.current_board.presence.unbind("client-moderate_actor", handleModerateNew);
+                    }
+
+                    if ($scope.current_board == board) {
+                        unbindWatch();
+                        $rootScope.moderate_open = false;
+                        $scope.current_board = null;
+                        return;
+
+                    }
+
+                    $scope.displayLoader = true;
+                    $rootScope.moderate_open = true;
+                    board.visitors = [];
+                    $scope.current_board = board;
+                    $scope.membersShowing = false;
+
+                    $scope.isFreeze = $scope.current_board[FREEZE_KEY] && $scope.current_board[FREEZE_KEY] === "true" ? true : false;
+                    $scope.isManual = $scope.current_board[MANUAL_KEY] && $scope.current_board[MANUAL_KEY] === "true" ? true : false;
+                    $scope.isNotif = $scope.current_board[NOTIFY_KEY] && $scope.current_board[NOTIFY_KEY] === "true" ? true : false;
+
+
+                    unbindWatch();
+                    watcher = $scope.$watch("current_board.presence.members.count", function(count){
+                        console.log("je suis call");
+                        var chanel = $scope.current_board.presence;
+                        if(chanel){
+                            $scope.current_board.visitors = [];
+                            var members = chanel.members.members;
+                            for(key in members){
+
+                                var member = members[key];
+
+                                if(member.is_visitor){
+
+                                    $scope.current_board.visitors.push(member);
+                                }
+
+                            }
+
+                            try {
+                                $timeout(function () {
+                                    $scope.$apply();
+                                });
+
+                            } catch (error) {
+
+                            }
+                        }
+
+
+                    });
+
+
+                    DashHttp.getObjectToModerateList({board_id: $scope.current_board.uuid}).then(
+                        function (data, status, headers, config) {
+
+                            //console.log(JSON.stringify(data));
+
+                            if (data == false) {
+                                data = [];
+                            }
+
+                            for (var i = 0; i < data.length; i++) {
+                                var apiObj = data[i];
+                                apiObj.uniqueid = apiObj.uuid;
+                                delete apiObj.uuid;
+                            }
+
+                            $scope.moderate_list = data;
+
+                            $scope.displayLoader = false;
+
+                            $scope.current_board.presence.bind("client-moderate_actor", handleModerateNew);
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error archiveBoard");
+                            $scope.displayLoader = false;
+                        });
+
+                }
+
+                $scope.showEmbedPopup = function (boardId) {
+                    if (!$cacheFactory.get("popupCtrl")) {
+                        var cache = $cacheFactory("popupCtrl");
+                    }
+                    else {
+                        var cache = $cacheFactory.get("popupCtrl");
+                    }
+                    cache.put("EmbedBoardId", boardId);
+                    $location.path('popup/embedCode')
+
+                }
+
+                $scope.logout = function () {
+                    $rootScope.fullLoader = true;
+                    FormHttp.logout(null).then(
+                        function (data, status, headers, config) {
+                            unbindBeforeUnload();
+                            window.location.href = "https://www.tuzzit.com";
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error logout");
+                        });
+                }
+
+                DashHttp.getCurrentTuzzerBoards(null).then(
+                    function (data, status, headers, config) {
+
+                        //console.log(data);
+                        $rootScope.boards = data;
+
+                        var thisBoard = null;
+                        //pushers
+                        for (var i = 0; i < $rootScope.boards.length; i++) {
+                            var board = $rootScope.boards[i];
+                            if (board.uuid != $rootScope.board.uuid) {
+
+                                var authOptions = {
+                                    headers: {},
+                                    params: {
+                                        "board_uuid": board.uuid
+                                    }
+                                };
+
+                                board.presence = client.subscribe("presence-{0}".format(board.uuid), authOptions);
+
+                                board.presence.bind('pusher:subscription_succeeded', function (pres) {
+
+                                    //sub success
+
+                                });
+
+                            } else {
+                                board.presence = presence;
+                                thisBoard = board;
+                            }
+
+
+                        }
+
+                        if (thisBoard && $rootScope.settings.board.zoom_object && $rootScope.settings.board.zoom_object.uuid) { //open the moderate panel after zoom redirection
+                            $scope.triggerModerate(thisBoard);
+                        }
+
+
+                    }, function (data, status, headers, config) {
+                        console.log("error get boards list");
+                    });
+
+
+                //get board invitation list
+                $scope.invitationBoards = [];
+                DashHttp.getInvitationBoardList(null).then(
+                    function (data, status, headers, config) {
+
+                        if (data) {
+                            $scope.invitationBoards = data;
+                        }
+
+
+                    }, function (data, status, headers, config) {
+                        console.log("error getInvitationBoardList");
+                    });
+
+
+            },
+            link: function (scope, element, attr) {
+
+
+            }
+        }
+    }])
+    .directive('moderateSettings', ["$rootScope", "DashHttp", function ($rootScope, DashHttp) {
+        return {
+            restrict: 'A',
+            controller: function ($scope) {
+
+                //invité
+                $scope.membersShowing = false;
+
+                $scope.seeUsers = function () {
+                    if ($scope.current_board.invited.length > 0) {
+                        $scope.membersShowing = !$scope.membersShowing;
+                    }
+
+                }
+
+                $scope.blockUser = function (member) {
+                    member.blocked = !member.blocked;
+
+
+
+
+                    var data = {board_id: $scope.current_board.uuid, user_id: member.tuzzer_uuid};
+
+                    if (member.blocked) { // si sont status doit etre bloqué
+
+                        DashHttp.blockUserInBoard(data).then(
+                            function (data, status, headers, config) {
+
+                                if(data){
+                                    presence.trigger("client-blocktuzzer", {tuzzer_uuid: member.tuzzer_uuid, block: member.blocked});
+                                }else{
+                                    member.blocked = !member.blocked;
+                                }
+
+
+                            }, function (data, status, headers, config) {
+                                console.log("error blockUserInBoard");
+                                member.blocked = !member.blocked;
+                            });
+                    } else {
+                        DashHttp.unblockUserInBoard(data).then(
+                            function (data, status, headers, config) {
+
+                                if(data){
+                                    presence.trigger("client-blocktuzzer", {tuzzer_uuid: member.tuzzer_uuid, block: member.blocked});
+                                }else{
+                                    member.blocked = !member.blocked;
+                                }
+
+                            }, function (data, status, headers, config) {
+                                console.log("error unblockUserInBoard");
+                                member.blocked = !member.blocked;
+                            });
+                    }
+
+
+                }
+                //--
+
+                //visiteurs
+                $scope.visitorShowing = false;
+
+                $scope.seeVisitors = function () {
+                    if ($scope.current_board.visitors.length > 0) {
+                        $scope.visitorShowing = !$scope.visitorShowing;
+                    }
+
+                }
+
+                //--
+
+
+                //checkboxes
+
+
+                $scope.freezeBoard = function () {
+
+
+                    //set freeze value
+                    var data = {
+                        board_id: $scope.current_board.uuid,
+                        param_name: FREEZE_KEY,
+                        param_value: $scope.isFreeze
+                    };
+                    DashHttp.setBoardModerationParams(data).then(
+                        function (data, status, headers, config) {
+
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error freeze");
+                        });
+
+                    //trigger pusher readonly
+                    presence.trigger("client-freezeboard", {isFreeze: $scope.isFreeze});
+
+
+                }
+
+                $scope.changeModerate = function () {
+
+
+                    var data = {
+                        board_id: $scope.current_board.uuid,
+                        param_name: MANUAL_KEY,
+                        param_value: $scope.isManual
+                    };
+                    DashHttp.setBoardModerationParams(data).then(
+                        function (data, status, headers, config) {
+
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error manual");
+                        });
+                }
+
+                $scope.changeNotif = function () {
+
+
+                    var data = {
+                        board_id: $scope.current_board.uuid,
+                        param_name: NOTIFY_KEY,
+                        param_value: $scope.isNotif
+                    };
+                    DashHttp.setBoardModerationParams(data).then(
+                        function (data, status, headers, config) {
+
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error notif");
+                        });
+                }
+
+
+            }
+        }
+    }])
+    .directive('editBoard', ["DashHttp", function (DashHttp) {
+        return {
+            restrict: 'A',
+            controller: function ($scope) {
+
+                $scope.displayInput = false;
+
+                $scope.editBoardName = function(){
+
+                    $scope.editName = $scope.tuzzer_board.name;
+                    $scope.displayInput = true;
+
+                }
+
+                $scope.closeEditName = function(){
+
+                    $scope.displayInput = false;
+
+                }
+
+                $scope.validateName = function(){
+
+                    $scope.displayInput = false;
+                    $scope.tuzzer_board.name = $scope.editName;
+
+                    //do request
+                    DashHttp.updateBoardName({uuid: $scope.tuzzer_board.uuid, name: escapeDoubleQuotes($scope.editName)}).then(
+                        function (data, status, headers, config) {
+
+                            LOG("success updateBoardName");
+
+
+                        }, function (data, status, headers, config) {
+                            LOG("error updateBoardName");
+                        });
+
+                }
+
+
+            },
+            link: function (scope, element, attr) {
+            }
+        }
+    }]);

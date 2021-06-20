@@ -1,0 +1,566 @@
+/* CSS propre au menu contextuel */
+
+/* Rotate */
+
+.neoRotate{
+    display: block;
+    position: absolute;
+    left: -36px;
+    top: -36px;
+
+    background-size: 21px;
+
+    width: 40px;
+    height: 40px;
+
+    /*cursor: url("../images/boardIcons/topLeftRotate.png"), nw-resize;*/
+}
+
+    .neoRotate:hover, .activeRotate{
+        background-image: url('../images/boardIcons/topLeftRotate.png');
+        background-position: center center;
+        background-repeat: no-repeat;
+        cursor: pointer;
+    }
+
+    .neoRotate+.neoRotate{
+        left: auto;
+        right: -36px;
+        /*cursor: url("../images/boardIcons/topRightRotate.png"), ne-resize;*/
+    }
+
+        .neoRotate+.neoRotate:hover{
+            background-image: url('../images/boardIcons/topRightRotate.png');
+        }
+
+    .neoRotate+.neoRotate+.neoRotate{
+        top: auto;
+        right: -36px;
+        bottom: -36px;
+        /*cursor: url("../images/boardIcons/bottomRightRotate.png"), se-resize;*/
+    }
+
+        .neoRotate+.neoRotate+.neoRotate:hover, .activeRotate{
+            background-image: url('../images/boardIcons/bottomRightRotate.png');
+        }
+
+    .neoRotate+.neoRotate+.neoRotate+.neoRotate{
+        right: auto;
+        left: -36px;
+        /*cursor: url("../images/boardIcons/bottomLeftRotate.png"), sw-resize;*/
+    }
+
+        .neoRotate+.neoRotate+.neoRotate+.neoRotate:hover{
+            background-image: url('../images/boardIcons/bottomLeftRotate.png');
+        }
+
+/* Resize */
+
+.neoResize{
+    display: block;
+    width: 7px;
+    height: 7px;
+    padding: 11px;
+    background-color: transparent;
+
+    position: absolute;
+    right: -13px;
+    top: -16px;
+
+    cursor: url("../images/boardIcons/leftResize.png"), ne-resize;
+}
+
+    .neoResize+.neoResize{
+        top: auto;
+        bottom: -13px;
+
+        cursor: url("../images/boardIcons/rightResize.png"), se-resize;
+    }
+
+    .neoResize+.neoResize+.neoResize{
+        right: auto;
+        left: -15px;
+
+        cursor: url("../images/boardIcons/leftResize.png"), sw-resize;
+    }
+
+    .innerResize{
+        margin: 1px;
+        border: 1px solid #8e979f;
+        width: 5px;
+        height: 5px;
+        background-color: white;
+        display: block;
+    }
+
+        .neoResize:hover .innerResize{
+            border: 1px solid #1ddc6e;
+        }
+
+/* Menu contextuel du post-it */
+
+.dashStuff{
+    position: absolute;
+    border: 1px dashed #acacac;
+    z-index: 10000;
+
+}
+
+.toolStuff{
+    position: absolute;
+    z-index: 300;
+
+}
+
+.toolStuffItem{
+    position: absolute;
+    cursor: pointer;
+    pointer-events: all;
+    z-index: 1000;
+}
+
+.toolStuff> .menu, .menu{
+    bottom: auto;
+    top: -50px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 100%;
+    text-align: center;
+}
+
+    .menu{
+        width: 184px;
+        right: auto;
+    }
+
+.toolStuff> .menu .bubble>ul>li, .menu .bubble>ul>li{
+    list-style: none;
+    cursor: pointer;
+    position: relative;
+
+    display: inline-block;
+    text-indent: -9999px;
+    width: 36px;
+    height: 36px;
+    background-color: #99A4AE;
+    margin-right: -4px;
+    vertical-align: top;
+
+    background-image: url('../images/boardIcons/postitMenuSprite.png');
+    background-repeat: no-repeat;
+}
+
+    /* Icônes du menu */
+
+    li.remove{
+        background-position: 9px 9px;
+    }
+
+    li.duplicate{
+        background-position: -26px 9px;
+    }
+
+    li.brBack{
+        background-position: -98px 9px;
+    }
+
+    li.brFront{
+        background-position: -63px 9px;
+    }
+
+.toolStuff> .menu .bubble>ul>li:hover, .menu .bubble>ul>li:hover{
+    background-color: #fdc300;
+}
+
+.toolStuff> .menu .bubble>ul>li.colorPicker, .toolStuff> .menu .bubble>ul>li.colorPicker:hover, .menu .bubble>ul>li.colorPicker, .menu .bubble>ul>li.colorPicker:hover{
+    border: none;
+}
+
+.bubble ul{
+    white-space: nowrap;
+}
+
+.toolStuff> .menu .bubble>ul>li:last-child, .menu .bubble>ul>li:last-child{
+    border-bottom: none;
+    background-image: none;
+    background-color: #a1acb6 !important;
+}
+
+.toolStuff> .menu .bubble>ul>li:hover a, .menu .bubble>ul>li:hover a{
+    color: white;
+}
+
+.toolStuff> .menu .bubble>ul>li a, .menu .bubble>ul>li a {
+    text-decoration: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-size: 13px;
+    z-index: 2;
+    color: #34495e;
+    font-weight: 300;
+}
+
+.menuBar{
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    padding-top: 4px;
+    top: 0;
+    left: 0;
+    z-index: 30;
+}
+
+.bar {
+    width: 65%;
+    height: 3px;
+    background: #fff;
+    margin: 3px auto;
+}
+
+.toolStuff> .menu .picker, .menu .picker{
+    margin-bottom:4px;
+
+    height: 35px;
+    overflow: hidden;
+    background-color: #99A4AE !important;
+    z-index: 100;
+    margin-left: 0;
+}
+
+.toolStuff> .menu .picker:hover, .menu .picker:hover{
+    height: 141px;
+    width: 71px;
+}
+
+.toolStuff> .menu .picker li, .menu .picker li{
+    position: relative;
+    list-style-type: none;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #a1acb6;
+    margin: 3px;
+    cursor:pointer;
+}
+
+.toolStuff> .menu .picker li.selected, .menu .picker li.selected{
+    width: 28px;
+    height: 28px;
+    border:1px solid rgba(52, 73, 94, 0.5); /*Dynamic*/
+    line-height:30px;
+}
+
+.toolStuff> .menu .picker li.selected span, .menu .picker li.selected span{
+    border-width:32px 0 0 32px;
+}
+
+.toolStuff> .menu .colorPicker li:first-child, .toolStuff> .menu .colorPicker li:nth-child(5), .menu .colorPicker li:first-child, .menu .colorPicker li:nth-child(5){
+    margin-left: 2px;
+}
+
+.toolStuff> .menu .colorPicker li+li+li+li+li, .menu .colorPicker li+li+li+li+li{
+    margin-bottom: 0;
+}
+
+.toolStuff> .menu .colorPicker li span, .menu .colorPicker li span{
+    opacity: 0;
+}
+
+.colorPicker .miniPicker li{
+    margin: 3px !important;
+    margin-bottom: 2px !important;
+}
+
+    .colorPicker .miniPicker li:nth-child(odd){
+        margin-right: 2px !important;
+    }
+
+    .colorPicker .miniPicker li.newColorContextual{
+        margin: 0 !important;
+    }
+
+    .colorPicker .miniPicker .blackColor+li.newColorContextual{
+        margin-top: 3px !important;
+        margin-left: 3px !important;
+    }
+
+/* Tooltip du menu */
+
+.bubble .toolTiped:after{
+    top: -121%;
+    background-color: #99A4AE;
+    text-indent: 0;
+}
+
+.bubble .toolTiped:hover:before {
+    top: -35%;
+    border-bottom: none;
+    border-top: 10px solid #99A4AE;
+}
+
+/* Menu des flèches */
+
+.thicknessMenu{
+    height: 0;
+    overflow: hidden;
+
+    position: absolute;
+    left: 0;
+    top: 36px;
+}
+
+.mainSubmenuItem:hover .thicknessMenu{
+    height: 144px;
+}
+
+.arrowTextualMenu .colorPicker li{
+    margin-left: 0;
+}
+
+.mainSubmenuItem{
+    display: inline-block;
+    vertical-align: top;
+    width: 36px;
+    height: 36px;
+    margin-right: -5px;
+    background-color: #99A4AE;
+    position: relative;
+}
+
+    .mainSubmenuItem:hover{
+        background-color: #fdc300;
+    }
+
+    .mainSubmenuItem:first-child, .menu .bubble .mainSubmenuItem:first-child{
+        background-image: url('../images/boardIcons/thicknessIcon.png');
+        background-position: 5px center;
+        background-repeat: no-repeat;
+    }
+
+        .thicknessMenuItem.mainSubmenuItem{
+            background-image: url('../images/boardIcons/thicknessIcon.png') !important;
+            background-position: 5px center !important;
+        }
+
+    .mainSubmenuItem+.mainSubmenuItem, .menu .bubble .mainSubmenuItem+.mainSubmenuItem{
+        background-image: url('../images/boardIcons/arrowPointIcon.png');
+        background-position: 4px center;
+        background-repeat: no-repeat;
+    }
+
+    .thicknessSubmenu.arrowSubmenu a{
+        background-image: url('../images/boardIcons/leftArrow.png');
+        width: 25px !important;
+        height: 14px !important;
+        position: absolute !important;
+        background-color: transparent !important;
+    }
+
+        .thicknessSubmenu.arrowSubmenu+.thicknessSubmenu.arrowSubmenu a{
+            background-image: url('../images/boardIcons/rightArrow.png');
+        }
+
+        .thicknessSubmenu.arrowSubmenu+.thicknessSubmenu.arrowSubmenu+.thicknessSubmenu.arrowSubmenu a{
+            background-image: url('../images/boardIcons/bothArrow.png');
+        }
+
+.thicknessSubmenu{
+    display: block;
+    width: 36px;
+    height: 36px;
+    background-color: #a5b0ba;
+    text-indent: -9999px;
+    position: relative;
+}
+
+    .thicknessSubmenu:hover, .pickedProperty{
+        background-color: #b3c0ca;
+    }
+
+    .menu .bubble .thicknessSubmenu:first-child a{
+        display: inline-block;
+        width: 26px;
+        height: 1px;
+        background-color: white;
+
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        margin: auto;
+    }
+
+        .menu .bubble .thicknessSubmenu:nth-child(2) a{
+            display: inline-block;
+            width: 26px;
+            height: 3px;
+            background-color: white;
+
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            margin: auto;
+        }
+
+    .menu .bubble .thicknessSubmenu:nth-child(3) a{
+        display: inline-block;
+        width: 26px;
+        height: 5px;
+        background-color: white;
+
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        margin: auto;
+    }
+
+    .menu .bubble .thicknessSubmenu:nth-child(4) a{
+        display: inline-block;
+        width: 26px;
+        height: 7px;
+        background-color: white;
+
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        margin: auto;
+    }
+
+    .arrowTextualMenu .newColorContextual{
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .arrowTextualMenu .picker:hover{
+        width: auto !important;
+        height: 36px;
+    }
+
+.mainSubmenuItem.colorPicker{
+    background-color: transparent !important;
+}
+
+.arrowTextualMenu .bubble{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    width: 71px;
+    height: 36px;
+    bottom: 0;
+    margin: auto;
+}
+
+.stickerPicker li{
+    width: 35px !important;
+    height: 35px !important;
+    border: none !important;
+}
+
+.toolStuff> .menu .stickerPicker .picker:hover, .menu .stickerPicker .picker:hover{
+    width: auto;
+    height: auto;
+}
+
+.colorPicker:hover{
+    background-color: #99A4AE !important;
+    background-image: none !important;
+}
+
+/* Nouvelles poignées liens */
+
+.boundAnchor{
+    display: block;
+    cursor: pointer;
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+
+    width: 15px;
+    height: 15px;
+
+    opacity: 1;
+
+    background-color: rgb(194, 194, 194) !important;
+    background-image: none !important;
+
+    -webkit-transition: opacity 0.4s ease;
+    -moz-transition: opacity 0.4s ease;
+    -ms-transition: opacity 0.4s ease;
+    -o-transition: opacity 0.4s ease;
+    transition: opacity 0.4s ease;
+
+    margin-top: -6px;
+    margin-left: -13px;
+}
+
+    .boundAnchor+.boundAnchor{
+        margin-left: -1px;
+        margin-top: -7px;
+    }
+
+.innerAnchor{
+    background-color: white;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    width: 9px;
+    height: 9px;
+    display: block;
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    opacity: 1;
+    margin: auto;
+}
+
+.boundAnchor:hover .innerAnchor, .boundAnchor:active .innerAnchor{
+    background-color: #455e73;
+}
+
+.boundAnchor.connectingState, .connectingState.connectCircle{
+    background-color: rgb(253, 195, 0) !important;
+}
+
+    .boundAnchor.connectingState .innerAnchor, .connectingState.connectCircle .ancorSpan{
+        background-color: white !important;
+    }
+
+
+
+.boundAnchor.unBoundAnchor{
+    background-color: rgb(208, 45, 45) !important;
+    cursor:crosshair !important;
+}
+
+/* Ajout du menu de flèches */
+
+.mainSubmenuItem+.mainSubmenuItem+.mainSubmenuItem{
+    background-image: url(/public/images/boardIcons/arrowCurveIcon.png) !important;
+}
+
+.arrowType .arrowSubmenu a{
+    height: 20px !important;
+    background-image: url(/public/images/boardIcons/straightArrow.png) !important;
+}
+
+.arrowType .arrowSubmenu+.arrowSubmenu a{
+    background-image: url(/public/images/boardIcons/angleArrow.png) !important;
+}
+
+.arrowType .arrowSubmenu+.arrowSubmenu+.arrowSubmenu a{
+    background-image: url(/public/images/boardIcons/curveArrow.png) !important;
+}

@@ -1,0 +1,103 @@
+angular.module('ngTextFill', [])
+    .directive('textfill', ["$timeout", function ($timeout) {
+        return {
+            restrict: 'A',
+            scope: {
+                text: '=',
+                width: '=',
+                height: '=',
+                trigger: '='
+
+            },
+            link: function (scope, element, attr) {
+
+                var actorDom = $(element).closest(".actor");
+                var firstTime = true;
+
+
+                scope.$watchGroup(["text", "width", "height"], function (newValues, oldValues, scope) {
+
+                    if (scope.animating) {
+                        return;
+                    }
+
+                    $(element.parent()).textfill();
+                    $(element).css("margin-top", 0);
+                    $(element.parent()).find("textarea").css("font-size", $(element).css("font-size"));
+
+                });
+
+
+
+                scope.$watch("trigger", function () {
+
+                    if(firstTime){
+                        firstTime = false;
+                        return;
+                    }
+
+
+                    var prevTimeStamp = 0;
+
+                    $(actorDom).one("webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend",
+                        function (event) {
+
+                            var elapsed = event.timeStamp - prevTimeStamp;
+                            if(elapsed <= 50){ //prevent double event callback due to multiple event moz + original
+
+                                prevTimeStamp = event.timeStamp;
+                                return;
+                            }
+                            prevTimeStamp = event.timeStamp;
+
+                            var oldFontSize = $(element).css("font-size");
+
+                            $(element.parent()).textfill();
+                            $(element).css("margin-top", 0);
+                            $(element.parent()).find("textarea").css("font-size", $(element).css("font-size"));
+
+                        });
+                });
+
+
+            }
+        };
+    }])
+    .directive('textfillMenu', ["$timeout", function ($timeout) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attr) {
+
+
+                var resize = function (delay) {
+                    $timeout(function () {
+                        $(element.parent()).textfill();
+                        $(element).css("top", $(element).css("margin-top"));
+                        $(element).css("margin-top", 0);
+                    }, delay);
+                }
+
+                resize(100);
+
+                angular.element(window).bind('resize', function () {
+
+                    resize(0);
+                });
+
+
+            }
+        };
+    }])
+    .directive('textfillTemp', ["$timeout", function ($timeout) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attr) {
+
+                $timeout(function () {
+                    $(element.parent()).textfill();
+                    $(element).css("margin-top", 0);
+                }, 100);
+
+            }
+        };
+    }]);

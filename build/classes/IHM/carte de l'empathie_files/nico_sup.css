@@ -1,0 +1,349 @@
+
+html, body {
+
+    margin: 0;
+    overflow: hidden;
+}
+
+.boardContainer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+/*
+.board{
+    width:5000px;
+    height:3000px;
+}
+*/
+
+.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.actor {
+    position: absolute;
+    cursor: pointer;
+}
+
+.middleOrigin {
+    transform-origin: 50% 50%;
+    -webkit-transform-origin: 50% 50%;
+    -ms-transform-origin: 50% 50%;
+
+}
+
+
+
+.arrow {
+    position: absolute;
+    z-index: 2;
+    line-height: 1px;
+    margin: 0;
+    padding: 0;
+    background-color: #495e77;
+    height: 1px;
+    transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
+    -ms-transform-origin: 0 0;
+
+}
+
+#connexionBox {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    width: 200px;
+    height: 50px;
+    background-color: #008000;
+    z-index: 50;
+}
+
+#connexionBox.connected {
+    background-color: #008000;
+}
+
+#connexionBox.connecting {
+    background-color: orange;
+}
+
+#connexionBox.unavailable {
+    background-color: #ff0000;
+}
+
+#toolBox.active {
+    left: 0px;
+}
+
+#bg {
+    background-repeat: no-repeat;
+    position: absolute;
+    transform-origin: 50% 50%;
+    -webkit-transform-origin: 50% 50%;
+    -ms-transform-origin: 50% 50%;
+}
+
+.tempdrag {
+    position: absolute;
+    z-index: 5000;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+}
+
+.noPointerEvent {
+    pointer-events: none;
+
+}
+
+.pointerEvent {
+    pointer-events: all;
+
+}
+
+.imageActor {
+    height: auto;
+}
+
+.imageActor img {
+    width: 100% !important;
+}
+
+.multiSelected {
+    background-image: url('/public/images/boardIcons/selectgroup-iconActive.png');
+    opacity: 1;
+
+}
+
+.multiBox {
+
+    position: absolute;
+    border: 2px dashed #acacac;
+    z-index: 10000;
+    transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
+    -ms-transform-origin: 0 0;
+
+}
+
+.topSelectedItem{
+    position: absolute;
+    z-index: 100000000;
+    cursor: pointer;
+}
+
+.arrowMenu{
+    position: absolute;
+}
+
+.positRezText{
+    position: absolute;
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: text !important;
+    padding-top: 40%;
+
+}
+
+.invalidInput{
+    border: 1px solid red !important;
+}
+
+.currentBoard{
+    border-left: 5px solid #fdc300 !important;
+}
+
+.moderate_open{
+    width:300px !important;
+    opacity: 1;
+}
+
+.moderate_close{
+    width:0px !important;
+    opacity: 0;
+}
+
+.moderateOverlay{
+    z-index: 100000000;
+    position: absolute;
+}
+
+.livepointer{
+    position: absolute;
+    z-index: 10010;
+    width: 70px;
+    height: 70px;
+}
+.livepointer > img{
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.livepointer div:first-child{
+    -webkit-animation: halfBlinkingElementThingie 1.6s infinite; /* Chrome, Safari, Opera */
+    animation: halfBlinkingElementThingie 1.6s infinite;
+
+    -webkit-animation: spinningAnimation 12s infinite linear; /* Chrome, Safari, Opera */
+    animation: spinningAnimation 12s infinite linear;
+
+    background-size: cover;
+    background-image: url('../images/backCircle.png');
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border: 0;
+    margin: auto;
+}
+
+    .livepointer.clickingAnimation div:first-child{
+        display: none;
+
+        background-image: url('../images/backCircleGreen.png');
+        width: 64px;
+        height: 64px;
+    }
+
+    .livepointer div+img+img{
+        display: none;
+    }
+
+        .livepointer.clickingAnimation img:nth-child(2){
+            display: none;
+        }
+
+        .livepointer.clickingAnimation img:nth-child(3){
+            display: block;
+            width: 56px;
+            height: 56px;
+        }
+
+        .livepointer.clickingAnimation div:first-child{
+            display: block;
+            width: 72px;
+            height: 72px;
+
+            -webkit-animation: spinningAnimation 9s infinite linear; /* Chrome, Safari, Opera */
+            animation: spinningAnimation 9s infinite linear;
+        }
+
+/* Chrome, Safari, Opera */
+@-webkit-keyframes halfBlinkingElementThingie {
+    0%   {opacity: 1;}
+    50%  {opacity: 0.45;}
+    100% {opacity: 1;}
+}
+
+/* Standard syntax */
+@keyframes halfBlinkingElementThingie {
+    0%   {opacity: 1;}
+    50%  {opacity: 0.45;}
+    100% {opacity: 1;}
+}
+
+.selectedModerate{
+    color: #efb60d;
+}
+
+
+.selectedArrow{
+
+    border: 1px solid #FDC300;
+}
+
+.arrow svg{
+    overflow: visible;
+}
+
+.noBill{
+    border: 1px dashed #d7d7d7 !important;
+    background-color: #fff;
+    width: 100%;
+    padding: 25px 16px;
+    color: #818181;
+    text-align: center;
+}
+
+.gamepop{
+    background-image: url("../images/dot_pattern.png");
+    background-repeat: repeat;
+    height: 400px;
+}
+
+.animatedDash {
+    stroke-dasharray: 10;
+    animation: dash 10s linear infinite;
+}
+
+/* Chrome, Safari, Opera */
+@-webkit-keyframes dash {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: 1000;
+    }
+}
+/* Standard syntax */
+@keyframes dash {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: 1000;
+    }
+}
+
+.fontSizeSelector{
+
+    width: 36px;
+    background-color: rgba(255,255,255,0.5);
+    color: #ffffff;
+}
+
+#publisher video{
+    -moz-transform: scaleX(1);    /* Gecko */
+    -o-transform: scaleX(1);      /* Opera */
+    -webkit-transform: scaleX(1); /* Webkit */
+    transform: scaleX(1);         /* Standard */
+    filter: FlipH;                 /* IE 6/7/8 */
+}
+
+.tuzSelect{
+    width: 100px;
+    height: 60px;
+    display: block;
+}
+
+.tzSelectUl{
+    overflow-y: scroll;
+    max-height: 300px;
+}
+
+.tzSelectLi{
+    cursor: pointer;
+    background-color: #ffffff;
+}
+
+.tzSelectLi.selected{
+    color: red;
+}

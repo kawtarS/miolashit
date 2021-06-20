@@ -1,0 +1,3108 @@
+/* -- Règles concernant les popups -- */
+
+/* Règles générales */
+.popupContainer {
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.8);
+    position: fixed;
+    top: 55px;
+    left: 0;
+    z-index: 10000;
+}
+
+.popupOverlay {
+    top: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: #34495e;
+    opacity: 0.8;
+}
+
+.popup {
+    position: relative;
+    top: 10%;
+    margin: 0 auto;
+    background: #fff;
+    -webkit-box-shadow: 0 0 8px rgba(50, 50, 50, 0.3);
+    -moz-box-shadow: 0 0 8px rgba(50, 50, 50, 0.3);
+    box-shadow: 0 0 8px rgba(50, 50, 50, 0.3);
+    overflow: hidden;
+
+    width: 1150px;
+}
+
+#savePopup .popup{
+    max-width: 950px;
+}
+
+#savePopup .popup#savePart2{
+    max-width: 850px;
+}
+
+#savePopup .popupContent{
+    padding-bottom: 10px;
+}
+
+.popupHeader {
+    height: 55px;
+    width: 96%;
+    padding: 2%;
+    padding-bottom: 1%;
+}
+
+.popupContent {
+    width: 100%;
+    height: auto;
+    padding: 0 15px;
+    overflow: hidden;
+    background: rgba(52, 73, 94, 0.07);
+}
+
+/* Contenu de la popup */
+
+.popupIcon {
+    background-position: 50% 50%;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-color: #34495e;
+    opacity: 0.5;
+    margin: 5px;
+    margin-right: 17px;
+    float: left;
+}
+
+.popupIcon.canvasLogo {
+    background-image: url('/public/images/canvas-icon-mask.png');
+    width: 31px;
+    height: 34px;
+}
+
+.popupHeader h2 {
+    display: block;
+    font-size: 36px;
+    font-weight: 400;
+    float: left;
+    line-height: 140%;
+    color: #34495e;
+}
+
+.popup p {
+    font-size: 16px;
+    color: #95a5a6;
+    font-weight: 300;
+    line-height: 25px;
+}
+.popup p a{
+    color:#34495e;
+}
+
+.closePopup {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 3;
+
+    margin: 20px;
+    background: url("/public/images/spritemenu_popup.png") no-repeat;
+    background-position: -16px -184px;
+    background-color: #95a5a6;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+
+    -webkit-transition: background-color 0.2s ease-out;
+    -moz-transition: background-color 0.2s ease-out;
+    -o-transition: background-color 0.2s ease-out;
+    transition: background-color 0.2s ease-out;
+}
+
+.popupBottom {
+    clear: both;
+    width: 100%;
+    height: 71px;
+    color: #fff;
+    line-height: 65px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 101;
+    position: relative;
+    bottom: 0;
+    margin: 0;
+}
+
+    .popupBottom a{
+        width: 100%;
+        font-size: 25px;
+        text-decoration: none;
+        color: #fff;
+        height: 100%;
+        display: block;
+        padding: 2px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+        .popupBottom input{
+            cursor: pointer;
+            background-color: transparent;
+            text-transform: uppercase;
+            border: none !important;
+            color: white !important;
+            font-size: 25px;
+            font-weight: 500 !important;
+        }
+
+.miniCanvas{
+    width: 343px;
+    height: 230px;
+    margin: 13px;
+    margin-bottom: 15px;
+    float: left;
+    list-style-type: none;
+    cursor: pointer;
+    border: 2px solid rgba(52, 73, 94, 0.3);
+    position: relative;
+}
+
+    .miniCanvas .coverDiv{
+        width: 100%;
+        height: 100%;
+    }
+
+    .miniCanvas:hover, .miniCanvas.selected{
+        border: 2px solid #1ddc6e;
+    }
+
+    .miniCanvas .fileInputCanvas {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+    }
+
+.popupContent{
+    padding-bottom: 16px;
+}
+
+.mask{
+    background: rgba(52, 73, 94, 0.9);
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    height: 38px;
+    text-align: center;
+
+    -webkit-transition: all 0.4s ease;
+    -moz-transition: all 0.4s ease;
+    -ms-transition: all 0.4s ease;
+    -o-transition: all 0.4s ease;
+    transition: all 0.4s ease;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+    .mask h2{
+        margin-bottom: 10px;
+        font-size: 17px;
+    }
+
+    .mask p{
+        font-size: 15px;
+    }
+
+    .mask *{
+        color: white !important;
+    }
+
+    .miniCanvas:hover .mask{
+        height: 100%;
+
+        -webkit-transition: all 0.4s ease;
+        -moz-transition: all 0.4s ease;
+        -ms-transition: all 0.4s ease;
+        -o-transition: all 0.4s ease;
+        transition: all 0.4s ease;
+    }
+
+    .mask a{
+        display: inline-block;
+        padding: 10px 12px;
+        background-color: #1ddc6e;
+
+        -webkit-transition: all 0.4s ease;
+        -moz-transition: all 0.4s ease;
+        -ms-transition: all 0.4s ease;
+        -o-transition: all 0.4s ease;
+        transition: all 0.4s ease;
+        text-decoration: none;
+        margin-right: 17px;
+        margin-top: 14px;
+    }
+
+        .mask a+a{
+            margin-right: 0;
+        }
+
+        .mask:hover{
+            padding-top: 18px;
+        }
+
+        .mask a:hover{
+            background-color: #fdc400;
+
+            -webkit-transition: all 0.4s ease;
+            -moz-transition: all 0.4s ease;
+            -ms-transition: all 0.4s ease;
+            -o-transition: all 0.4s ease;
+            transition: all 0.4s ease;
+        }
+
+/* Paiement - neo popup */
+
+#paymentPopup .popupContent{
+    background-color: transparent;
+}
+
+.popup h3{
+    color: #34495e;
+    font-size: 19px;
+    margin-left: 12px;
+}
+
+.popup h3>a{
+    color: #95a5a6;
+    font-size: 19px;
+}
+
+    .popup h3>a:hover{
+        color: #fdc400;
+    }
+
+#paymentPopup .popupHeader{
+    padding-bottom: 0.5%;
+}
+
+.hiddenContainer{
+    width: -webkit-calc(33.33% - 64px);
+    width: -moz-calc(33.33% - 64px);
+    width: calc(33.33% - 64px);
+
+    margin-right: 20px;
+    margin-left: 40px;
+    margin-bottom: 12px;
+    margin-top: 8px;
+
+    border: 1px solid rgb(225,225,225);
+    padding: 20px 18px;
+    padding-bottom: 15px;
+
+    text-align: center;
+    position: relative;
+}
+
+    .hiddenContainer:first-child{
+        margin-left: 50px;
+    }
+
+    .hiddenContainer:hover{
+        border: 1px solid rgba(253, 196, 0, 0.6);
+    }
+
+    .hiddenContainer+.hiddenContainer+.hiddenContainer{
+        margin-right: 0;
+    }
+
+    .hiddenContainer h4{
+        font-size: 22px;
+        margin-bottom: 6px;
+        color: #34495e;
+        text-transform: uppercase;
+    }
+
+    .backCircle{
+        display: block;
+        width: 23px;
+        height: 23px;
+
+        border: 1px solid rgb(225,225,225);
+
+        -webkit-border-radius: 35px;
+        -moz-border-radius: 35px;
+        border-radius: 35px;
+
+        position: absolute;
+        left: -40px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+    }
+
+    .yellowCircle{
+        display: block;
+        width: 13px;
+        height: 13px;
+
+        background-color: rgb(253, 196, 0);
+
+        -webkit-border-radius: 35px;
+        -moz-border-radius: 35px;
+        border-radius: 35px;
+
+        position: absolute;
+        left: -34px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+        opacity: 0;
+    }
+
+    .optionFormula:checked+.halfChoices .yellowCircle{
+        opacity: 1;
+    }
+
+.optionFormula{
+    position: absolute;
+    top: 0;
+    z-index: 300;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+
+    width: -webkit-calc(100% + 45px);
+    width: -moz-calc(100% + 45px);
+    width: calc(100% + 45px);
+    left: -45px;
+}
+
+.hiddenContainer .decoPostit{
+    position: absolute;
+    top: -10px;
+    left: 6%;
+    z-index: 10;
+}
+
+    .halfChoices h4, .halfChoices p{
+        position: relative;
+        z-index: 20;
+    }
+
+    .hiddenContainer .decoPostit+.decoPostit{
+        right: 5%;
+        left: auto;
+        top: auto;
+        bottom: -9px;
+    }
+
+    .hiddenContainer+.hiddenContainer .decoPostit{
+        top: -20px;
+    }
+
+    .hiddenContainer+.hiddenContainer .decoPostit+.decoPostit{
+        bottom: -12px;
+        top: auto;
+    }
+
+/* Partie formulaire */
+
+#formPart{
+    margin-top: 19px;
+}
+
+    #formPart fieldset, #formPart2 fieldset{
+        display: block;
+        max-width: 510px;
+        margin: auto;
+        margin-bottom: 24px;
+    }
+
+    #formPart fieldset>input, .moreInfos input, #formPart .inputContainer>input, #formPart2 .inputContainer>input{
+        margin-bottom: -1px;
+        border: 1px solid rgb(225,225,225);
+        padding: 13px;
+        display: block;
+        width: 100%;
+        font-weight: 100;
+
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+        #formPart .inputContainer>input, #formPart2 .inputContainer>input{
+            position: relative;
+        }
+
+        #formPart fieldset>input:focus, .moreInfos input:focus, #formPart .inputContainer>input:focus, #formPart2 .inputContainer>input:focus{
+            border: 1px solid rgba(253, 196, 0, 0.6);
+            position: relative;
+            z-index: 10;
+        }
+
+    .popup #formPart h3, #formPart2 h3{
+        margin-left: 0;
+        margin-bottom: 13px;
+    }
+
+    .moreInfos{
+        width: 100%;
+    }
+
+            #formPart .moreInfos input{
+                width: 98px;
+                display: inline-block;
+            }
+
+            #formPart .moreInfos input+input{
+                float: right;
+                width: 85px;
+                margin-right: 0;
+            }
+
+            #formPart .moreInfos .inputContainer{
+                display: inline-block;
+            }
+
+            #formPart .moreInfos .inputContainer+.inputContainer{
+                display: inline-block;
+                float: right;
+            }
+
+.popup .checkblockContainer{
+    width: 100%;
+    text-align: right;
+    margin-top: 20px;
+    position: relative;
+}
+
+    .popup .checkblockContainer+.checkblockContainer{
+        margin-top: -6px;
+    }
+
+.popup .checkblockContainer label{
+    font-size: 15px;
+    color: #95a5a6;
+    font-weight: 300;
+    line-height: 25px;
+    position: relative;
+    top: -20px;
+    margin-right: 2px;
+    cursor: pointer;
+}
+
+    .popup .checkblockContainer label a{
+        color: #34495e !important;
+        font-size: 15px;
+    }
+
+    .popup .checkblockContainer label a:hover{
+        color: #fdc300 !important;
+    }
+
+    #paymentPopup fieldset+fieldset{
+        margin-bottom: 4px;
+    }
+
+/* Adaptation hauteur */
+
+.neoPopup .popup, #savePart3.popup{
+    height: 70%;
+    max-height: 854px;
+}
+
+    #savePart3.popup{
+        max-height: 675px;
+    }
+
+.neoPopup .popupContent{
+    height: -webkit-calc(100% - 153px);
+    height: -moz-calc(100% - 153px);
+    height: calc(100% - 153px);
+
+    overflow: auto;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/* Popup de sous-choix */
+
+#boardtypePopup .popupContent{
+    position: relative;
+}
+
+#boardtypePopup.popup{
+    width: 1240px;
+    top: 2%;
+}
+
+#boardtypePopup .popupContent{
+    padding-left: 60px;
+    padding-right: 60px;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#boardtypePopup .mask{
+    top: 0;
+    height: 100%;
+    opacity: 0;
+    background-color: rgba(52, 73, 94, 0.8);
+}
+
+    #boardtypePopup .mask p{
+        padding: 6px 30px;
+        line-height: 150%;
+    }
+
+    #boardtypePopup .mask h2{
+        font-size: 21px;
+        margin-bottom: 6px;
+    }
+
+    #boardtypePopup .mask:hover {
+        padding-top: 23px;
+    }
+
+#boardtypePopup .miniCanvas:hover .mask{
+    opacity: 1;
+}
+
+/* Gestion du slider dans la popup */
+
+.slideButton {
+    position: absolute;
+    top: 0;
+    width: 60px;
+    height: 100%;
+    z-index: 1000;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
+.leftSlide {
+    left: 5px;
+    opacity: 0.85;
+    background-image: url('/public/images/canvas-arrow-left.png');
+}
+
+    .leftSlide:hover{
+        left: -4px;
+        opacity: 1;
+    }
+
+.rightSlide {
+    right: 5px;
+    opacity: 0.85;
+    background-image: url('/public/images/canvas-arrow-right.png');
+}
+
+    .rightSlide:hover{
+        right: -5px;
+        opacity: 1;
+    }
+
+#uploadBlock .mask{
+    opacity: 1;
+    padding-top: 55px !important;
+}
+
+#uploadBlock.miniCanvas .mask2{
+    padding-top: 28px !important;
+    opacity: 0;
+}
+
+#uploadBlock.miniCanvas:hover .mask{
+    opacity: 0;
+}
+
+#uploadBlock .mask a{
+    margin-right: 0;
+}
+
+#uploadBlock.miniCanvas:hover .mask2{
+    opacity: 1;
+}
+
+    #uploadBlock img{
+        margin-bottom: 19px;
+    }
+
+    #uploadBlock .mask:hover img{
+        opacity: 0;
+    }
+
+    #uploadBlock .mask.mask2 img{
+        padding-top: 27px !important;
+    }
+
+        #uploadBlock .mask.mask2:hover img{
+            opacity: 1;
+        }
+
+    #uploadBlock h2{
+        text-transform: uppercase;
+    }
+
+/* Popup de blockage de membre */
+
+#blockPopup .popupContent, .simplePopup .popupContent{
+    background-color: transparent;
+    padding: 0 28px;
+    padding-bottom: 28px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#blockPopup .popupContent>.inlineBlockTop:first-child, .simplePopup .popupContent>.inlineBlockTop:first-child{
+    width: -webkit-calc(100% - 330px);
+    width: -moz-calc(100% - 330px);
+    width: calc(100% - 330px);
+    margin-right: 18px;
+}
+
+#savePart2 .popupContent>.inlineBlockTop:first-child{
+    width: -webkit-calc(100% - 240px);
+    width: -moz-calc(100% - 240px);
+    width: calc(100% - 240px);
+}
+
+#blockPopup .popupContent p, .simplePopup .popupContent p{
+    margin-bottom: 15px;
+}
+
+#blockPopup .popup p, .simplePopup .popup p{
+    font-size: 17px;
+}
+
+/* Popups plus petites */
+
+.simplePopup .popupHeader{
+    padding-bottom: 1.6%;
+}
+
+.inputPart{
+    margin-top: 30px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+    .inputPart input{
+        margin-right: -5px;
+        border: 1px solid rgb(225,225,225);
+        padding: 12px;
+        display: inline-block;
+        font-weight: 100;
+
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        width: 200px;
+    }
+
+    .inputPart input:focus{
+        border: 1px solid rgba(253, 196, 0, 0.6);
+        position: relative;
+        z-index: 10;
+    }
+
+.welcomeDecoPostit{
+    position: absolute;
+    left: -30px;
+    top: -43px;
+    z-index: 400;
+}
+
+.welcomeDecoPostit+.welcomeDecoPostit{
+    left: auto;
+    top: auto;
+
+    bottom: -97px;
+    right: -30px;
+}
+
+.popupHeader+.ng-scope{
+    height: 100%;
+}
+
+.overflowPopup.popup{
+    overflow: visible;
+}
+
+    .overflowPopup .popupBottom{
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+/* Popups de connexion */
+
+#savePopup .popup h3{
+    margin-left: 0;
+    text-transform: uppercase;
+    font-size: 19px;
+}
+
+#savePopup .popupContent .halfBlock{
+    width: -webkit-calc(50% - 21px) !important;
+    width: -moz-calc(50% - 21px) !important;
+    width: calc(50% - 21px) !important;
+    margin-right: 33px !important;
+}
+
+    #savePopup .popupContent .halfBlock+.halfBlock{
+        margin-right: 0 !important;
+    }
+
+#savePopup input{
+    margin-bottom: -1px;
+    border: 1px solid rgb(225,225,225);
+    padding: 13px;
+    display: inline-block;
+    font-weight: 100;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+    #savePopup input#gotoSavePart2{
+        font-weight: 500;
+    }
+
+    #savePopup .inputContainer{
+        width: 93%;
+    }
+
+    #savePopup input:focus{
+        border: 1px solid rgba(253, 196, 0, 0.6);
+        position: relative;
+        z-index: 10;
+    }
+
+    #savePopup fieldset{
+        margin-top: 16px;
+        margin-bottom: 10px;
+    }
+
+#savePopup nav{
+    margin-top: 16px;
+}
+
+.socialConnect{
+    display: block;
+    margin-bottom: 19px;
+    padding: 16px;
+    padding-left: 45px;
+    color: white;
+    text-transform: uppercase;
+    background-color: #3b5998;
+    text-decoration: none;
+    max-width: 202px;
+
+    background-image: url('/public/images/smallSocialSprite.png');
+    background-repeat: no-repeat;
+    background-position: 10px -39px;
+}
+
+    .socialConnect:hover{
+        background-color: #416cb1;
+    }
+
+    .socialConnect+.socialConnect{
+        background-color: #dd4b39;
+        background-position: 6px 12px;
+    }
+
+        .socialConnect+.socialConnect:hover{
+            background-color: #ef4e3a;
+        }
+
+        .socialConnect+.socialConnect+.socialConnect{
+            background-color: #00aced;
+            background-position: 9px -90px;
+        }
+
+            .socialConnect+.socialConnect+.socialConnect:hover{
+                background-color: #00bcff;
+            }
+
+#savePart2 h3{
+    margin-bottom: 14px;
+}
+
+    #savePopup #savePart2 fieldset {
+        margin-top: 21px;
+        margin-bottom: 6px;
+    }
+
+    #savePart2 p{
+        width: 93%;
+    }
+
+#lockedBoard{
+    opacity: 0.8;
+    position: relative;
+    left: 12px;
+    top: 23px;
+}
+
+.duoButton a, .duoButton input{
+    width: 68%;
+    height: 100%;
+    padding: 0;
+}
+
+.popupBottom.duoButton{
+    padding: 0;
+}
+
+.duoButton a+a, .duoButton input+a{
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: auto;
+    width: 32%;
+    background-color: #99a3ae;
+    z-index: 500;
+}
+
+    .smallerDuoButton.duoButton a+input{
+        width: 32% !important;
+        position: absolute !important;
+        right: 0 !important;
+        top: 0 !important;
+        left: auto !important;
+        font-weight: 500 !important;
+        background-color: #99a3ae;
+    }
+
+.duoButton a span{
+    position: relative;
+    top: 2px;
+    font-size: 25px;
+}
+
+.duoButton.reversedButton a{
+    background-color: #99a3ae;
+}
+
+    .duoButton.reversedButton a.yellowHover:hover, .smallerDuoButton.duoButton a+input:hover{
+        background-color: #fdc400;
+    }
+
+    .duoButton.reversedButton a+a{
+        background-color: transparent;
+    }
+
+    .paymentButton{
+        text-align: left !important;
+    }
+
+/* Popup save part 3 - passez à la version Pro */
+
+.proAssets{
+    width: 395px;
+    margin: 21px 0;
+    margin-bottom: 0;
+}
+
+.proAssets li{
+    color: #8e9e9f;
+    line-height: 230%;
+    font-size: 18px;
+    font-weight: 300;
+
+    padding-left: 9px;
+    position: relative;
+    left: 27px;
+
+    list-style-image: url(/public/images/puceTuzzit.png);
+}
+
+    .proAssets li strong{
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+.otherContextPricing{
+    width: 385px !important;
+    margin: 0 !important;
+    margin-top: 30px !important;
+    display: block !important;
+}
+
+.hiddenContainer.otherContextPricing h4 {
+    font-size: 26px;
+}
+
+.simplePopup .popupContent .otherContextPricing p{
+    margin-bottom: 0;
+}
+
+.hiddenContainer.otherContextPricing .decoPostit{
+    left: 3%;
+}
+
+    .hiddenContainer.otherContextPricing .decoPostit+.decoPostit{
+        left: auto;
+        right: 2.6%;
+    }
+
+/* Popup de confirmation de paiement */
+
+.neoPopup .popup#confirmationPopup{
+    max-height: 335px;
+    max-width: 850px;
+}
+
+.neoPopup #confirmationPopup .popupContent, .upgradePopupResize.popupContent{
+    height: -webkit-calc(100% - 146px);
+    height: -moz-calc(100% - 146px);
+    height: calc(100% - 146px);
+}
+
+#confirmationPopup .popupContent a:hover{
+    color: #fdc300 !important;
+}
+
+#confirmationPopup .popupContent{
+    padding: 0 22px;
+}
+
+#confirmationPopup .popupContent p{
+    margin-bottom: 5px;
+}
+
+#confirmationPopup .inlineBlockTop:first-child{
+    width: -webkit-calc(100% - 210px);
+    width: -moz-calc(100% - 210px);
+    width: calc(100% - 210px);
+    margin-right: 30px;
+}
+
+#confirmationPopup .inlineBlockTop+.inlineBlockTop{
+    position: relative;
+    top: 10px;
+}
+
+#confirmationPopup.innerConfirmationPopup .inlineBlockTop+.inlineBlockTop{
+    margin-bottom: 22px;
+    top: 0;
+}
+
+
+#confirmationPopup.innerConfirmationPopup{
+    padding: 0 19px;
+}
+
+/* Popup loader */
+
+#loaderContainer{
+    background-color: rgba(52, 73, 94, 0.78);
+    width: 100%;
+    height: 100%;
+    z-index: 10001;
+    position: fixed;
+}
+
+#loaderContainer.opaque{
+    background-color: rgba(52, 73, 94, 1);
+}
+
+#loaderContainer img{
+    margin: auto;
+    position: absolute;
+    z-index: 3000;
+    left: 0;
+    right: 0;
+    top: -5%;
+    bottom: 0;
+
+    width: 75px;
+    height: 75px;
+
+    -webkit-animation-name: spinningAnimation;
+    -webkit-animation-duration: 1500ms;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-name: spinningAnimation;
+    -moz-animation-duration: 1500ms;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -ms-animation-name: spinningAnimation;
+    -ms-animation-duration: 1500ms;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-timing-function: linear;
+}
+
+#loaderContainer *{
+    color: white !important;
+}
+
+/* Free popup*/
+
+#freeInnerPopup{
+    max-width: 840px;
+}
+
+#freePopup .popupContent{
+    background-color: transparent;
+}
+
+#freePopup .popupContent img{
+    width: 94%;
+    margin: 1% 3%;
+    height: auto;
+}
+
+.floatedDescription{
+    font-size: 14px !important;
+    line-height: 130%;
+    font-weight: 100;
+    color: rgba(52, 73, 94, 0.6) !important;
+    position: absolute;
+    top: 39px;
+    left: 340px;
+}
+
+.selectedPlan{
+    border: 1px solid #fdc300 !important;
+}
+
+    .selectedPlan h4{
+        color: #edba22 !important;
+    }
+
+/* Feedback block popup */
+
+.feedbackBlock{
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid rgba(166, 83, 60, 0.8);
+    border-bottom: 1px solid rgba(185, 85, 57, 0.81);
+
+    padding: 15px;
+    padding-bottom: 13px;
+    padding-left: 75px;
+    margin-bottom: 26px;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+    .feedbackBlock p{
+        font-size: 16px !important;
+        line-height: 135% !important;
+        margin-bottom: 0 !important;
+    }
+
+    .feedbackBlock h3{
+        margin-bottom: 7px;
+    }
+
+    .errorIcon{
+        background-color: #a93225;
+        position: absolute;
+        width: 59px;
+        top: 0;
+        left: 0;
+        bottom: 0;
+
+        background-image: url('/public/images/boardIcons/errorIcon.png');
+        background-repeat: no-repeat;
+        background-position: center center;
+
+        background-size: 26px;
+    }
+
+/* Popup d'export de board */
+
+.exportPopup .popup{
+    max-width: 780px !important;
+}
+
+.exportPopup.simplePopup .popup p{
+    font-size: 15px;
+    text-align: justify;
+    margin-top: 20px;
+    position: relative;
+    margin-bottom: 0;
+    line-height: 23px;
+}
+
+#savePopup.exportPopup .inputContainer{
+    width: 97%;
+}
+
+.containerExportIcon{
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 24px;
+}
+
+    .containerExportIcon img{
+        position: relative;
+        top: 2px;
+    }
+
+/* Popup d'invitation sur un board */
+
+#savePopup.invitePopup .inputContainer{
+    width: 100%;
+}
+
+#savePopup.invitePopup .inputContainer input{
+    width: 30%;
+    margin-right: -5px;
+    display: inline-block;
+
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;         /* Opera/IE 8+ */
+}
+
+    #savePopup.invitePopup .inputContainer input+input+input{
+        width: 40%;
+    }
+
+#savePopup.invitePopup .inlineBlockTop{
+    width: 100%;
+}
+
+
+#savePopup.invitePopup h3{
+    margin-top: 3px;
+    margin-bottom: 5px;
+}
+
+#savePopup.invitePopup .popup {
+    max-width: 850px;
+}
+
+#morePeople{
+    width: 100%;
+
+    padding: 14px 17px;
+    margin-top: 17px;
+
+    letter-spacing: 0.1px;
+
+    color: #a3a3a3;
+    border: 1px dashed #c3c3c3;
+    display: block;
+    cursor: pointer;
+
+    text-align: left;
+    padding-left: 53px;
+    position: relative;
+    font-weight: 300;
+    font-size: 15px;
+}
+
+    #morePeople:hover{
+        color: #1bc868;
+        border: 1px dashed #1ddc6e;
+    }
+
+    .moreSlots{
+        color: #a3a3a3;
+        font-size: 30px;
+        font-weight: 300;
+        text-align: center;
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: block;
+        width: 40px;
+        height: 45px;
+        line-height: 45px;
+        border-right: 1px dashed #c3c3c3;
+    }
+
+        #morePeople:hover .moreSlots{
+            color: #1bc868;
+            border-right: 1px dashed #1ddc6e;
+        }
+
+/* Popup - delete account */
+
+.attentionBlock{
+    border: 1px dashed #a9533c;
+    display: block;
+    width: 100%;
+    padding: 10px;
+}
+
+.attentionBlock strong {
+    font-weight: 500;
+    color: #7e8e8f;
+    font-size: 17px;
+}
+
+#deleteAccountForm label, #deleteAccountForm input{
+    width: 33.23% !important;
+    color: #545454;
+    display: inline-block;
+    font-weight: 300;
+}
+
+.duoButton.smallerDuoButton a span{
+    font-size: 23px;
+}
+
+/* Popup - Locked */
+
+#lockedPopup .inlineBlockTop h3{
+    margin-bottom: 10px;
+}
+
+.lockedPopupGeneral .inlineBlockTop:first-child{
+    width: -webkit-calc(50% - 232px) !important;
+    width: -moz-calc(50% - 232px) !important;
+    width: calc(100% - 232px) !important;
+}
+
+.lockedPopupGeneral .closePopup{
+    display: none !important;
+}
+
+/* Popup - Delete board */
+
+.deleteBoardPopup .popup p.attentionBlock, .deleteBoardPopup .popup p.attentionBlock *, .informationBlock *{
+    font-size: 16px !important;
+}
+
+.attentionBlock.informationBlock{
+    border: 1px solid rgb(220,220,220);
+    margin-bottom: 17px;
+}
+
+    .inlineBlockTop+.attentionBlock {
+        margin-top: 23px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .attentionBlock.informationBlock p{
+        margin-bottom: 4px !important;
+    }
+
+/* Popup de confirmation */
+
+#savePopup.confirmationPopup .popup{
+    max-width: 850px;
+}
+
+.simplePopup.confirmationPopup .popupContent>.inlineBlockTop:first-child {
+    width: -webkit-calc(50% - 192px);
+    width: -moz-calc(50% - 192px);
+    width: calc(100% - 192px);
+}
+
+.confirmationPopup p{
+    max-width: 90%;
+}
+
+/* Popup de newsletter */
+
+.newsletterPopup .inlineBlockTop{
+    width: 66% !important;
+}
+
+    .newsletterPopup .inlineBlockTop+.inlineBlockTop{
+        width: 31% !important;
+    }
+
+        .newsletterPopup .inlineBlockTop+.inlineBlockTop img{
+            display: block;
+            max-width: 80%;
+            height: auto;
+            margin: 11px auto;
+        }
+
+.warningMessage{
+    border: 1px dashed rgba(166, 83, 60, 0.8);
+    padding: 13px;
+    margin-top: 20px;
+
+    font-size: 16px !important;
+    line-height: 145%;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/* Popup paiement */
+
+#paymentInnerPopup form{
+    height: 100%;
+}
+
+/* Popup invitation */
+
+#guestPopup .popupHeader{
+    padding: 21px;
+    padding-bottom: 0;
+}
+
+#guestPopup .inlineBlockTop{
+    padding: 28px;
+    padding-top: 14px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#savePopup #guestPopup .popupContent .halfBlock{
+    margin-right: 0 !important;
+    width: -webkit-calc(50% - 2px) !important;
+    width: -moz-calc(50% - 2px) !important;
+    width: calc(50% - 2px) !important;
+}
+
+#savePopup #guestPopup .popupContent .halfBlock+.halfBlock{
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding-top: 91px;
+}
+
+#savePopup #guestPopup .inputContainer{
+    width: 100%;
+}
+
+#guestPopup .inlineBlockTop+.inlineBlockTop{
+    background-color: #34495e;
+}
+
+    #guestPopup .inlineBlockTop+.inlineBlockTop h3{
+        color: white;
+    }
+
+    #guestPopup .popupContent{
+        padding: 0 !important;
+    }
+
+.independantButton{
+    border: none;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-top: 24px;
+    text-decoration: none;
+    padding: 10px 17px;
+    cursor: pointer;
+    background-color: #1ddc6e;
+    outline: 0;
+}
+
+#tuzzitVideoPic{
+    margin-bottom: 14px;
+    width: 100%;
+    height: auto;
+}
+
+/* Create popup */
+
+#savePopup #createBoard .inputContainer{
+    width: 100%;
+}
+
+.passwordText{
+    margin-bottom: 0 !important;
+    position: relative;
+    top: 6px;
+    font-size: 16px !important;
+}
+
+/* Upgrade compte */
+
+.deprecatedPlan:hover{
+    top: 0;
+}
+
+.pricingRow:nth-child(1) .pricingTD:nth-last-child(2){
+    color: darkred;
+}
+
+.pricingRow.deprecatedPlan .pricingTD:first-child{
+    background-color: #868686;
+    background-image: none;
+}
+
+    .pricingRow.deprecatedPlan .pricingTD:nth-child(2){
+        color: #5a5a5a;
+    }
+
+
+.neoCheckbox{
+    display: block;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    height: 58px;
+    background-color: #1ddc6e;
+    color: white;
+}
+
+    .neoCheckbox:hover{
+        background-color: #fcb800;
+        color: white;
+    }
+
+.neoCheckbox *{
+    cursor: pointer;
+    display: inline-block;
+}
+
+.neoCheckbox label{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    line-height: 58px;
+    margin: auto;
+}
+
+    .neoCheckbox label span{
+        font-size: 19px;
+    }
+
+.neoCheckbox label span+span{
+    display: none;
+}
+
+    .neoCheckbox input:checked+label span:first-child{
+        display: none;
+    }
+
+    .neoCheckbox input:checked+label span+span{
+        display: block;
+    }
+
+.caddy{
+    background-image: url(../images/sprite-upgrade.png);
+    display: block;
+    width: 26px;
+    height: 26px;
+    background-position: 26px 0;
+    position: absolute;
+    left: -26px;
+    top: 12px;
+    opacity: 0;
+}
+
+.neoCheckbox input:checked+label{
+    background-color: #fcb800;
+    color: white;
+}
+
+    .neoCheckbox input:hover+label+.caddy, .neoCheckbox input:checked+label+.caddy{
+        opacity: 1;
+        left: 10px;
+    }
+
+    .neoCheckbox input{
+        display: block;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+    }
+
+#upgradPopup form{
+    height: 100%;
+}
+
+/* Popup de confirmation de choix */
+
+.confirmUpgradePopup .popup {
+    max-height: 510px !important;
+    width: 890px;
+}
+
+.popup .confirmFormPart .checkblockContainer{
+    text-align: left;
+    margin-top: 8px;
+}
+
+.confirmUpgradePopup.neoPopup .popupContent {
+    height: -webkit-calc(100% - 148px);
+    height: -moz-calc(100% - 148px);
+    height: calc(100% - 148px);
+}
+
+.confirmFormPart{
+    padding: 0 12px;
+}
+
+    .confirmFormPart .checkblockContainer label{
+        margin-right: 7px;
+    }
+
+.confirmFormPart .fakeInputContainer{
+    margin-top: 20px;
+}
+
+    .confirmFormPart .fakeInputContainer label{
+        font-size: 15px;
+        line-height: 130%;
+        color: #95a5a6;
+        margin-right: 7px;
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .confirmFormPart .fakeInputContainer label+p{
+        display: inline-block;
+        vertical-align: top;
+        color: #00abfa;
+        font-weight: 500;
+        font-size: 15px;
+        line-height: 130%;
+    }
+
+
+.upgradePopupResize{
+    overflow: auto;
+}
+
+.enterPassword h3{
+    margin-bottom: 12px;
+}
+
+.enterPassword #lockedBoard{
+    left: 40px;
+    top: 39px;
+}
+
+.popupContent.enterPassword>.inlineBlockTop:first-child {
+    width: -webkit-calc(100% - 270px);
+    width: -moz-calc(100% - 270px);
+    width: calc(100% - 270px);
+}
+
+#savePopup.resetPopup .popup {
+    max-width: 854px;
+}
+
+.resetPopup .enterPassword #lockedBoard{
+    top: 0;
+}
+
+/* Confirmer la suppression */
+
+#contextualDelete.popupContainer{
+    background: rgba(255,255,255,0.1);
+}
+
+    #contextualDelete .popupOverlay{
+        opacity: 0.6;
+    }
+
+    #contextualDelete .popup{
+        width: 660px;
+        top: 24%;
+    }
+
+    #contextualDelete .duoButton a span{
+        font-size: 23px;
+    }
+
+    #contextualDelete .popupHeader h2{
+        font-size: 33px;
+    }
+
+    #contextualDelete p{
+        margin-bottom: 0 !important;
+    }
+
+#contextualDelete.simplePopup .popupHeader {
+    padding-bottom: 1%;
+}
+
+#contextualDelete.simplePopup .popupContent{
+    padding: 0 18px;
+    padding-bottom: 28px;
+}
+
+/* Confirmation export */
+
+.simplePopup.confirmationPopup.confirmationExport .popupContent>.inlineBlockTop:first-child{
+    margin-right: -7px;
+}
+
+/* Embed code */
+
+.embedCode textarea{
+    display: block;
+    width: 100%;
+    height: 150px;
+    background-color: white;
+    border: 1px solid #d4d4d4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 13px;
+    line-height: 155%;
+    font-weight: 300;
+    font-family: 'Courier New', sans-serif;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+    #savePopup.embedCode pre{
+        margin-bottom: -25px;
+    }
+
+    #savePopup.embedCode .popupContent .halfBlock{
+        vertical-align: top;
+
+        width: -webkit-calc(62% - 21px) !important;
+        width: -moz-calc(62% - 21px) !important;
+        width: calc(62% - 21px) !important;
+        position: relative;
+    }
+
+    #savePopup.embedCode .popupContent .halfBlock+.halfBlock{
+        width: -webkit-calc(38% - 21px) !important;
+        width: -moz-calc(38% - 21px) !important;
+        width: calc(38% - 21px) !important;
+    }
+
+    #savePopup.embedCode .popupContent .halfBlock+.halfBlock p{
+        font-size: 16px;
+        line-height: 165%;
+        margin-top: 59px;
+    }
+
+#savePopup.embedCode input.options{
+    display: inline-block;
+    width: 110px !important;
+    vertical-align: top;
+    margin-bottom: 0 !important;
+    margin-right: -6px !important;
+}
+
+#copyButton{
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: block;
+    width: 48px;
+    height: 48px;
+    background-color: #1ddc6e;
+    cursor: pointer;
+    outline: 0;
+    border: none;
+    background-image: url('../images/clipboardIcon.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+    #copyButton:hover{
+        background-color: #fdc400;
+    }
+
+/* Popup adresse */
+
+.duoInput input:first-child{
+    width: 135px !important;
+    display: inline-block !important;
+    vertical-align: top;
+}
+
+    .duoInput input+.requiredField{
+        left: 120px;
+        right: auto;
+    }
+
+    .duoInput select{
+        vertical-align: top;
+        display: inline-block;
+        width: 160px;
+
+        margin-bottom: -1px;
+        border: 1px solid rgb(225,225,225);
+        padding: 13px;
+        font-weight: 100;
+        font-size: 15px;
+        color: rgb(169, 169, 169);
+        float: right;
+        cursor: pointer;
+    }
+
+#formPart2 h3{
+    margin-top: 2px;
+}
+
+#formPart2 fieldset{
+    margin-bottom: 0;
+}
+
+/* Ajout promo code */
+
+#promoTrigger{
+    cursor: pointer;
+    float: right;
+    text-decoration: underline;
+    font-weight: 300;
+    font-size: 15px;
+    position: relative;
+    top: 3px;
+    left: -1px;
+}
+
+#promoCodeContainer{
+    margin-bottom: 20px;
+}
+
+#promoCodeContainer input{
+    width: -webkit-calc(100% - 78px) !important;
+    width: -moz-calc(100% - 78px) !important;
+    width: calc(100% - 78px) !important;
+    display: inline-block !important;
+    vertical-align: top;
+    margin-right: -3px;
+}
+
+#promoCodeContainer input+button{
+    display: inline-block;
+    vertical-align: top;
+    width: 75px;
+    height: 48px;
+    line-height: 48px;
+
+    padding: 0 11px;
+
+    border: none;
+    outline: 0;
+    cursor: pointer;
+    background-color: #1ddc6e;
+    color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+    #promoCodeContainer input+button:hover{
+        background-color: #1ee570;
+    }
+
+/* Corrections/changement popup de sauvegarde */
+
+#savePopup.reworkSave .popup{
+    max-width: 798px;
+}
+
+#savePopup.reworkSave .inputContainer{
+    width: 94%;
+}
+
+#savePopup.reworkSave .popupContent .halfBlock{
+    width: 440px !important;
+}
+
+#savePopup.reworkSave .popupContent .halfBlock+.halfBlock{
+    width: 265px !important;
+}
+
+.simplePopup.reworkSave .popup p {
+    font-size: 15px;
+    margin-top: 14px;
+}
+
+#proLogin{
+    text-decoration: underline;
+    color: rgb(144, 153, 164);
+    margin-top: 18px;
+    margin-left: 1px;
+    display: block;
+}
+
+    #proLogin:hover{
+        color: #fdc400;
+    }
+
+.loginPro .popup{
+    background-color: #34495e;
+}
+    
+    .loginPro h2, .loginPro h3{
+        color: white;
+    }
+    
+.loginPro .popupIcon{
+    background-color: white;
+}
+
+.loginPro .popupIcon.canvasLogo {
+    background-image: url('/public/images/canvas-icon-mask2.png');
+}
+
+.loginPro .halfBlock input, .halfPro.halfBlock input{
+    background-color: #596c7f;
+    border: 1px solid #668598 !important;
+    color: white;
+}
+
+    .loginPro input:focus, .halfPro input:focus{
+        border: 1px solid rgba(253, 196, 0, 0.6) !important;
+    }
+
+.loginPro .requiredField, .halfPro .requiredField{
+    color: white;
+}
+
+.loginPro .ng-submitted input.ng-invalid, .halfPro .ng-submitted input.ng-invalid{
+    border: 1px dashed #a9533c !important;
+}
+
+.loginPro .duoButton input{
+    width: 60% !important;
+}
+
+.loginPro .duoButton{
+    text-align: left;
+}
+
+.loginPro .duoButton input+a{
+    width: 40% !important;
+}
+
+/* Correction newsletter */
+
+#newsletterPart{
+    position: relative;
+}
+
+/* Corrections taille payement */
+
+#paymentPart2{
+    width: 685px;
+    height: 422px;
+}
+
+    #paymentPart2 .popupContent{
+        margin-bottom: 10px;
+    }
+
+#paymentPopup #paymentPart2 .popupHeader {
+    padding-bottom: 1.5%;
+}
+
+#paymentPart3{
+    max-width: 850px;
+    height: 260px;
+}
+
+/* Popup vidéo -> partage sur réseaux sociaux */
+
+#shareItself.videoChatShare{
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 3px;
+    background-color: transparent;
+}
+
+#shareItself.videoChatShare .actualShare a{
+    width: 92px;
+    height: 92px;
+    margin-right: 13px;
+}
+
+    #shareItself.videoChatShare .actualShare a span{
+        font-size: 12px;
+    }
+
+    #shareItself.videoChatShare .actualShare a:first-child{
+        background-position: 31px 20px;
+    }
+
+    #shareItself.videoChatShare .actualShare a+a {
+        background-position: -63Px 20px;
+    }
+
+    #shareItself.videoChatShare .actualShare a+a+a {
+        background-position: -157Px 20px;
+    }
+
+    #shareItself.videoChatShare .actualShare a+a+a+a {
+        background-position: -252Px 20px;
+    }
+
+    #shareItself.videoChatShare .actualShare a+a+a+a+a {
+        background-position: -344px 20px;
+    }
+
+#savePopup #shareItself nav{
+    margin-top: 7px;
+}
+
+#inviteCTAPopup{
+    max-width: 725px !important;
+}
+
+#inviteCTAPopup .shareBody{
+    padding-left: 0;
+}
+
+#inviteCTAPopup p {
+    font-size: 15px !important;
+}
+
+#formPart2{
+    height: 100%;
+}
+
+/* Corrections mediaqueries popup */
+
+.freeNeoPopup .popup{
+
+}
+
+.freeNeoPopup .popupContent{
+    margin-bottom: 0;
+}
+
+.popupContent.popupWithAds{
+    max-height: 800px;
+}
+
+/* Correction downgrade */
+
+#specialDowngrade label{
+    font-weight: 300;
+    color: #95a5a6;
+    width: 230px;
+    display: inline-block;
+}
+
+#specialDowngrade .inputContainer+.inputContainer label{
+    vertical-align: top;
+    margin-top: 15px;
+}
+
+#specialDowngrade textarea{
+    margin-right: -5px;
+    border: 1px solid rgb(225,225,225);
+    padding: 11px 13px;
+    font-weight: 100;
+    height: 125px;
+    display: inline-block;
+}
+
+#savePopup.invitePopup.downgradePopup .popup {
+    max-width: 655px;
+}
+
+#specialDowngrade input, #specialDowngrade textarea{
+    width: 370px !important;
+}
+
+#savePopup.downgradePopup fieldset {
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
+/* Améliorations Popup Guest */
+
+.welcomeDecoPostit+.welcomeDecoPostit.guestPostit{
+    bottom: -36px;
+    right: -25px;
+}
+
+.logoPro{
+    position: absolute;
+    top: 30px;
+    left: 27px;
+}
+
+#forgottenInvitation .duoButton input:first-child{
+    width: 68%;
+    margin: 0;
+}
+
+#forgottenInvitation .popupBottom{
+    text-align: left;
+}
+
+/* Popup pick pricing */
+
+.specialH3Block{
+    width: 100%;
+
+    background: #FFFFFF;
+    font-size: 18px;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid #0091dc;
+    display: block;
+    line-height: 67px;
+    height: 69px;
+    margin: auto !important;
+    margin-bottom: 30px !important;
+    max-width: 510px;
+}
+
+    .visaBlock{
+        width: 100%;
+
+        background: #FFFFFF;
+        text-transform: uppercase;
+        text-align: left;
+        border: 1px solid rgb(225,225,225);
+        display: block;
+        line-height: 67px;
+        height: 69px;
+        margin: auto !important;
+        margin-bottom: 31px !important;
+        max-width: 510px;
+        position: relative;
+
+        padding-left: 84px;
+    }
+
+        .visaBlock img:first-child{
+            position: absolute;
+            left: 21px;
+            top: 16px;
+        }
+
+            .visaBlock h3+img{
+                position: absolute;
+                right: 19px;
+                top: 21px;
+            }
+
+            .visaBlock *{
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            .visaBlock p{
+                font-size: 18px;
+            }
+
+    .specialH3Block a{
+        display: block;
+        width: 100%;
+        height: 100%;
+        font-size: 18px;
+        color: #0091dc !important;
+        text-decoration: none;
+    }
+
+    .specialH3Block:hover{
+        background: #0091dc;
+    }
+
+    .specialH3Block:hover a{
+        color: #FFFFFF !important;
+    }
+
+.icon3{
+    display: inline-block;
+    width: 43px;
+    height: 36px;
+    background-image: url(/public/images/sprite-pro-tabs.png);
+    background-repeat: no-repeat;
+    vertical-align: top;
+    margin-top: 15px;
+    margin-right: 15px;
+    background-position: -86px 0;
+}
+
+    .specialH3Block:hover .icon3{
+        background-position: -86px -36px;
+    }
+
+
+/* Corrections flux paiement */
+
+#upgradPopup .popupContent h3{
+    margin-left: 0;
+}
+
+#upgradPopup .popup {
+    max-height: 737px;
+}
+
+
+#upgradPopup #pricingBlock{
+    margin-top: 0 !important;
+}
+
+#upgradPopup .pricingRow{
+    margin-bottom: 75px;
+}
+
+    #upgradPopup .pricingRow:hover{
+        top: 0;
+    }
+
+#upgradPopup .specialH3Block{
+    max-width: none;
+}
+
+#upgradPopup .popupBottom input{
+    width: 100%;
+    height: 100%;
+}
+
+#upgradPopup #pricingTable{
+    margin-bottom: 35px !important;
+}
+
+#paymentInnerPopup #pickPart{
+    display: block;
+    max-width: 510px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#paymentInnerPopup .hiddenContainer{
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    cursor: default;
+    margin-bottom: 5px;
+}
+
+#paymentInnerPopup .backCircle, #paymentInnerPopup .yellowCircle{
+    display: none;
+}
+
+#paymentInnerPopup .optionFormula{
+    width: 100%;
+    left: 0;
+    cursor: default;
+}
+
+#paymentInnerPopup .hiddenContainer{
+    border: 1px solid rgba(253, 196, 0, 0.6);
+}
+
+#paymentPopup .popup{
+    width: 576px;
+}
+
+#paymentPopup .popupHeader h2{
+    font-size: 34px;
+}
+
+#paymentPopup .popupHeader{
+    padding: 18px;
+    padding-bottom: 0;
+}
+
+.neoPopup .popup, #savePart3.popup{
+    max-height: 838px;
+}
+
+#paymentPopup .duoButton a span, #paymentPopup .duoButton input{
+    font-size: 23px;
+}
+
+#paymentPopup .popupBottom{
+    bottom: -10px;
+}
+
+#upgradPopup .pricingRow .pricingTD:last-child {
+    bottom: -82px;
+}
+
+#upgradPopup .popupContent{
+    padding-bottom: 0 !important;
+}
+
+#upgradPopup .popupContent, #upgradPopup .upgradePopupResize.popupContent {
+    height: -webkit-calc(100% - 87px) !important;
+    height: -moz-calc(100% - 87px) !important;
+    height: calc(100% - 87px) !important;
+}
+
+/* Ajout feedback blocks */
+
+.feedbackPromo{
+    width: 100%;
+    background: #FFFFFF;
+    text-align: left;
+    border: 1px solid rgb(225,225,225);
+    display: block;
+    line-height: 62px;
+    height: 65px;
+    margin: auto !important;
+    margin-top: 12px !important;
+    max-width: 510px;
+    position: relative;
+    padding-left: 83px;
+}
+
+    .positiveFeedbackPromo{
+        border: 1px solid #0CD05D;
+    }
+
+    .colorBlock{
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 64px;
+        height: 64px;
+    }
+
+        .positiveFeedbackPromo .colorBlock{
+            background-color: #0CD05D;
+            background-image: url('/public/images/boardIcons/validIcon.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 28px;
+        }
+
+    .negativeFeedbackPromo{
+        border: 1px solid rgba(166, 83, 60, 0.8);
+    }
+
+        .negativeFeedbackPromo .colorBlock{
+            background-color: #a93225;
+            background-image: url('/public/images/boardIcons/errorIcon.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 28px;
+        }
+
+
+/* Mediaqueries */
+
+@media (min-height:812px){
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 610px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 597px !important;
+        }
+    }
+}
+
+@media (max-height:662px){
+    @media (min-width:1450px){
+        #boardtypePopup{
+            top: 0.5% !important;
+        }
+    }
+}
+
+@media (max-height:812px){
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+    }
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 610px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 597px !important;
+        }
+    }
+}
+
+@media (max-height:745px){
+    #savePopup .popup{
+        top: 3% !important;
+    }
+
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+        min-height: 574px !important;
+    }
+
+    #freePopup .popupContent img{
+        width: 70% !important;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 522px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 509px !important;
+        }
+    }
+}
+
+@media (min-height:500px) and (max-height:724px){
+    #savePopup .popup{
+        top: 1% !important;
+    }
+
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+        min-height: 507px !important;
+    }
+
+    #freePopup .popupContent img{
+        width: 70% !important;
+    }
+}
+
+@media (min-height:500px) and (max-height:646px){
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+        min-height: 507px !important;
+    }
+
+    #freePopup .popupContent img{
+        width: 60% !important;
+    }
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 486px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 474px !important;
+        }
+    }
+}
+
+@media (min-height:500px) and (max-height:604px){
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+        min-height: 456px !important;
+    }
+
+    #freePopup .popupContent img{
+        width: 50% !important;
+    }
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 450px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 439px !important;
+        }
+    }
+}
+
+@media (min-height:500px) and (max-height:565px){
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+        min-height: 453px !important;
+    }
+
+    #freePopup .popupContent img{
+        width: 40% !important;
+    }
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 414px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 403px !important;
+        }
+    }
+}
+
+@media (max-height:523px){
+    .freeNeoPopup > #freeInnerPopup{
+        top: 1% !important;
+        min-height: 433px !important;
+    }
+
+    #freePopup .popupContent img{
+        width: 35% !important;
+    }
+
+    @media (max-width:1050px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 397px !important;
+        }
+    }
+
+    @media (max-width:768px){
+        .freeNeoPopup > #freeInnerPopup{
+            min-height: 385px !important;
+        }
+    }
+}
+
+@media (min-width:1450px){
+
+    .freeNeoPopup > #freeInnerPopup{
+        min-height: 673px;
+        top: 5%;
+    }
+
+    #guestPopup .popupHeader h2{
+        font-size: 35px;
+    }
+}
+
+@media (max-width:1450px){
+
+    .freeNeoPopup > #freeInnerPopup{
+        min-height: 673px;
+        top: 5%;
+    }
+
+    #paymentPopup .popupHeader h2{
+        font-size: 29px;
+    }
+
+    .popup{
+        width: 900px;
+    }
+
+    #boardtypePopup.popup{
+        width: 992px;
+    }
+
+    .miniCanvas {
+        width: 260px;
+        height: 185px;
+    }
+
+    .mask p {
+        font-size: 13px;
+        line-height: 150%;
+    }
+
+    .mask a{
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+
+    .popupHeader h2{
+        font-size: 30px;
+        line-height: 165%;
+    }
+
+    .popupIcon{
+        margin-right: 14px;
+    }
+
+    .popupBottom a, .popupBottom input{
+        font-size: 23px;
+    }
+
+    .popupContainer{
+        top: 45px;
+    }
+
+    .hiddenContainer{
+        padding: 20px 12px;
+        padding-bottom: 15px;
+    }
+
+        .hiddenContainer h4{
+            font-size: 17px;
+        }
+
+    .neoPopup .popupContent, .upgradePopupResize.popupContent{
+        height: -webkit-calc(100% - 147px);
+        height: -moz-calc(100% - 147px);
+        height: calc(100% - 147px);
+    }
+
+    /* Mediaqueries de la 2em étape */
+
+    #boardtypePopup .mask h2 {
+        font-size: 18px;
+    }
+
+    #boardtypePopup .mask p{
+        padding: 6px;
+    }
+
+    #boardtypePopup .mask a{
+        margin-top: 8px;
+    }
+
+    #boardtypePopup .mask:hover {
+        padding-top: 17px;
+    }
+
+    #uploadBlock .mask:not(.mask2) {
+        padding-top: 35px !important;
+    }
+
+    #uploadBlock.miniCanvas .mask2 {
+        padding-top: 18px !important;
+    }
+
+    #blockPopup .popup p, .simplePopup .popup p{
+        font-size: 16px;
+    }
+
+    #blockPopup .popupContent>.inlineBlockTop:first-child{
+        width: -webkit-calc(50% - 253px);
+        width: -moz-calc(50% - 253px);
+        width: calc(100% - 253px);
+        margin-right: 18px;
+    }
+
+    #blockPopup .popupContent img{
+        width: 230px;
+        height: auto;
+    }
+
+    #blockPopup .popupContent, .simplePopup .popupContent {
+        padding-left: 23px;
+    }
+
+    #savePopup .popup h3{
+        font-size: 18px;
+    }
+
+    /*#savePopup .popup#savePart2 {*/
+        /*max-width: 700px;*/
+    /*}*/
+
+    #lockedBoard{
+        width: 140px;
+        height: auto;
+        left: 13px;
+        margin-top: 15px;
+    }
+
+    .popup#savePart2 .popupContent>.inlineBlockTop:first-child {
+        width: -webkit-calc(100% - 200px);
+        width: -moz-calc(100% - 200px);
+        width: calc(100% - 200px);
+    }
+
+    .popupContent>.inlineBlockTop:first-child {
+        width: -webkit-calc(100% - 17px);
+        width: -moz-calc(100% - 160px);
+        width: calc(100% - 160px);
+    }
+
+    .proAssets li, .proAssets li strong{
+        font-size: 17px;
+    }
+
+    .floatedDescription{
+        top: 36px;
+        left: 300px;
+    }
+
+    #uploadBlock .mask.mask2 img{
+        padding-top: 17px !important;
+    }
+
+    .popupContent.enterPassword>.inlineBlockTop:first-child {
+        width: -webkit-calc(100% - 250px);
+        width: -moz-calc(100% - 250px);
+        width: calc(100% - 250px);
+    }
+
+    #savePopup.embedCode .popupContent .halfBlock+.halfBlock p {
+        font-size: 15px;
+        margin-top: 60px;
+    }
+}
+
+@media (max-width:1050px){
+
+    .freeNeoPopup > #freeInnerPopup{
+        /*min-height: 596px;*/
+        width: 750px;
+        top: 3%;
+    }
+
+    #paymentPopup .popupHeader h2 {
+        font-size: 26px;
+    }
+
+    .popup {
+        width: 720px;
+    }
+
+    #boardtypePopup.popup{
+        width: 810px;
+    }
+
+    #savePopup .popup{
+        width: 734px;
+    }
+
+    .miniCanvas{
+        width: 200px;
+        height: 145px;
+    }
+
+    .popupBottom{
+        height: 62px;
+    }
+
+        .popupBottom a, .popupBottom input{
+            padding: 0;
+            font-size: 21px;
+        }
+
+    .closePopup{
+        top: 0;
+        right: 0;
+        z-index: 3;
+    }
+
+    .mask{
+        height: 35px;
+    }
+
+    .miniCanvas:hover .mask {
+        padding-top: 30px;
+    }
+
+        .mask p{
+            display: none;
+        }
+
+        .mask a{
+            margin-top: 6px;
+        }
+
+        .mask h2 {
+            font-size: 15px;
+        }
+
+    .popupHeader h2 {
+        font-size: 26px;
+        line-height: 187%;
+    }
+
+    .popupBottom{
+        padding: 0;
+    }
+
+    .popupHeader {
+        height: 48px;
+    }
+
+    .icon-home-menu{
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .hiddenContainer{
+        display: block;
+        width: 100%;
+        margin: auto;
+        margin-bottom: 42px;
+        max-width: 510px;
+    }
+
+    #pickPart{
+        text-align: center;
+    }
+
+        #pickPart .hiddenContainer:first-child{
+            margin-top: 12px;
+        }
+
+    #paymentPopup .popupContent{
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+    .neoPopup .popupContent, .neoPopupSpecial .popupContent{
+        height: -webkit-calc(100% - 128px);
+        height: -moz-calc(100% - 128px);
+        height: calc(100% - 128px);
+    }
+
+    #boardtypePopup .mask h2 {
+        line-height: 135%;
+        font-size: 17px;
+    }
+
+    #uploadBlock .mask img{
+        width: 70px;
+        height: auto;
+        margin-bottom: 15px;
+    }
+
+    #blockPopup .popupContent>.inlineBlockTop:first-child{
+        width: -webkit-calc(50% - 213px);
+        width: -moz-calc(50% - 213px);
+        width: calc(100% - 213px);
+        margin-right: 18px;
+    }
+
+    #blockPopup .popupContent img{
+        width: 190px;
+        height: auto;
+        margin-top: 10px;
+    }
+
+    #blockPopup .popupContent, .simplePopup .POPUPCONTENT{
+        padding-left: 20px;
+    }
+
+    #blockPopup p br{
+        display: none;
+    }
+
+    .inputPart input{
+        width: 180px;
+    }
+
+    .welcomeDecoPostit+.welcomeDecoPostit{
+        bottom: -89px;
+    }
+
+    #savePopup .popup h3{
+        font-size: 17px;
+    }
+
+    .socialConnect{
+        font-size: 15px;
+    }
+
+    .proAssets li, .proAssets li strong{
+        font-size: 16px;
+    }
+
+    .neoPopup .popup#confirmationPopup {
+        max-height: 310px;
+    }
+
+    .neoPopup #confirmationPopup .popupContent {
+        height: -webkit-calc(100% - 128px);
+        height: -moz-calc(100% - 128px);
+        height: calc(100% - 128px);
+    }
+
+    #confirmationPopup .popupContent {
+        padding: 0 19px;
+    }
+
+    .floatedDescription{
+        top: 32px;
+        left: 262px;
+    }
+
+    .feedbackBlock p{
+        font-size: 15px !important;
+    }
+
+    .exportPopup.simplePopup .popup p {
+        font-size: 14px;
+        line-height: 21px;
+        margin-top: 23px;
+    }
+
+    #deleteAccountForm label{
+        font-size: 15px;
+        letter-spacing: -0.1px;
+    }
+
+    .newsletterPopup .inlineBlockTop+.inlineBlockTop{
+        width: 30% !important;
+    }
+
+    .duoButton input{
+        position: relative;
+        top: -2px;
+    }
+
+    .duoButton input+a span{
+        font-size: 21px;
+        position: relative;
+        top: -2px;
+    }
+
+    #guestPopup .popupHeader {
+        padding: 22px;
+        padding-top: 20px;
+        padding-bottom: 0;
+    }
+
+    #savePopup #guestPopup .popupContent .halfBlock+.halfBlock{
+        padding-top: 83px;
+    }
+
+    .confirmUpgradePopup .popup {
+        max-height: 270px;
+        width: 740px;
+    }
+
+    .confirmUpgradePopup.neoPopup .popupContent {
+        height: -webkit-calc(100% - 123px);
+        height: -moz-calc(100% - 123px);
+        height: calc(100% - 123px);
+    }
+
+    .duoButton.smallerDuoButton a span {
+        font-size: 20px;
+        position: relative;
+        top: -2px;
+    }
+
+    #savePart3 .popupContent{
+        height: -webkit-calc(100% - 135px);
+        height: -moz-calc(100% - 135px);
+        height: calc(100% - 135px);
+    }
+
+    .hiddenContainer:first-child{
+        margin-left: 0;
+    }
+
+    .hiddenContainer h4 {
+        font-size: 25px;
+    }
+
+    #savePopup.reworkSave .popupContent .halfBlock{
+        width: 366px !important;
+    }
+
+    .simplePopup.reworkSave .popup p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width:768px){
+    .popup {
+        width: 732px !important;
+        top: 7%;
+    }
+
+    .popupContent{
+        padding: 0 10px;
+        padding-bottom: 12px;
+    }
+
+    .popup .row, .popup .rowBoard{
+        margin-bottom: 10px;
+    }
+
+    .miniCanvas {
+        width: 176px;
+        height: 122px;
+        margin: 10px;
+    }
+
+    .mask{
+        height: 34px;
+    }
+
+    .mask h2 {
+        font-size: 14px;
+    }
+
+    .popupBottom {
+        height: 57px;
+    }
+
+    .popupBottom a, .popupBottom input{
+        font-size: 19px;
+        position: relative;
+        top: -5px;
+    }
+
+    .popupBottom.reversedButton a{
+        top: 0;
+    }
+
+    .popupHeader h2 {
+        font-size: 24px;
+        line-height: 200%;
+    }
+
+    .mask a {
+        font-size: 13px;
+        padding: 8px;
+        margin-right: 14px;
+    }
+
+    .icon-home-menu{
+        margin-top: 25px;
+        margin-bottom: 25px;
+
+        width: 35px;
+        height: 35px;
+        background-size: 35px;
+    }
+
+    .col33 p {
+        font-size: 20px;
+    }
+
+    .neoPopup .popupContent, .neoPopupSpecial .popupContent {
+        height: -webkit-calc(100% - 120px);
+        height: -moz-calc(100% - 120px);
+        height: calc(100% - 120px);
+    }
+
+    #uploadBlock .mask:not(.mask2) {
+        padding-top: 28px !important;
+    }
+
+    #boardtypePopup .mask h2 {
+        font-size: 15px;
+    }
+
+    #uploadBlock .mask img{
+        width: 55px;
+        height: auto;
+        margin-bottom: 11px;
+    }
+
+    #blockPopup .popupContent>.inlineBlockTop:first-child{
+        width: -webkit-calc(50% - 183px);
+        width: -moz-calc(50% - 183px);
+        width: calc(100% - 183px);
+        margin-right: 18px;
+    }
+
+    #blockPopup .popupContent img{
+        width: 160px;
+        margin-top: 10px;
+        height: auto;
+    }
+
+    #savePopup .popup h3 {
+        font-size: 16px;
+    }
+
+    #confirmationPopup .popupContent {
+        padding: 0 18px;
+    }
+
+    .neoPopup #confirmationPopup .popupContent{
+        height: -webkit-calc(100% - 120px);
+        height: -moz-calc(100% - 120px);
+        height: calc(100% - 120px);
+    }
+
+    .floatedDescription{
+        top: 31px;
+        left: 250px;
+    }
+
+    #deleteAccountForm label{
+        line-height: 135%;
+        position: relative;
+        top: 9px;
+    }
+
+    #deleteAccountForm input{
+        font-size: 15px;
+    }
+
+    .confirmationPopup p{
+        max-width: 100%;
+    }
+
+    .duoButton input+a span{
+        font-size: 19px;
+        position: relative;
+        top: -3px;
+    }
+
+    #guestPopup .canvasLogo{
+        display: none;
+    }
+
+    #guestPopup .popupHeader {
+        padding: 27px;
+        padding-top: 20px;
+        padding-bottom: 0;
+    }
+
+    #savePart3 .popupContent{
+        height: -webkit-calc(100% - 127px);
+        height: -moz-calc(100% - 127px);
+        height: calc(100% - 127px);
+    }
+
+    #uploadBlock .mask.mask2 img{
+        padding-top: 10px !important;
+    }
+
+    .simplePopup.confirmationPopup.confirmationExport .popupContent>.inlineBlockTop:first-child{
+        margin-right: 14px;
+    }
+
+    #savePopup.embedCode .popupContent .halfBlock+.halfBlock p {
+        font-size: 14px;
+        margin-top: 61px;
+    }
+
+    .embedCode textarea{
+        font-size: 15px;
+    }
+
+    #savePopup.reworkSave .popupContent .halfBlock {
+        width: 282px !important;
+    }
+
+    #savePopup.reworkSave .popupContent .halfBlock+.halfBlock {
+        width: 250px !important;
+    }
+
+    #proLogin{
+        font-size: 14px;
+        line-height: 130%;
+        max-width: 80%;
+    }
+}

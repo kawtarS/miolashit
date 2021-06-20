@@ -1,0 +1,175 @@
+/**
+ * Created by nicolas on 3/09/15.
+ */
+angular.module('menuBarModule', [])
+    .directive('menuBar', ["$rootScope", "$cacheFactory", "$timeout", "$location", function ($rootScope, $cacheFactory,$timeout,$location) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+
+                $rootScope.getScalePercent = function () {
+
+                    var percent = parseInt(SCALE * 100);
+                    percent -= 10;
+                    return percent;
+
+                }
+
+                $scope.fullScrenActive = false;
+                $rootScope.multiSelected = false;
+
+
+                $scope.sliderZoomIn = function ($event) {
+                    $event.preventDefault();
+
+                    SCALE += ZOOMPERCLICK;
+                    SCALE = SCALE > MAXZOOMLEVEL ? MAXZOOMLEVEL : SCALE;
+
+
+                };
+
+                $scope.sliderZoomOut = function ($event) {
+                    $event.preventDefault();
+
+                    SCALE -= ZOOMPERCLICK;
+                    SCALE = SCALE < MINZOOMLEVEL ? MINZOOMLEVEL : SCALE;
+
+
+                };
+
+                $scope.startMultiSelect = function ($event) {
+                    $event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY) {
+                        return;
+                    }
+
+                    $rootScope.multiSelected = !$rootScope.multiSelected;
+
+                    var mcCache = $cacheFactory.get("mainController");
+
+                    if ($scope.multiSelected) {
+                        mcCache.get("activateMultiSelectMode")();
+                    } else {
+                        mcCache.get("desactivateMultiSelectMode")();
+                    }
+
+                };
+
+                //FULLSCREEN
+                $scope.setFullScreen = function ($event) {
+                    console.log('test');
+                    if (!document.fullscreenElement &&    // alternative standard method
+                        !document.mozFullScreenElement && !document.webkitFullscreenElement) {  // current working methods
+                        $scope.fullScreenActive = true;
+
+                        if (document.documentElement.requestFullscreen) {
+                            document.documentElement.requestFullscreen();
+                        } else if (document.documentElement.mozRequestFullScreen) {
+                            document.documentElement.mozRequestFullScreen();
+                        } else if (document.documentElement.webkitRequestFullscreen) {
+                            document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                        }
+                    } else {
+                        $scope.fullScreenActive = false;
+                        if (document.cancelFullScreen) {
+                            document.cancelFullScreen();
+                        } else if (document.mozCancelFullScreen) {
+                            document.mozCancelFullScreen();
+                        } else if (document.webkitCancelFullScreen) {
+                            document.webkitCancelFullScreen();
+                        }
+                    }
+                }
+
+                var exitHandler = function ()
+                {
+                    if (!document.fullscreenElement &&    // alternative standard method
+                        !document.mozFullScreenElement && !document.webkitFullscreenElement) {  // current working methods
+                        $scope.fullScreenActive = false;
+
+                        try{
+                            $timeout(function(){
+                                $scope.$apply();
+                            });
+
+                        }catch (error){
+
+                        }
+                    }
+                }
+
+                document.addEventListener('webkitfullscreenchange', exitHandler, false);
+                document.addEventListener('mozfullscreenchange', exitHandler, false);
+                document.addEventListener('fullscreenchange', exitHandler, false);
+                document.addEventListener('MSFullscreenChange', exitHandler, false);
+
+
+                //---
+
+                $scope.setReplayMode = function(){
+
+                    if($rootScope.boardState == BOARD_MODE.READONLY || $rootScope.tuzzer.blocked){
+                       return;
+                    }
+
+                    if($rootScope.boardState == BOARD_MODE.REPLAY){
+                        $rootScope.boardState = BOARD_MODE.NORMAL;
+                    }else{
+                        if($rootScope.boardState == BOARD_MODE.ANCOR){
+                            var mcCache = $cacheFactory.get("mainController");
+                            mcCache.get("desactivateAncorMode")();
+                        }else if($rootScope.boardState == BOARD_MODE.MULTISELECT){
+                            $rootScope.multiSelected = false;
+                            var mcCache = $cacheFactory.get("mainController");
+                            mcCache.get("desactivateMultiSelectMode")();
+                        }
+                        $rootScope.boardState = BOARD_MODE.REPLAY;
+                        $rootScope.currentActor = null;
+                    }
+
+
+                }
+
+                //canvas select
+                $scope.canvasSelection = function ($event) {
+                    $event.preventDefault();
+
+                    if($rootScope.board.is_temp || ($rootScope.tuzzer && !$rootScope.tuzzer.is_visitor)){
+                        $location.path("/popup/canvas");
+                    }
+
+                };
+
+                //--
+
+                $rootScope.$watch("currentTool", function () {
+
+
+                    if ($rootScope.currentTool) {
+                        $rootScope.multiSelected = false;
+                        var mcCache = $cacheFactory.get("mainController");
+                        mcCache.get("desactivateMultiSelectMode")();
+
+                        if($rootScope.boardState == BOARD_MODE.REPLAY){
+
+                            $rootScope.boardState = BOARD_MODE.NORMAL;
+
+                        }
+
+                    }
+
+                    if($rootScope.currentTool != "text"){
+                        $rootScope.textToAdd = null;
+                    }
+
+                });
+
+
+
+            }
+
+        };
+    }]);

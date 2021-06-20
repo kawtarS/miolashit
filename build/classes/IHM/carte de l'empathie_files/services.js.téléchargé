@@ -1,0 +1,588 @@
+/**
+ * Created by nicolas on 30/07/15.
+ */
+app.factory('ActorHttp', ["$http", "$q", function ($http, $q) {
+
+
+    return {
+        updateActorTemp: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveTemporaryObject', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        updateActor: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveBoardObject', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        deleteActorTemp: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/deleteBoardTempObject', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        deleteActor: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/deleteBoardObject', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getVoteCount: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getVoteCount', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        newVote: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/newVote', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getAllBoardActors: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getObjectListForBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        createArrow: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveArrow', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        deleteArrow: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/archiveArrow', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getAllVote: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getAllVote', data);
+            return deferRequest($http, $q, req);
+
+
+        }
+
+
+
+    };
+}]);
+
+app.factory('ChatHttp', ["$http", "$q", function ($http, $q) {
+
+
+    return {
+        sendMessage: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Chat/postNewMessage', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        readLastMessages: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Chat/readLastMessage', data);
+            return deferRequest($http, $q, req);
+
+
+        }
+
+    };
+}]);
+
+app.factory('DashHttp', ["$http", "$q", function ($http, $q) {
+
+
+    return {
+        getCurrentTuzzerBoards: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/getCurrentTuzzerBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getObjectToModerateList: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getObjectToModerateList', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        blockUserInBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/blockUser', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        unblockUserInBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/unblockUser', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        isTuzzerBlocked: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/isTuzzerBlocked', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        setBoardModerationParams: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/setBoardModerationParams', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        validateModeratedObject: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/validateModeratedObject', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        blockObject: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/blockObject', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getInvitationBoardList: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Invitation/getInvitationBoardList', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        updateBoardName: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/editBoardName', data);
+            return deferRequest($http, $q, req);
+        }
+
+    };
+}]);
+
+app.factory('AccountHttp', ["$http", "$q", function ($http, $q) {
+
+
+    return {
+        isNotificationRuleActive: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/isNotificationRuleActive', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        desactivateNotificationRule: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/desactivateNotificationRule', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        activateNotificationRule: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/activateNotificationRule', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        updateTuzzer: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/updateTuzzerInformation', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        setTuzzerPassword: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/setTuzzerPassword', data);
+            return deferRequest($http, $q, req);
+
+        },
+        modifyTuzzerPassword: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/modifyTuzzerPassword', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        archiveTuzzer: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/archiveTuzzer', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        archiveBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/archiveBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getBillListForTuzzer: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/getBillListForTuzzer', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        setTuzzerLanguage: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/setTuzzerLanguage', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        resendInvitation: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Invitation/resendInvitation', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        sendRecoveryDemand: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/createPasswordRecoveryDemand', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        modifyRecoveryPassword: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/modifyRecoveryPassword', data);
+            return deferRequest($http, $q, req);
+
+
+        }
+
+    };
+}]);
+
+app.factory('ToolHttp', ["$http", "$q", function ($http, $q) {
+
+
+    return {
+        getUrlInfo: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/getUrlInfo', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getFlirkImage: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/searchForFlickrImage', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getVideos: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/searchForYoutubeVideo', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        createChildBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/createChildBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getTuzzerImageList: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/getTuzzerImageList', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getRandomList: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/getRandomList', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getStickerList: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/getStickerList', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        saveForReplay: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveForReplay', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getReplayListForBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getReplayListForBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        setVoteModeForBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/setVoteModeForBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        unsetVoteModeForBoard: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/unsetVoteModeForBoard', data);
+            return deferRequest($http, $q, req);
+
+
+        },
+        getTinyUrl: function (data) {
+
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tool/getTinyUrl', data);
+            return deferRequest($http, $q, req);
+
+
+        }
+
+
+
+    };
+}]);
+
+app.factory('VideoHttp', ["$http", "$q", function ($http, $q) {
+
+
+    return {
+        createOpentokSession: function () {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Chat/createOpentokSession', null);
+            return deferRequest($http, $q, req);
+        },
+        generatePublisherToken: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Chat/generatePublisherToken', data);
+            return deferRequest($http, $q, req);
+        },
+        generateSubscriberToken: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Chat/generateSubscriberToken', data);
+            return deferRequest($http, $q, req);
+        },
+        setTokSessionIdForBoard: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/setTokSessionIdForBoard', data);
+            return deferRequest($http, $q, req);
+        },
+        unsetTokSessionIdForBoard: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/unsetTokSessionIdForBoard', data);
+            return deferRequest($http, $q, req);
+        }
+     };
+}]);
+
+
+app.factory('FormHttp', ["$http", "$q", function ($http, $q) {
+    return {
+        createTuzzer: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/createTuzzer', data);
+            return deferRequest($http, $q, req);
+
+        },
+        updateTuzzer: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/updateTuzzer', data);
+            return deferRequest($http, $q, req);
+
+        },
+        login: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Access/login', data);
+            return deferRequest($http, $q, req);
+
+        },
+        loginViaFacebook: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Access/loginWithFacebook', data);
+            return deferRequest($http, $q, req);
+
+        },
+        logout: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Access/logout', null);
+            return deferRequest($http, $q, req);
+
+        },
+        checkBoardPassword: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/checkBoardPassword', data);
+            return deferRequest($http, $q, req);
+
+        },
+        saveBoardFromTemp: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveBoardFromTemporaryId', data);
+            return deferRequest($http, $q, req);
+        },
+        updateBoard: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveBoard', data);
+            return deferRequest($http, $q, req);
+        },
+        updateBoardCanvas: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/saveBoardCanvas', data);
+            return deferRequest($http, $q, req);
+        },
+        getCanvasTypes: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getBoardTypeList', data);
+            return deferRequest($http, $q, req);
+
+        },
+        getAllCanvas: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Canva/getCanvaList', null);
+            return deferRequest($http, $q, req);
+
+        },
+        getMethodologyListForType: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getTranslationJson', data);
+            return deferRequest($http, $q, req);
+
+        },
+        getMethodologyDescription: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/getMethodologyDescription', data);
+            return deferRequest($http, $q, req);
+
+        },
+        sendInvitations: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Invitation/createMassiveInvitation', data);
+            return deferRequest($http, $q, req);
+
+        },
+        acceptInvitation: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Invitation/registerAfterInvitation', data);
+            return deferRequest($http, $q, req);
+        },
+        getStripePlansList: function () {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Financial/getPLanList', null);
+            return deferRequest($http, $q, req);
+        },
+        getCountriesList: function () {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/getCountryList', null);
+            return deferRequest($http, $q, req);
+        },
+        createTuzzerAndPay: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/createTuzzerAndPay', data);
+            return deferRequest($http, $q, req);
+        },
+        checkIfPromoCodeIsValid: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/checkIfPromoCodeIsValid', data);
+            return deferRequest($http, $q, req);
+        },
+        sendExportedBoardToTuzzer: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Board/sendExportedBoardToTuzzer', data);
+            return deferRequest($http, $q, req);
+        },
+        subscribeToNewsletter: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/subscribeNewsletter', data);
+            return deferRequest($http, $q, req); 
+        },
+        updateVisitor: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/updateVisitor', data);
+            return deferRequest($http, $q, req);
+        },
+        setVisitor: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/setVisitor', data);
+            return deferRequest($http, $q, req);
+        },
+        downgradeAccount: function (data) {
+            var req = getRequestObjSerialized('POST', '/api/1/framework/Tuzzer/askDowngrade', data);
+            return deferRequest($http, $q, req);
+        }
+
+    }
+}]);
+
+
+function getRequestObj(method, url, data) {
+
+    return {
+        method: method,
+        url: url,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        transformRequest: transformRequestUtils,
+        data: data
+    };
+
+
+}
+
+function getRequestObjSerialized(method, url, data) {
+
+    return {
+        method: method,
+        url: url,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: data
+    };
+
+
+}
+
+function deferRequest($http, $q, request) {
+    var deferred = $q.defer();
+    $http(request)
+        .success(function (data, status, headers, config) {
+            if (data.success == true) {
+                deferred.resolve(data.data, status, headers, config);
+
+            } else {
+                deferred.reject(data, status, headers, config);
+            }
+
+        })
+        .error(function (data, status, headers, config) {
+            deferred.reject(data, status, headers, config)
+        })
+    return deferred.promise;
+}
+
+//chat periscope
+
+app.factory('periscopeFactory', ["$rootScope","$timeout", function ($rootScope,$timeout) {
+
+
+    var $timer = null;
+
+    return {
+        addMessage: function (message) {
+
+            $timeout.cancel($timer);
+            $timer = null;
+
+
+            $rootScope.$broadcast("periscope:messageChange",message);
+            $rootScope.$broadcast("periscope:displayChange",true);
+
+            //hide message
+            $timer = $timeout(function(){
+
+                $rootScope.$broadcast("periscope:messageChange",null);
+                $rootScope.$broadcast("periscope:displayChange",false);
+
+            }, PERISCOPE_TIME);
+        }
+    };
+}]);

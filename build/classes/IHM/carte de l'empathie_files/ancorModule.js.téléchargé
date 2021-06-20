@@ -1,0 +1,320 @@
+angular.module('ancorModule', [])
+    .directive('actorAncor', ["$document","$cacheFactory", "$rootScope", function ($document,$cacheFactory,$rootScope) {
+        return {
+            restrict: 'A',
+            scope: {
+                ancor: '=ancor'
+            },
+            link: function (scope, element, attr) {
+
+                element.on('mouseover', function (event) {
+
+                    event.preventDefault();
+
+                    scope.ancor.setHighlight(true);
+
+
+
+                });
+
+                element.on('mouseleave', function (event) {
+
+                    event.preventDefault();
+
+
+                    scope.ancor.setHighlight(false);
+
+
+
+                });
+
+                var mouseup = function(event){
+                    event.preventDefault();
+
+                    scope.ancor.setHighlight(false);
+                    $rootScope.changeAncorPoint(scope.ancor);
+                }
+
+                element.on('mouseup', mouseup);
+                element.bind('touchend', mouseup);
+
+
+            }
+        };
+    }])
+    .directive('arrowAAncor', ["$document","$rootScope", "$cacheFactory", function ($document,$rootScope,$cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            link: function (scope, element, attr) {
+
+
+                var mousemove = function (event) {
+                    event.preventDefault();
+
+                    if($rootScope.currentArrow){
+
+                        var cursor = cursorFromEvent(event);
+
+                        var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                        roundifyVector(dropPoint);
+                        $rootScope.currentArrow.updatePointAWithPosition(dropPoint);
+
+                    }
+                }
+
+                var mouseup = function (event) {
+                    event.preventDefault();
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    var mcCache = $cacheFactory.get("mainController");
+                    mcCache.get("desactivateAncorMode")();
+
+                    $rootScope.currentArrow.updateMe();
+                }
+
+                var mousedown = function (event) {
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY) {
+                        return;
+                    }
+                    if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != $rootScope.currentArrow.owner_uuid){
+                        return;
+                    }
+
+                    //if isAnchored click desanchor so we desactivate the drag and move
+                    if(!$rootScope.currentArrow.displayAAncor()){
+                        return;
+                    }
+
+                    //up
+                    $document.on('mouseup', mouseup);
+                    $document.bind('touchend', mouseup);
+
+                    var mcCache = $cacheFactory.get("mainController");
+                    mcCache.get("activateAncorMode")();
+
+                    boardCanMove = false;
+                    $document.on('mousemove', mousemove);
+                    $document.bind('touchmove', mousemove);
+
+                    $rootScope.changeAncorPoint = function(ancor){
+                        $rootScope.currentArrow.changeAPointToAncor(ancor);
+                    }
+
+                }
+
+                //desanchoring
+                var mouseclick = function (event) {
+                    event.preventDefault();
+
+                    if($rootScope.currentArrow.displayAAncor()){
+                        return;
+                    }
+
+                    //je dois etre desancré
+                    $rootScope.currentArrow.changeAPointToVector();
+                    $rootScope.currentArrow.updateMe();
+
+
+                }
+
+
+                element.on('click', mouseclick);
+                element.on('mousedown', mousedown);
+                element.bind('touchstart', mousedown);
+
+
+
+
+            }
+        };
+    }])
+    .directive('arrowBAncor',  ["$document","$rootScope", "$cacheFactory", function ($document,$rootScope,$cacheFactory) {
+        return {
+            restrict: 'A',
+            scope: true,
+            link: function (scope, element, attr) {
+
+                var mousemove = function (event) {
+                    event.preventDefault();
+
+                    if($rootScope.currentArrow){
+
+                        var cursor = cursorFromEvent(event);
+
+                        var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                        roundifyVector(dropPoint);
+                        $rootScope.currentArrow.updatePointBWithPosition(dropPoint);
+
+                    }
+                }
+
+                var mouseup = function (event) {
+                    event.preventDefault();
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    var mcCache = $cacheFactory.get("mainController");
+                    mcCache.get("desactivateAncorMode")();
+
+                    $rootScope.currentArrow.updateMe();
+
+                }
+
+
+
+
+                var mousedown = function (event) {
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY) {
+                        return;
+                    }
+                    if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != $rootScope.currentArrow.owner_uuid){
+                        return;
+                    }
+
+                    if(!$rootScope.currentArrow.displayBAncor()){
+                        return;
+                    }
+
+                    //up
+                    $document.on('mouseup', mouseup);
+                    $document.bind('touchend', mouseup);
+
+                    var mcCache = $cacheFactory.get("mainController");
+                    mcCache.get("activateAncorMode")();
+
+                    boardCanMove = false;
+                    $document.on('mousemove', mousemove);
+                    $document.bind('touchmove', mousemove);
+
+                    $rootScope.changeAncorPoint = function(ancor){
+                        $rootScope.currentArrow.changeBPointToAncor(ancor);
+                    }
+
+                }
+
+                //desanchoring
+                var mouseclick = function (event) {
+                    event.preventDefault();
+
+                    if($rootScope.currentArrow.displayBAncor()){
+                        return;
+                    }
+
+                    //je dois etre desancré
+                    $rootScope.currentArrow.changeBPointToVector();
+                    $rootScope.currentArrow.updateMe();
+
+
+                }
+
+
+
+                element.on('click', mouseclick);
+                element.on('mousedown', mousedown);
+                element.bind('touchstart', mousedown);
+
+
+
+
+
+            }
+        };
+    }])
+    .directive('arrowClick', ["$rootScope", "$document", function ($rootScope,$document) {
+        return {
+            restrict: 'A',
+            scope: {arrow: "=arrow"},
+            link: function (scope, element, attr) {
+
+
+                var startPoint = null;
+                var moved = false;
+
+                var mouseDown = function(event){
+                    event.preventDefault();
+
+                    if ($rootScope.boardState == BOARD_MODE.MULTISELECT || $rootScope.boardState == BOARD_MODE.READONLY || $rootScope.boardState == BOARD_MODE.REPLAY) {
+                        return;
+                    }
+                    if($rootScope.tuzzer.is_visitor && $rootScope.tuzzer.uuid != scope.arrow.owner_uuid){
+                        return;
+                    }
+
+                    $rootScope.currentArrow = scope.arrow;
+                    $rootScope.currentActor = null;
+
+                    boardCanMove = false;
+                    var cursor = cursorFromEvent(event);
+                    startPoint =  new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+
+                    $document.on('mousemove', mousemove);
+                    $document.bind('touchmove', mousemove);
+                    $document.on('mouseup', mouseup);
+                    $document.bind('touchend', mouseup);
+                }
+
+                element.on('mousedown', mouseDown);
+                element.bind('touchstart', mouseDown);
+
+
+                var mousemove = function (event) {
+                    event.preventDefault();
+
+
+                    if($rootScope.currentArrow && $rootScope.currentArrow.v1 && $rootScope.currentArrow.v2){
+
+                        moved = true;
+
+                        var cursor = cursorFromEvent(event);
+
+                        var dropPoint = new Vector2((cursor.x - OFFSET_X) / SCALE, (cursor.y - OFFSET_Y) / SCALE);
+                        var translation = subVector(dropPoint,startPoint);
+                        startPoint =  dropPoint;
+                        roundifyVector(translation);
+                        $rootScope.currentArrow.translateArrow(translation);
+
+                    }
+
+
+
+                }
+
+                var mouseup = function (event) {
+                    event.preventDefault();
+
+
+                    $document.off('mouseup', mouseup);
+                    $document.unbind('touchend', mouseup);
+
+                    $document.off('mousemove', mousemove);
+                    $document.unbind('touchmove', mousemove);
+
+                    boardCanMove = true;
+
+                    if(moved){
+
+                        $rootScope.currentArrow.updateMe();
+
+                        moved = false;
+                    }
+
+
+                }
+
+            }
+        };
+    }]);

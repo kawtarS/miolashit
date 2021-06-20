@@ -1,0 +1,416 @@
+/**
+ * Created by nicolas on 28/08/15.
+ */
+
+
+angular.module('accountModule', [])
+    .directive('account', ["$rootScope", "AccountHttp", "FormHttp", "$location","$translate","$timeout", function ($rootScope, AccountHttp, FormHttp, $location, $translate, $timeout) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.tuzzer = {};
+                $scope.countries = {};
+                $scope.serverErrors = [];
+
+                //on récupère la liste des pays disponibles
+                FormHttp.getCountriesList().then(
+                    function (data, status, headers, config) {
+                        angular.forEach(data, function(value, key) {
+                            if ($rootScope.settings.language = 'fr_FR'){
+                                value.label = value.fr_fr;
+                            }
+                            else {
+                                value.label = value.en_us;
+                            }
+
+                        });
+
+                        $scope.countries = data;
+                        try {
+                            $timeout(function () {
+                                $scope.$apply();
+                            });
+
+                        } catch (error) {
+
+                        }
+                    }, function (data, status, headers, config) {
+                        $scope.countries = null;
+                    });
+
+
+                var inputObject = function (text) {
+                    this.text = text ? text : "";
+                    this.valid = true;
+                };
+
+                //PASSWORD
+                $scope.currentPwd = new inputObject;
+                $scope.newPwd = new inputObject;
+                $scope.newConfirmPwd = new inputObject;
+
+                var validatePwd = function () {
+
+                    var valid = true;
+
+                    if (isNullOrEmpty($scope.currentPwd.text)) {
+                        valid = false;
+                        $scope.currentPwd.valid = false;
+                    } else {
+                        $scope.currentPwd.valid = true;
+                    }
+                    if (isNullOrEmpty($scope.newPwd.text)) {
+                        valid = false;
+                        $scope.newPwd.valid = false;
+                    } else {
+                        $scope.newPwd.valid = true;
+                    }
+                    if (isNullOrEmpty($scope.newConfirmPwd.text)) {
+                        valid = false;
+                        $scope.newConfirmPwd.valid = false;
+                    } else {
+                        $scope.newConfirmPwd.valid = true;
+                    }
+
+                    if ($scope.newConfirmPwd.text !== $scope.newPwd.text) {
+                        valid = false;
+                        $scope.newConfirmPwd.valid = false;
+                        $scope.newPwd.valid = false;
+                    }
+
+
+                    if (valid) {//send password change
+
+                        var data = {password:$scope.currentPwd.text,new_password:$scope.newPwd.text,check_password:$scope.newConfirmPwd.text};
+                        AccountHttp.modifyTuzzerPassword(data).then(
+                            function (data, status, headers, config) {
+
+                                $scope.serverErrors = [];
+
+                            }, function (data, status, headers, config) {
+                                $scope.serverErrors = [data.error];
+                                console.log("error modifyTuzzerPassword");
+                            });
+                    }
+
+                }
+                //----
+
+                //NOTIFICATION
+                var NotifObject = function (type) {
+                    this.type = type;
+                    this.checked = true;
+                };
+
+                var notificationModified = false;
+                $scope.sound = new NotifObject(NOTIFICATIONS.PLAY_SOUND);
+                $scope.mail = new NotifObject(NOTIFICATIONS.SEND_MAIL);
+                $scope.invitation = new NotifObject(NOTIFICATIONS.SEND_INVITATION);
+                $scope.daily = new NotifObject(NOTIFICATIONS.SEND_DAILY);
+
+                var notifications = [$scope.sound, $scope.mail, $scope.invitation, $scope.daily];
+
+                $scope.notifChanged = function (notif) {
+                    notificationModified = true;
+
+                    if(notif == $scope.mail){
+                        if($scope.mail.checked){
+                            $scope.invitation.checked = true;
+                            $scope.daily.checked = true;
+                        }else{
+                            $scope.invitation.checked = false;
+                            $scope.daily.checked = false;
+                        }
+                    }else if(notif == $scope.sound){
+                        $rootScope.playChatSound = $scope.sound.checked;
+                    }
+                }
+
+
+                //load notif state ! multiple call :-( !
+                angular.forEach(NOTIFICATIONS, function (value, key) {
+
+                    AccountHttp.isNotificationRuleActive({notification: value}).then(
+                        function (data, status, headers, config) {
+
+                            if (data) {
+                                setNotifState(data.notification, data.state);
+                            } else {
+                                console.log("error data notification state");
+                            }
+
+
+                        }, function (data, status, headers, config) {
+                            console.log("error get notification state");
+                        });
+
+                });
+
+                var setNotifState = function (type, state) {
+                    //console.log("type -> " + type + " state -> " + state);
+                    switch (type) {
+                        case NOTIFICATIONS.PLAY_SOUND:
+                            $scope.sound.checked = state;
+
+                            if(state){
+                                $rootScope.playChatSound = true;
+                            }
+
+                            break;
+                        case NOTIFICATIONS.SEND_MAIL:
+                            $scope.mail.checked = state;
+
+
+
+                            $scope.$watchGroup(["invitation.checked", "daily.checked"], function (newValues, oldValues) {
+
+                                if($scope.invitation.checked && $scope.daily.checked){
+                                    $scope.mail.checked = true;
+                                }else if(!$scope.invitation.checked || !$scope.daily.checked){
+                                    $scope.mail.checked = false;
+                                }
+
+
+                            });
+
+                            break;
+                        case NOTIFICATIONS.SEND_INVITATION:
+                            $scope.invitation.checked = state;
+                            break;
+                        case NOTIFICATIONS.SEND_DAILY:
+                            $scope.daily.checked = state;
+                            break;
+                    }
+
+                }
+
+
+                var sendNotifications = function () {
+
+                    angular.forEach(notifications, function (value, key) {
+
+                        if (value.checked) {
+
+                            AccountHttp.activateNotificationRule({notification: value.type}).then(
+                                function (data, status, headers, config) {
+
+
+                                }, function (data, status, headers, config) {
+                                    console.log("error activateNotificationRule");
+                                });
+
+                        } else {
+
+                            AccountHttp.desactivateNotificationRule({notification: value.type}).then(
+                                function (data, status, headers, config) {
+
+
+                                }, function (data, status, headers, config) {
+                                    console.log("error desactivateNotificationRule");
+                                });
+
+                        }
+
+
+                    });
+
+                }
+
+                //----
+
+                //INFO COMPTE
+                var startMail = null;
+                $rootScope.$watch("tuzzer.email", function () {
+                    $scope.tuzzer.email = $rootScope.tuzzer.email;
+                    $scope.tuzzer.firstname = $rootScope.tuzzer.firstname;
+                    $scope.tuzzer.lastname = $rootScope.tuzzer.lastname;
+                    $scope.tuzzer.street = $rootScope.tuzzer.street;
+                    $scope.tuzzer.city = $rootScope.tuzzer.city;
+                    $scope.tuzzer.zipcode = $rootScope.tuzzer.zipcode;
+                    $scope.tuzzer.country = $rootScope.tuzzer.country;
+                    $scope.countrySelect = $rootScope.tuzzer.country;
+                    startMail = $scope.tuzzer.email;
+                });
+
+                var sendInfos = function (event) {
+                    $rootScope.fullLoader = true;
+                    var data = $scope.tuzzer;
+
+                    AccountHttp.updateTuzzer(data).then(
+                        function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+
+
+                            if(data){
+                                $rootScope.tuzzer.email = $scope.tuzzer.email;
+                                $rootScope.tuzzer.firstname = $scope.tuzzer.firstname;
+                                $rootScope.tuzzer.lastname = $scope.tuzzer.lastname;
+                                $rootScope.tuzzer.street = $scope.tuzzer.street;
+                                $rootScope.tuzzer.city = $scope.tuzzer.city;
+                                $rootScope.tuzzer.zipcode = $scope.tuzzer.zipcode;
+                                $rootScope.tuzzer.country = $scope.tuzzer.country;
+
+                                //angular.element(".specialCloseAccount").css("display", "none");
+                                //angular.element(".accountMenu").removeClass("showMenu");
+                                //angular.element(".accountMenu").css("display", "none");
+                            }
+
+                        }, function (data, status, headers, config) {
+                            $rootScope.fullLoader = false;
+                            console.log("error updateTuzzer");
+                        });
+                }
+
+                $scope.changeCountry = function(country){
+
+                    $scope.tuzzer.country = country.iso1;
+                }
+
+                //------
+
+                //Language
+                var initLanguage = function(){
+
+                    var languageMatch = {fr_FR: "Français", en_EN:"English"};
+                    $scope.language = {id:$rootScope.settings.language, name:languageMatch[$rootScope.settings.language]};
+
+
+                    if($scope.language.id === "fr_FR"){
+                        $scope.language2 = {id:"en_EN", name:languageMatch["en_EN"]};
+
+                    }else{
+                        $scope.language2 = {id:"fr_FR", name:languageMatch["fr_FR"]};
+
+                    }
+
+                    $scope.languages = [ $scope.language ,$scope.language2];
+                    $scope.changeLanguage = function(language){
+                        $translate.use(language.id);
+
+                        AccountHttp.setTuzzerLanguage({language: language.id}).then(
+                            function (data, status, headers, config) {
+
+
+                            }, function (data, status, headers, config) {
+                                console.log("error setTuzzerLanguage");
+                            });
+                    }
+
+                }
+
+                pushInitListener(initLanguage);
+
+
+
+                //----
+
+
+                $scope.validateForm = function (event) {
+
+                    event.preventDefault();
+
+                    //test if send pws in server
+                    if (!isNullOrEmpty($scope.currentPwd.text) || !isNullOrEmpty($scope.newPwd.text) || !isNullOrEmpty($scope.newConfirmPwd.newConfirmPwd)) {
+                        validatePwd();
+                    }
+
+
+                    //test if send notif to server
+                    if (notificationModified) {
+                        sendNotifications();
+                    }
+
+
+                    //test if send info to server
+                    if (startMail !== $scope.email) {
+                        sendInfos();
+                    }
+
+                    notificationModified = false;
+
+
+                }
+
+                //DELETE ACCOUNT
+                $scope.deleteAccount = function(){
+                    $rootScope.accessDeleteAccount = true;
+                    $location.path('popup/deleteAccount')
+
+                }
+
+
+            }
+        }
+    }])
+    .directive('boardList', ["$rootScope", "AccountHttp", "$location", function ($rootScope, AccountHttp,$location) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.BOARD_PRICE = BOARD_PRICE;
+
+
+                $scope.deleteBoard = function (board) {
+                    $rootScope.currentDeletedBoard = board;
+                    $location.path('popup/deleteBoard');
+
+                }
+
+                $scope.billList = [];
+
+                AccountHttp.getBillListForTuzzer(null).then(
+                    function (data, status, headers, config) {
+
+                       if(data){
+                           $scope.billList = data;
+                       }
+
+                    }, function (data, status, headers, config) {
+                        console.log("error getBillListForTuzzer");
+                    });
+
+
+
+            }
+        }
+    }])
+    .directive('plans', ["$rootScope", "AccountHttp", "$location", function ($rootScope, AccountHttp,$location) {
+        return {
+            restrict: 'A',
+            scope: true,
+            controller: function ($scope) {
+
+                $scope.tuzzer = {};
+                $scope.planToUpgrade = 'collaboration';
+
+                $rootScope.$watch("tuzzer.email", function () {
+                    $scope.tuzzer = $rootScope.tuzzer;
+                });
+
+                $scope.setPlanToUpgrade = function (plan) {
+                    $scope.planToUpgrade = plan;
+                }
+
+                $scope.downgradeAccount = function () {
+                    $rootScope.accessDowngradeAccount = true;
+                    $location.path('popup/downgradeAccount');
+
+                }
+
+                $scope.upgradeAccount = function () {
+                    //SI ON POSSEDE LE PLAN MAXIMUM, ON NE PEUT PLUS UPGRADER
+                    if ($scope.tuzzer.stripe_plan_id != "interaction") {
+                        if ($scope.tuzzer.stripe_plan_id != $scope.planToUpgrade) {
+                            $rootScope.accessUpgradeAccount = $scope.planToUpgrade;
+                            $location.path('popup/confirmUpgrade');
+                        }
+                    }
+                }
+
+            }
+        }
+    }])
+;

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="592.0" prefWidth="746.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="IHM.Emprunttry2Controller">
+   <children>
+      <AnchorPane prefHeight="592.0" prefWidth="200.0" style="-fx-background-color: #301934;">
+         <children>
+            <TextField fx:id="txt_idClient" layoutX="25.0" layoutY="58.0" prefHeight="30.0" prefWidth="150.0" promptText="clientId" />
+            <TextField fx:id="txt_idvoiture" layoutX="25.0" layoutY="95.0" prefHeight="30.0" prefWidth="150.0" promptText="voitureId" />
+            <TextField fx:id="txt_dateEm" layoutX="25.0" layoutY="134.0" prefHeight="30.0" prefWidth="150.0" promptText="dateEmprunt" />
+            <TextField fx:id="txt_dateretour" layoutX="25.0" layoutY="173.0" prefHeight="30.0" prefWidth="150.0" promptText="dateRetour" />
+            <TextField fx:id="txt_etatemprunt" layoutX="25.0" layoutY="218.0" prefHeight="30.0" prefWidth="150.0" promptText="etatEmprunt" />
+            <TextField fx:id="txt_idEmprunt" layoutX="26.0" layoutY="23.0" prefHeight="29.0" prefWidth="148.0" promptText="empruntId" />
+         </children>
+      </AnchorPane>
+      <TableView fx:id="tables_emprunt" layoutX="200.0" layoutY="60.0" onMouseClicked="#getSelected" prefHeight="533.0" prefWidth="545.0">
+        <columns>
+          <TableColumn fx:id="col_empruntId" prefWidth="97.0" text="empruntId" />
+          <TableColumn fx:id="col_idclient" prefWidth="85.0" text="clientId" />
+            <TableColumn fx:id="col_voitureId" prefWidth="94.0" text=" voitureId" />
+            <TableColumn fx:id="col_dateE" prefWidth="85.0" text="dateEmprunt" />
+            <TableColumn fx:id="col_dateR" prefWidth="96.0" text="dateRetour" />
+            <TableColumn fx:id="col_etat" prefWidth="87.0" text="etatEmprunt" />
+        </columns>
+      </TableView>
+      <Button layoutX="29.0" layoutY="382.0" mnemonicParsing="false" onAction="#Add_Emprunts" prefHeight="30.0" prefWidth="140.0" style="-fx-background-color: grey;" text="Add" />
+      <Button layoutX="29.0" layoutY="437.0" mnemonicParsing="false" onAction="#Edit" prefHeight="30.0" prefWidth="140.0" style="-fx-background-color: blue;" text="Update" />
+      <Button layoutX="29.0" layoutY="492.0" mnemonicParsing="false" onAction="#DeleteEm" prefHeight="30.0" prefWidth="140.0" style="-fx-background-color: red;" text="Delete" />
+      <ImageView fx:id="back" fitHeight="36.0" fitWidth="40.0" layoutX="222.0" layoutY="14.0" onMouseClicked="#switchback" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@back_arrow_icon_131563.png" />
+         </image>
+      </ImageView>
+      <TextField fx:id="filterField" layoutX="351.0" layoutY="20.0" prefHeight="25.0" prefWidth="260.0" promptText="Search" />
+   </children>
+</AnchorPane>
